@@ -1,0 +1,19 @@
+/* Zmienne do motywów - jasne */
+:root {
+  --bg: #fff;
+  --text: #000;
+  --accent: #3b82f6;
+}
+
+/* Użycie zmiennych */
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Zmienne do motywów - ciemne */
+body.dark {
+  --bg: #212325;
+  --text: #fff;
+  --accent: #3b82f6;
+}
