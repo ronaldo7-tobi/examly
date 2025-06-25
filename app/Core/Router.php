@@ -26,7 +26,8 @@ class Router
                 break;
 
             case 'register':
-                require_once __DIR__ . '/../../views/register.php';
+                $regController = new RegisterController();
+                $regController->handleRequest();
                 break;
             
             case 'inf03_one_question':
