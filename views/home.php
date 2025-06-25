@@ -82,7 +82,11 @@
         <h1>Examly</h1>
     </header>
     <main>
-
+        <?php
+        session_start();
+        $user = unserialize($_SESSION['user']);
+        echo $user->getFullName();
+        ?>
     </main>
 </body>
 </html>

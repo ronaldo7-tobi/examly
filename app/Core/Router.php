@@ -22,7 +22,8 @@ class Router
                 break;
 
             case 'login':
-                require_once __DIR__ . '/../../views/login.php';
+                $logController = new LoginController();
+                $logController->handleRequest();
                 break;
 
             case 'register':
