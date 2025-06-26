@@ -55,5 +55,6 @@
     </header>
     <main>
     </main>
+    <?php include 'partials/footer.php'; ?>
 </body>
 </html>

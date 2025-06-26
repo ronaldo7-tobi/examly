@@ -1,13 +1,16 @@
 <?php 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 $logged = false;
 if(isset($_SESSION['user'])) {
     $logged = true;
 }
 ?>
 <nav>
-    <img src="logo.png" alt="logo" class="logo">
-
+    <a href="">
+        <img src="logo.png" alt="logo" class="logo">
+    </a>
     <ul class="nav-links">
         <li class="dropdown">
             <a href="#inf03" class="nav-link">
@@ -36,7 +39,7 @@ if(isset($_SESSION['user'])) {
         <?php else: ?>
             <li>
                 <a href="statistics">
-                    <img src="#" alt="user">
+                    <img src="../../public/images/user.png" alt="user" class="user_image">
                 </a>
             </li>
         <?php endif; ?>
