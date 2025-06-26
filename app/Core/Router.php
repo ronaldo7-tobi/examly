@@ -46,6 +46,10 @@ class Router
             case 'inf03_course':
                 require_once __DIR__ . '/../../views/inf03_course.php';
                 break;
+            
+            case 'statistics':
+                require_once __DIR__ . '/../../views/statistics.php';
+                break;
 
             default:
                 http_response_code(404);

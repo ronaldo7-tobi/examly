@@ -10,7 +10,7 @@
         <fieldset>
         <legend>Logowanie</legend>
         <label for="email">E-mail:</label>
-        <input type="email" id="email" name="email" value="<?= htmlspecialchars($formData['email'])?>"> <br> <br>
+        <input type="email" id="email" name="email" value="<?= htmlspecialchars($formData['email'] ?? '')?>"> <br> <br>
         <label for="password">Hasło:</label>
         <input type="password" id="password" name="password">
         </fieldset>

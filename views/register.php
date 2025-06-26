@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Rejestracja</title>
+    <title>Formularz rejestracji</title>
 </head>
 <body>
     <h1>Rejestracja</h1>
