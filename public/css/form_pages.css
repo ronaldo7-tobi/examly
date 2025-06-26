@@ -94,5 +94,6 @@ p a:hover {
 }
 
 .errors p {
+    font-size: 16px;
     margin: 0.5rem 0;
 }

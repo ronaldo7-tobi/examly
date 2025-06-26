@@ -22,6 +22,13 @@
     <header>
         <h1>Formularz logowania</h1>
     </header>
+    <?php if (!empty($errors)): ?>
+        <div class="errors">
+            <?php foreach ($errors as $error): ?>
+                <p><?= htmlspecialchars($error) ?></p>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
     <form method="POST" action="">
         <fieldset>
         <legend>Logowanie</legend>
@@ -35,5 +42,6 @@
         <p>Powrót do rejestracji: <a href="register">Powrót</a></p>
         <p>Nie pamiętasz hasła? <a href="#">Resetuj hasło</a></p>
     </form>
+    <?php include 'partials/footer.php'; ?>
 </body>
 </html>

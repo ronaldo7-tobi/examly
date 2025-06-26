@@ -6,7 +6,7 @@
 
     <!-- Ikona dla zakładki i urządzeń -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon"> <!-- Wstaw poprawny URL do obrazka -->
-    
+
     <!-- Tytuł strony -->
     <title>Formularz rejestracji</title>
 
@@ -55,5 +55,6 @@
         <button type="submit">Zarejestruj się</button>
         <p>Masz już konto? <a href="login">Zaloguj się</a></p>
     </form>
+    <?php include 'partials/footer.php'; ?>
 </body>
 </html>

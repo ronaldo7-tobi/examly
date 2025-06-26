@@ -2,17 +2,17 @@
 class LoginController
 {
     private AuthController $auth;
-    private array $errors = [];
 
     public function __construct()
     {
         $this->auth = new AuthController();
     }
 
-    public function handleRequest()
+    public function handleRequest(): void
     {
         session_start();
 
+        $errors = [];
         $formData = [];
         $result = false;
 
@@ -26,16 +26,11 @@ class LoginController
                 header('Location: /examly/public/');
                 exit;
             } else {
-                $this->errors[] = "Błąd podczas logowania. Spróbuj ponownie.";
+                $errors[] = "Błąd podczas logowania. Spróbuj ponownie.";
             }
         }
 
         include __DIR__ . '/../../views/login.php';
-    }
-
-    public function getErrors(): array
-    {
-        return $this->errors;
     }
 }
 
