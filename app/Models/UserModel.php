@@ -58,21 +58,36 @@ class UserModel
      * Próbuje zalogować użytkownika na podstawie podanego emaila i hasła.
      *
      * @param array $data Tablica z kluczami 'email' oraz 'password'.
-     * @return User|false Zwraca obiekt User, jeśli dane są poprawne, lub false w przypadku błędu.
+     * @return User|array Zwraca obiekt User, jeśli dane są poprawne, lub tablicę błędów podczas logowania.
      */
-    public function login(array $data): User|false
-    {
+    public function login(array $data): User|array
+    {   
+        $errors = [];
+
         $stmt = $this->db->prepare("SELECT id, first_name, last_name, email, password_hash, is_verified, role FROM users 
                                     WHERE email = :email");
         $stmt->execute([':email' => $data['email']]);
         $user = $stmt->fetch();
+        if($user == null) {
+            $errors[] = "W systemie nie istnieje konto z podanym adresem e-mail.";
+            return [
+                'success' => false,
+                'errors' => $errors
+            ];
+        }
 
         if ($user && password_verify($data['password'], $user['password_hash'])) {
             unset($user['password_hash']);
             return new User($user);
         }
+        else {
+            $errors[] = "Błędne hasło. Spróbuj ponownie.";
+        }
 
-        return false;
+        return [
+            'success' => false, 
+            'errors' => $errors
+        ];
     }
 }
 ?>

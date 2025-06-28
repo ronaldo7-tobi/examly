@@ -8,7 +8,7 @@ if(isset($_SESSION['user'])) {
 }
 ?>
 <nav>
-    <a href="">
+    <a href="/examly/public/">
         <img src="logo.png" alt="logo" class="logo">
     </a>
     <ul class="nav-links">
@@ -39,7 +39,12 @@ if(isset($_SESSION['user'])) {
         <?php else: ?>
             <li>
                 <a href="statistics">
-                    <img src="../../public/images/user.png" alt="user" class="user_image">
+                    <img src="/../../public/images/user.png" alt="user" class="user_image">
+                </a>
+            </li>
+            <li>
+                <a href="logout">
+                    Wyloguj się
                 </a>
             </li>
         <?php endif; ?>

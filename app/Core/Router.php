@@ -30,6 +30,10 @@ class Router
                 $regController = new RegisterController();
                 $regController->handleRequest();
                 break;
+
+            case 'logout':
+                require_once __DIR__ . '/../../public/logout.php';
+                break;
             
             case 'inf03_one_question':
                 require_once __DIR__ . '/../../views/inf03_one_question.php';

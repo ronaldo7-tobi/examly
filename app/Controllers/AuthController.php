@@ -94,19 +94,30 @@ class AuthController
      * Próbuje zalogować użytkownika na podstawie danych z formularza.
      * 
      * @param array $formData Tablica z danymi formularza.
-     * @return bool Zwraca true, jeśli logowanie powiodło się (użytkownik znaleziony i hasło poprawne), 
-     *              w przeciwnym razie false.
+     * @return bool|array Zwraca true, jeśli logowanie powiodło się (użytkownik znaleziony i hasło poprawne), 
+     *              w przeciwnym razie tablica błędów w logowaniu.
      */
-    public function login(array $formData): bool
-    {
-        $user = $this->userModel->login($formData);
+    public function login(array $formData): bool|array
+    {   
+        // Walidacja pól czy nie są puste.
+        $email = $formData['email'] ?? '';
+        $password = $formData['password'] ?? '';
 
-        if ($user instanceof User) {
-            $this->loggedUser = $user;
+        if (empty($email) || empty($password)) {
+            return [
+                'success' => false,
+                'errors' => ['Email i hasło są wymagane.']
+            ];
+        }
+
+        $result = $this->userModel->login($formData);
+
+        if ($result instanceof User) {
+            $this->loggedUser = $result;
             return true;
         }
 
-        return false;
+        return $result;
     }
 
     /**

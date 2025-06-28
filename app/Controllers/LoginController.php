@@ -20,13 +20,13 @@ class LoginController
             $formData = $_POST;
             $result = $this->auth->login($formData);
 
-            if ($result) {
+            if ($result === true) {
                 session_regenerate_id(true);
                 $_SESSION['user'] = serialize($this->auth->getLoggedUser());
                 header('Location: /examly/public/');
                 exit;
             } else {
-                $errors[] = "Błąd podczas logowania. Spróbuj ponownie.";
+                $errors = $result['errors'];
             }
         }
 
