@@ -1,13 +1,27 @@
 <?php 
+/**
+ * Klasa odpowiadająca za logikę wyświetlania widoku logowania.
+ */
 class LoginController
 {
+    /**
+     * Instancja klasy AuthController, która zarządza rejestrowaniem i logowaniem się użytkowników.
+     *
+     * @var AuthController
+     */
     private AuthController $auth;
 
+    // Konstruktor, incijalizuje instancję AuthController.
     public function __construct()
     {
         $this->auth = new AuthController();
     }
 
+    /**
+     * Zarządza widokiem logowania.
+     * 
+     * @return void
+     */
     public function handleRequest(): void
     {
         session_start();

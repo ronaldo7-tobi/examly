@@ -1,13 +1,27 @@
 <?php
+/**
+ * Klasa odpowiadająca za logikę widoku rejestracji.
+ */
 class RegisterController
-{
+{   
+    /**
+     * Instancja klasy AuthController.
+     * 
+     * @var AuthController
+     */
     private AuthController $auth;
 
+    // Konstruktor, inicjalizuje instnację AuthController.
     public function __construct()
     {
         $this->auth = new AuthController();
     }
 
+    /**
+     * Zarządza widokiem rejestracji.
+     * 
+     * @return void
+     */
     public function handleRequest(): void
     {
         $errors = [];
@@ -27,3 +41,4 @@ class RegisterController
         include __DIR__ . '/../../views/register.php';
     }
 }
+?>
