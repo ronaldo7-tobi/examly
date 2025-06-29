@@ -83,6 +83,13 @@ class AuthController
             'email'      => $email,
             'password'   => $password
         ]);
+        
+        // Jeśli udało się zarejestrować, zapisujemy chwilowo do sesji id tego użytkownika, 
+        // by móć operować na nim w procesie weryfikacji adresu e-mail.
+        if($success) {
+            $userId = $this->userModel->getLastInsertId();
+            $_SESSION['verify_user_id'] = $userId;
+        }
 
         return [
             'success' => $success,

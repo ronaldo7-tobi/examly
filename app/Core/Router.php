@@ -30,6 +30,16 @@ class Router
                 $regController = new RegisterController();
                 $regController->handleRequest();
                 break;
+            
+            case 'verify':
+                require_once __DIR__ . '/../../public/verify.php';
+                break;
+
+            case 'verify_email':
+                $regController = new RegisterController();
+                $regController->showVerificationPage();
+                $regController->sendVerificationEmail();
+                break;
 
             case 'logout':
                 require_once __DIR__ . '/../../public/logout.php';

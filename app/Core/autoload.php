@@ -1,6 +1,6 @@
 <?php 
 /**
- * Rejestruje funkcję autoload, która automatycznie dołącza klasy z katalogów Controllers, Core i Models.
+ * Rejestruje funkcję autoload, która automatycznie dołącza klasy z katalogów Controllers, Core, Models i Services.
  * 
  * @return void
  */
@@ -9,6 +9,7 @@ spl_autoload_register(function ($class) {
         __DIR__ . '/../Controllers/',
         __DIR__ . '/', // Core
         __DIR__ . '/../Models/',
+        __DIR__ . '/../Services/'
     ];
 
     foreach ($paths as $path) {

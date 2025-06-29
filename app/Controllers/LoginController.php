@@ -24,8 +24,6 @@ class LoginController
      */
     public function handleRequest(): void
     {
-        session_start();
-
         $errors = [];
         $formData = [];
         $result = false;
@@ -37,6 +35,7 @@ class LoginController
             if ($result === true) {
                 session_regenerate_id(true);
                 $_SESSION['user'] = serialize($this->auth->getLoggedUser());
+                unset($_SESSION['verify_user_id']);
                 header('Location: /examly/public/');
                 exit;
             } else {

@@ -55,6 +55,18 @@ class UserModel
     }
 
     /**
+     * Ustawia status weryfikacji użytkownika na true.
+     * 
+     * @param $userId Id użytkownika poddanego operacji.
+     * @return void
+     */
+    public function verifyUser(int $userId): void
+    {
+        $stmt = $this->db->prepare("UPDATE users SET is_verified = 1 WHERE id = :id");
+        $stmt->execute([':id' => $userId]);
+    }
+
+    /**
      * Próbuje zalogować użytkownika na podstawie podanego emaila i hasła.
      *
      * @param array $data Tablica z kluczami 'email' oraz 'password'.
@@ -88,6 +100,36 @@ class UserModel
             'success' => false, 
             'errors' => $errors
         ];
+    }
+
+    /**
+     * Zwraca ID ostatnio dodanego użytkownika.
+     *
+     * @return int|null Zwraca ID użytkownika lub null, jeśli nie można go pobrać.
+     */
+    public function getLastInsertId(): ?int
+    {
+        $id = $this->db->lastInsertId();
+        return $id ? (int) $id : null;
+    }
+
+    /**
+     * Pobiera użytkownika na podstawie jego ID.
+     *
+     * @param int $id ID użytkownika.
+     * @return User|null Obiekt użytkownika lub null, jeśli nie znaleziono.
+     */
+    public function getUserById(int $id): ?User
+    {
+        $stmt = $this->db->prepare("SELECT id, first_name, last_name, email, is_verified, role FROM users WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        $user = $stmt->fetch();
+
+        if ($user) {
+            return new User($user);
+        }
+
+        return null;
     }
 }
 ?>
