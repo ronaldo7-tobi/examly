@@ -36,6 +36,7 @@ class LoginController
                 session_regenerate_id(true);
                 $_SESSION['user'] = serialize($this->auth->getLoggedUser());
                 unset($_SESSION['verify_user_id']);
+                unset($_SESSION['verify_user_email']);
                 header('Location: /examly/public/');
                 exit;
             } else {

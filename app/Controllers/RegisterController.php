@@ -70,19 +70,26 @@ class RegisterController
             exit;
         }
 
-        $tokenService = new TokenService();
-        $token = $tokenService->generateToken($userId, 'email_verify');
+        $_SESSION['verify_user_email'] = $user->getEmail();
 
-        $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
-        $body = "<p>Witaj {$user->getFullName()}, kliknij link aby zweryfikować swój adres e-mail:</p>
-                <p><a href='$verifyLink'>$verifyLink</a></p>";
+        // Sprawdzenie limitu czasowego.
+        if (!isset($_SESSION['email_sent_time']) || time() - $_SESSION['email_sent_time'] >= 60) {
+            $tokenService = new TokenService();
+            $token = $tokenService->generateToken($userId, 'email_verify');
 
-        $mailer = new Mailer();
-        if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
-            $_SESSION['flash_success'] = "E-mail weryfikacyjny został wysłany!";
-        } else {
-            $_SESSION['flash_error'] = "Wystąpił błąd podczas wysyłania e-maila.";
+            $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
+            $body = "<p>Witaj {$user->getFullName()}, kliknij link aby zweryfikować swój adres e-mail:</p>
+                    <p><a href='$verifyLink'>$verifyLink</a></p>";
+
+            $mailer = new Mailer();
+            if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
+                $_SESSION['flash_success'] = "E-mail weryfikacyjny został wysłany!";
+                $_SESSION['email_sent_time'] = time(); // Aktualizacja czasu wysyłki.
+            } else {
+                $_SESSION['flash_error'] = "Wystąpił błąd podczas wysyłania e-maila.";
+            }
         }
+
         exit;
     }
 }

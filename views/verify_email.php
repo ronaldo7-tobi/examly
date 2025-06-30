@@ -1,3 +1,8 @@
+<?php 
+$emailSent = $_SESSION['flash_success'] ?? false;
+$lastSentTime = $_SESSION['email_sent_time'] ?? 0;
+$canResend = time() - $lastSentTime >= 60;
+?>
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -22,7 +27,27 @@
     <header>
         <h1>Weryfikacja adresu e-mail</h1>
     </header>
+    <main>
+        <?php if (!empty($_SESSION['flash_success'])): ?>
+            <div class="flash flash-success"><?= $_SESSION['flash_success']; unset($_SESSION['flash_success']); ?></div>
+        <?php endif; ?>
 
+        <?php if (!empty($_SESSION['flash_error'])): ?>
+            <div class="flash flash-error"><?= $_SESSION['flash_error']; unset($_SESSION['flash_error']); ?></div>
+        <?php endif; ?>
+
+        <p>Wysłaliśmy wiadomość weryfikacyjną na adres: 
+            <strong><?= htmlspecialchars($_SESSION['verify_user_email']) ?></strong>
+        </p>
+
+        <?php if (!$canResend): ?>
+            <p>Możesz ponownie wysłać e-mail za <span id="countdown"><?= 60 - (time() - $lastSentTime) ?></span> sekund.</p>
+        <?php else: ?>
+            <form action="" method="post">
+                <button type="submit" name="resend_email" class="btn">Wyślij ponownie e-mail</button>
+            </form>
+        <?php endif; ?>
+    </main>
     <?php include 'partials/footer.php'; ?>
 </body>
 </html>
