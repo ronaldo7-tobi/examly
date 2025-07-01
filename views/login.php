@@ -12,6 +12,7 @@
 
     <!-- Linki do styli -->
     <link rel="stylesheet" href="../public/css/form_pages.css">
+    <link rel="stylesheet" href="../public/css/button.css">
     <link rel="stylesheet" href="../public/css/style.css">
 
     <!-- Link do ikonek -->
