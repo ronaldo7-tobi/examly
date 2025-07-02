@@ -37,7 +37,7 @@ if (!$token) {
     <link rel="stylesheet" href="../public/css/button.css">
     <link rel="stylesheet" href="../public/css/verify.css">
 </head>
-<body>
+<body class="verify">
     <div class="container">
         <div class="icon <?= $status ?>">
             <?= $status === 'success' ? '✅' : '❌' ?>

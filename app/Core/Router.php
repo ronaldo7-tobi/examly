@@ -37,8 +37,8 @@ class Router
 
             case 'verify_email':
                 $regController = new RegisterController();
-                $regController->showVerificationPage();
-                $regController->sendVerificationEmail();
+                $tab = $regController->sendVerificationEmail();
+                $regController->showVerificationPage($tab);
                 break;
 
             case 'logout':

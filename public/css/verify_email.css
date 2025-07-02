@@ -1,0 +1,46 @@
+.verification-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.verify_email-box {
+    background-color: var(--bg);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid var(--subtle-border);
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.verify_email-box .message {
+    font-size: 16px;
+    background-color: #f1f5f9;
+    color: var(--text);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--subtle-border);
+}
+
+.resend-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 16px;
+    border: none;
+    border-radius: 0.5rem;
+    background-color: var(--accent);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.resend-btn:disabled {
+    background-color: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+}

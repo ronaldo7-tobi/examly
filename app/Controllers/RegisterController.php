@@ -41,13 +41,16 @@ class RegisterController
         include __DIR__ . '/../../views/register.php';
     }
 
-    public function showVerificationPage(): void
+    public function showVerificationPage($tab): void
     {
         require_once __DIR__ . '/../../views/verify_email.php';
     }
 
-    public function sendVerificationEmail(): void
-    {   
+    public function sendVerificationEmail(): array
+    {
+        $errors = null;
+        $success = null;
+
         if (!isset($_SESSION['verify_user_id'])) {
             $_SESSION['flash_error'] = "Brak użytkownika do weryfikacji.";
             header("Location: login");
@@ -65,32 +68,33 @@ class RegisterController
         }
 
         if ($user->isVerified()) {
-            $_SESSION['flash_info'] = "Konto jest już zweryfikowane.";
+            $_SESSION['flash_error'] = "Konto jest już zweryfikowane.";
             header("Location: login");
             exit;
         }
 
         $_SESSION['verify_user_email'] = $user->getEmail();
 
-        // Sprawdzenie limitu czasowego.
-        if (!isset($_SESSION['email_sent_time']) || time() - $_SESSION['email_sent_time'] >= 60) {
-            $tokenService = new TokenService();
-            $token = $tokenService->generateToken($userId, 'email_verify');
+        $tokenService = new TokenService();
+        $token = $tokenService->generateToken($userId, 'email_verify');
 
-            $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
-            $body = "<p>Witaj {$user->getFullName()}, kliknij link aby zweryfikować swój adres e-mail:</p>
-                    <p><a href='$verifyLink'>$verifyLink</a></p>";
+        $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
+        $body = "<p>Witaj {$user->getFullName()}, kliknij link aby zweryfikować swój adres e-mail:</p>
+                <p><a href='$verifyLink'>$verifyLink</a></p>";
 
-            $mailer = new Mailer();
-            if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
-                $_SESSION['flash_success'] = "E-mail weryfikacyjny został wysłany!";
-                $_SESSION['email_sent_time'] = time(); // Aktualizacja czasu wysyłki.
-            } else {
-                $_SESSION['flash_error'] = "Wystąpił błąd podczas wysyłania e-maila.";
-            }
+        $mailer = new Mailer();
+        if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
+            $success = "Wiadomość została wysłana na adres {$user->getEmail()}. Sprawdź skrzynkę odbiorczą.";
+            $_SESSION['email_sent'] = time();
+        } else {
+            $errors = "Wystąpił błąd podczas wysyłania e-maila.";
         }
 
-        exit;
+        if(!empty($errors)) {
+            return [$errors];
+        } else {
+            return [$success];
+        }
     }
 }
 ?>
