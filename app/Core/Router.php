@@ -36,12 +36,11 @@ class Router
                 break;
 
             case 'verify_email':
-                session_start();
                 $regController = new RegisterController();
                 if (isset($_GET['resend']) && $_GET['resend'] === 'true') {
                     $messages = $regController->sendVerificationEmail();
                 } else {
-                    $messages = []; // przy pierwszym wejściu nie ma komunikatu o resend
+                    $messages = [];
                 }
                 $regController->showVerificationPage($messages);
                 break;

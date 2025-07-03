@@ -4,7 +4,7 @@
  * 
  * @return void
  */
-spl_autoload_register(function ($class) {
+spl_autoload_register(function ($class): void{
     $paths = [
         __DIR__ . '/../Controllers/',
         __DIR__ . '/', // Core

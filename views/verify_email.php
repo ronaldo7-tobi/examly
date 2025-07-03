@@ -1,8 +1,8 @@
 <?php
-// przygotowanie tablicy wiadomości
+// Przygotowanie tablicy wiadomości
 $messages = $messages ?? [];  
 
-// obliczenie pozostałego czasu (w sekundach) do ponownego wysłania
+// Obliczenie pozostałego czasu (w sekundach) do ponownego wysłania
 $remaining = 0;
 if (isset($_SESSION['email_sent'])) {
     $elapsed = time() - $_SESSION['email_sent'];
@@ -14,12 +14,19 @@ if (isset($_SESSION['email_sent'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tytuł strony -->
     <title>Weryfikacja adresu e-mail</title>
-    <link rel="icon" href="/favicon.ico">
+
+    <!-- Ikona dla zakładki i urządzeń -->
+    <link rel="icon" href="/favicon.ico"> <!-- Wstaw poprawny URL do obrazka -->
+
+    <!-- Linki do styli -->
     <link rel="stylesheet" href="../public/css/form_pages.css">
     <link rel="stylesheet" href="../public/css/button.css">
     <link rel="stylesheet" href="../public/css/style.css">
     <link rel="stylesheet" href="../public/css/verify_email.css">
+    <!-- Link do ikonek -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
@@ -52,7 +59,7 @@ if (isset($_SESSION['email_sent'])) {
     <?php include 'partials/footer.php'; ?>
 
     <script>
-        // przekazujemy PHP‑owy remaining do JS
+        // Przekazanie PHP‑owego remaining do JS
         let countdown = <?= $remaining ?>;
         const button = document.getElementById('resendButton');
         const countdownSpan = document.getElementById('countdown');
@@ -73,7 +80,6 @@ if (isset($_SESSION['email_sent'])) {
         button.addEventListener('click', () => {
             button.disabled = true;
             button.textContent = 'Wysyłanie...';
-            // użycie właściwej ścieżki – zakładam, że URL to /verify_email
             window.location.href = '/verify_email?resend=true';
         });
     </script>

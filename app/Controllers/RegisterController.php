@@ -41,12 +41,24 @@ class RegisterController
         include __DIR__ . '/../../views/register.php';
     }
 
+    /**
+     * Wyświetla widok weryfikacji e-mail.
+     * 
+     * @param array $messages Tablica zawierająca wiadmości z metody sendVerificationEmail().
+     * 
+     * @return void
+     */
     public function showVerificationPage(array $messages = []): void
     {
-        // przekazujemy tablicę komunikatów do widoku
         require_once __DIR__ . '/../../views/verify_email.php';
     }
 
+    /**
+     * Wysyła wiadomość e-mail z linkiem weryfikacyjnym do zweryfikowania konta użytkownika i zapisuje błędy
+     * i komunikaty w otrzymane trakcie procesu działania.
+     * 
+     * @return array Zwraca tablicę z komunikatem uzyskanym podczas działania metody.
+     */
     public function sendVerificationEmail(): array
     {
         if (!isset($_SESSION['verify_user_id'])) {
@@ -71,7 +83,7 @@ class RegisterController
             exit;
         }
 
-        // generowanie i wysyłka tylko co 60s
+        // Generowanie i wysyłka tylko co 60s.
         if (
             isset($_GET['resend']) &&
             $_GET['resend'] === 'true' &&
