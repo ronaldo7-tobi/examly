@@ -32,7 +32,7 @@ class RegisterController
             $result = $this->auth->register($formData);
 
             if ($result['success']) {
-                header('Location: verify_email');
+                header('Location: verify_email?resend=true');
                 exit;
             } else {
                 $errors = $result['errors'];
@@ -41,19 +41,17 @@ class RegisterController
         include __DIR__ . '/../../views/register.php';
     }
 
-    public function showVerificationPage($tab): void
+    public function showVerificationPage(array $messages = []): void
     {
+        // przekazujemy tablicę komunikatów do widoku
         require_once __DIR__ . '/../../views/verify_email.php';
     }
 
     public function sendVerificationEmail(): array
     {
-        $errors = null;
-        $success = null;
-
         if (!isset($_SESSION['verify_user_id'])) {
             $_SESSION['flash_error'] = "Brak użytkownika do weryfikacji.";
-            header("Location: login");
+            header("Location: /login");
             exit;
         }
 
@@ -63,38 +61,40 @@ class RegisterController
 
         if (!$user) {
             $_SESSION['flash_error'] = "Użytkownik nie znaleziony.";
-            header("Location: login");
+            header("Location: /login");
             exit;
         }
 
         if ($user->isVerified()) {
             $_SESSION['flash_error'] = "Konto jest już zweryfikowane.";
-            header("Location: login");
+            header("Location: /login");
             exit;
         }
 
-        $_SESSION['verify_user_email'] = $user->getEmail();
+        // generowanie i wysyłka tylko co 60s
+        if (
+            isset($_GET['resend']) &&
+            $_GET['resend'] === 'true' &&
+            (!isset($_SESSION['email_sent']) || time() - $_SESSION['email_sent'] >= 60)
+        ) {
+            $tokenService = new TokenService();
+            $token = $tokenService->generateToken($userId, 'email_verify');
 
-        $tokenService = new TokenService();
-        $token = $tokenService->generateToken($userId, 'email_verify');
+            $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
+            $body  = "<p>Witaj {$user->getFullName()},</p>"
+                   . "<p>Kliknij poniższy link, aby zweryfikować swój adres e-mail:</p>"
+                   . "<p><a href='$verifyLink'>$verifyLink</a></p>";
 
-        $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
-        $body = "<p>Witaj {$user->getFullName()}, kliknij link aby zweryfikować swój adres e-mail:</p>
-                <p><a href='$verifyLink'>$verifyLink</a></p>";
-
-        $mailer = new Mailer();
-        if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
-            $success = "Wiadomość została wysłana na adres {$user->getEmail()}. Sprawdź skrzynkę odbiorczą.";
-            $_SESSION['email_sent'] = time();
-        } else {
-            $errors = "Wystąpił błąd podczas wysyłania e-maila.";
+            $mailer = new Mailer();
+            if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
+                $_SESSION['email_sent'] = time();
+                return ["Wiadomość została wysłana na adres {$user->getEmail()}. Sprawdź skrzynkę odbiorczą."];
+            } else {
+                return ["Wystąpił błąd podczas wysyłania e-maila."];
+            }
         }
 
-        if(!empty($errors)) {
-            return [$errors];
-        } else {
-            return [$success];
-        }
+        return ["Nie możesz jeszcze ponownie wysłać e-maila."];
     }
 }
 ?>
