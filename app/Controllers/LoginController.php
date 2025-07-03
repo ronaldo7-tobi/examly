@@ -28,6 +28,11 @@ class LoginController
         $formData = [];
         $result = false;
 
+        if (isset($_SESSION['user'])) {
+            header('Location: /');
+            exit;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $formData = $_POST;
             $result = $this->auth->login($formData);
@@ -37,6 +42,8 @@ class LoginController
                 $_SESSION['user'] = serialize($this->auth->getLoggedUser());
                 unset($_SESSION['verify_user_id']);
                 unset($_SESSION['verify_user_email']);
+                unset($_SESSION['flash_error']);
+                unset($_SESSION['flash_success']);
                 header('Location: /examly/public/');
                 exit;
             } else {

@@ -93,7 +93,12 @@ p a:hover {
     color: #991b1b;
 }
 
-.errors p {
-    font-size: 16px;
-    margin: 0.5rem 0;
+.message {
+    max-width: 500px;
+    margin: 1rem auto;
+    padding: 1rem;
+    background-color: var(--success);
+    border-left: 5px solid #096909;
+    border-radius: 0.5rem;
+    color: #176117;
 }

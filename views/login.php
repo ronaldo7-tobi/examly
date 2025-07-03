@@ -26,9 +26,19 @@
     <?php if (!empty($errors)): ?>
         <div class="errors">
             <?php foreach ($errors as $error): ?>
-                <p><?= htmlspecialchars($error) ?></p>
+                <?= htmlspecialchars($error) ?>
             <?php endforeach; ?>
         </div>
+    <?php else: ?>
+        <?php if (!empty($_SESSION['flash_error'])): ?>
+            <div class="errors">
+                <?= htmlspecialchars($_SESSION['flash_error']); ?>
+            </div>
+        <?php elseif (!empty($_SESSION['flash_success'])): ?>
+            <div class="message">
+                <?= htmlspecialchars($_SESSION['flash_success']); ?>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
     <form method="POST" action="">
         <fieldset>

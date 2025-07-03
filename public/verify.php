@@ -1,4 +1,9 @@
 <?php
+if (isset($_SESSION['user'])) {
+    header('Location: /');
+    exit;
+}
+
 $token = $_GET['token'] ?? null;
 
 $message = '';
