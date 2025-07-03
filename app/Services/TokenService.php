@@ -25,7 +25,9 @@ class TokenService
      * Generuje nowy token i zapisuje go w bazie danych.
      * 
      * @param int $userId ID użytkownika.
+     * 
      * @param string $type Typ tokena: email_verify, password_reset, email_reset.
+     * 
      * @return string Wygenerowany token.
      */
     public function generateToken(int $userId, string $type): string
@@ -44,38 +46,30 @@ class TokenService
     }
 
     /**
-     * Sprawdza ważność tokena i zwraca ID użytkownika, jeśli token jest poprawny.
-     * 
-     * @param string $token Token do sprawdzenia.
-     * @param string $type Typ tokena.
-     * @return int|null ID użytkownika lub null, jeśli token nieprawidłowy lub wygasł.
-     */
-    public function validateToken(string $token, string $type): ?int
-    {
-        $stmt = $this->db->prepare("SELECT user_id FROM user_tokens
-            WHERE token = :token AND type = :type AND expires_at > NOW()");
-        
-        $stmt->execute([
-            ':token' => $token,
-            ':type'  => $type
-        ]);
-
-        $result = $stmt->fetch();
-        return $result ? (int)$result['user_id'] : null;
-    }
-
-    /**
      * Usuwa token z bazy danych.
      * 
      * @param string $token Token do usunięcia.
+     * 
      * @return void
      */
-    public function deleteToken(string $token): void
+    public function deleteAllEmailVerifyTokens(int $userId, string $type): void
     {
-        $stmt = $this->db->prepare("DELETE FROM user_tokens WHERE token = :token");
-        $stmt->execute([':token' => $token]);
+        $stmt = $this->db->prepare(
+            "DELETE FROM user_tokens WHERE user_id = :user_id AND type = :type"
+        );
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':type'    => $type
+        ]);
     }
 
+    /**
+     * Zwraca cały rekord wybranego tokena z bazy danych.
+     * 
+     * @param string $token Wybrany token.
+     * 
+     * @return array|null Zwraca tablicę z danymi wybranego rekordu lub null, jeśli taki nie istnieje.
+     */
     public function getTokenRecord(string $token): ?array
     {
         $stmt = $this->db->prepare("SELECT * FROM user_tokens WHERE token = :token");

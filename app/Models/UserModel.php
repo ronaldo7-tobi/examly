@@ -25,6 +25,7 @@ class UserModel
      * Sprawdza istnienie adresu email w systemie.
      * 
      * @param $email Email użytkownika.
+     * 
      * @return bool Zwraca true, jeśli e-mail istnieje, w przeciwnym razie false.
      */
     public function checkEmail(string $email): bool
@@ -58,18 +59,20 @@ class UserModel
      * Ustawia status weryfikacji użytkownika na true.
      * 
      * @param $userId Id użytkownika poddanego operacji.
-     * @return void
+     * 
+     * @return bool Zwraca true, jeśli uda się zweryfikować użytkownika lub false w przeciwnym wypadku.
      */
-    public function verifyUser(int $userId): void
+    public function verifyUser(int $userId): bool
     {
         $stmt = $this->db->prepare("UPDATE users SET is_verified = 1 WHERE id = :id");
-        $stmt->execute([':id' => $userId]);
+        return $stmt->execute([':id' => $userId]);
     }
 
     /**
      * Próbuje zalogować użytkownika na podstawie podanego emaila i hasła.
      *
      * @param array $data Tablica z kluczami 'email' oraz 'password'.
+     * 
      * @return User|array Zwraca obiekt User, jeśli dane są poprawne, lub tablicę błędów podczas logowania.
      */
     public function login(array $data): User|array
@@ -91,8 +94,7 @@ class UserModel
         if ($user && password_verify($data['password'], $user['password_hash'])) {
             unset($user['password_hash']);
             return new User($user);
-        }
-        else {
+        } else {
             $errors[] = "Błędne hasło. Spróbuj ponownie.";
         }
 
@@ -117,6 +119,7 @@ class UserModel
      * Pobiera użytkownika na podstawie jego ID.
      *
      * @param int $id ID użytkownika.
+     * 
      * @return User|null Obiekt użytkownika lub null, jeśli nie znaleziono.
      */
     public function getUserById(int $id): ?User

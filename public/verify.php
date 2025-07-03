@@ -20,14 +20,17 @@ if (!$token) {
         $message = 'Token wygasł.';
         $status = 'error';
     } else {
-        $userModel->verifyUser($tokenRecord['user_id']);
-        $tokenService->deleteToken($token);
-        $message = 'Adres e-mail został pomyślnie zweryfikowany!';
-        $status = 'success';
+        if ($userModel->verifyUser($tokenRecord['user_id'])) {
+            $tokenService->deleteAllEmailVerifyTokens($tokenRecord['user_id'], 'email_verify');
+            $message = 'Adres e-mail został pomyślnie zweryfikowany!';
+            $status = 'success';
+        } else {
+            $message = 'Napotkano problem.';
+            $status = 'error';
+        }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
