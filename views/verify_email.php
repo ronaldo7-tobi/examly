@@ -1,5 +1,4 @@
 <?php
-session_start();  // uruchomienie sesji
 // przygotowanie tablicy wiadomości
 $messages = $messages ?? [];  
 
