@@ -28,5 +28,12 @@ class Question
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getCorrectAnswerId(int $questionId): ?int
+    {
+        $stmt = $this->db->prepare("SELECT correct_answer_id FROM questions WHERE id = :id");
+        $stmt->execute([':id' => $questionId]);
+        return $stmt->fetchColumn();
+    }
 }
 ?>
