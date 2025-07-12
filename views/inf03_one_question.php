@@ -51,6 +51,7 @@
 </head>
 </head>
 <body>
+    <?php include 'partials/navbar.php'; ?>
     <form method="POST" action="">
         <fieldset>
             <legend>Wybierz z jakiej części materiału chcesz otrzymać pytanie</legend>
@@ -70,11 +71,20 @@
             <p><?= htmlspecialchars($question['content']) ?></p>
             <form method="POST">
                 <?php foreach ($answers as $answer): ?>
-                    <input type="radio" name="answer"> <?= htmlspecialchars($answer['content']) ?> <br>
+                    <input type="radio" name="answer" value="<?= $answer['id'] ?>">
+                    <?= htmlspecialchars($answer['content']) ?> <br>
                 <?php endforeach; ?>
+                <!-- Ukryte pole z tematami -->
+                <?php foreach ($subjects as $subject): ?>
+                    <input type="hidden" name="subject[]" value="<?= htmlspecialchars($subject) ?>">
+                <?php endforeach; ?>
+                <!-- Ukryte pole z question_id by uniknąć problemu ze stanem -->
+                <input type="hidden" name="question_id" value="<?= $question['id'] ?>">
                 <button type="submit">Sprawdź</button>
             </form>
         </section>
     <?php endif; ?>
+
+    <?php include 'partials//footer.php'; ?>
 </body>
 </html>

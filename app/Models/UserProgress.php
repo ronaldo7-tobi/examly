@@ -8,32 +8,38 @@ class UserProgress
         $this->db = Database::getInstance();
     }
 
-    public function checkIfProgressExist($userId, $questionId)
+    public function checkIfProgressExist($userId, $questionId): bool
     {
-        $stmt = $this->db->prepare("SELECT * FROM user_progres 
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM user_progress
                                     WHERE user_id = :user_id 
                                     AND question_id = :question_id");
-        return $stmt->execute([
+        $stmt->execute([
             ':user_id' => $userId,
             ':question_id' => $questionId
         ]);
+        return $stmt->fetchColumn() > 0;
     }
- 
-    public function saveProgressForQuestion(int $userId, int $questionId, string $result): void
+
+    public function saveProgressForQuestion(int $userId, int $questionId, int $result): void
     {   
         if ($this->checkIfProgressExist($userId, $questionId)) {
             // Jeśli rekord już istnieje – aktualizujemy odpowiednie pola
-            if ($result === 'success') {
+            if ($result === 1) {
                 $stmt = $this->db->prepare("UPDATE user_progress 
-                                            SET correct_attempts = correct_attempts + 1, last_attempt = :result 
+                                            SET correct_attempts = correct_attempts + 1,
+                                                last_attempt = :curTime,
+                                                last_result = :result
                                             WHERE user_id = :user_id AND question_id = :question_id");
             } else {
                 $stmt = $this->db->prepare("UPDATE user_progress 
-                                            SET wrong_attempts = wrong_attempts + 1, last_attempt = :result 
+                                            SET wrong_attempts = wrong_attempts + 1,
+                                                last_attempt = :curTime,
+                                                last_result = :result 
                                             WHERE user_id = :user_id AND question_id = :question_id");
             }
 
             $stmt->execute([
+                ':curTime' => time(),
                 ':result' => $result,
                 ':user_id' => $userId,
                 ':question_id' => $questionId
@@ -41,11 +47,16 @@ class UserProgress
 
         } else {
             // Jeśli brak rekordu – dodajemy nowy
-            $correct = $result === 'success' ? 1 : 0;
-            $wrong = $result === 'success' ? 0 : 1;
+            if ($result === 1) {
+                $correct = 1;
+                $wrong = 0;
+            } else {
+                $correct = 0;
+                $wrong = 1;
+            }
 
             $stmt = $this->db->prepare("INSERT INTO user_progress (user_id, question_id,
-                                         correct_attempts, wrong_attempts, last_attempt)
+                                         correct_attempts, wrong_attempts, last_result)
                                         VALUES (:user_id, :question_id, :correct, :wrong, :result)");
 
             $stmt->execute([

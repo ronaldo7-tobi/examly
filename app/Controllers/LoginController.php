@@ -39,7 +39,7 @@ class LoginController
 
             if ($result === true) {
                 session_regenerate_id(true);
-                $_SESSION['user'] = serialize($this->auth->getLoggedUser());
+                $_SESSION['user'] = $this->auth->getLoggedUser();
                 unset($_SESSION['verify_user_id']);
                 unset($_SESSION['verify_user_email']);
                 unset($_SESSION['flash_error']);

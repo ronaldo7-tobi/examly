@@ -67,6 +67,16 @@ class User
     }
 
     /**
+     * Zwraca id użytkownika
+     * 
+     * @return int Id użytkownika z bazy danych
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    /**
      * Zwraca pełne imię i nazwisko użytkownika.
      * 
      * @return string Imię i nazwisko połączone spacją.
