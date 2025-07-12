@@ -29,11 +29,18 @@ class Question
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getCorrectAnswerId(int $questionId): ?int
+    public function getCorrectAnswerForQuestion(int $questionId, int $answerId): bool
     {
-        $stmt = $this->db->prepare("SELECT correct_answer_id FROM questions WHERE id = :id");
-        $stmt->execute([':id' => $questionId]);
-        return $stmt->fetchColumn();
+        $stmt = $this->db->prepare("SELECT id FROM answers WHERE id = :aid AND question_id = :qid AND is_correct = 1");
+        $stmt->execute([':aid' => $answerId, ':qid' => $questionId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getQuestionById(int $id): array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM questions WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
 ?>

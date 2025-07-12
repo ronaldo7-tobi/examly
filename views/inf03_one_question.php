@@ -51,6 +51,30 @@
 </head>
 </head>
 <body>
-    
+    <form method="POST" action="">
+        <fieldset>
+            <legend>Wybierz z jakiej części materiału chcesz otrzymać pytanie</legend>
+            <input type="checkbox" name="subject[]" value="inf03"> Cały materiał INF.03
+            <input type="checkbox" name="subject[]" value="HTML"> HTML
+            <input type="checkbox" name="subject[]" value="CSS"> CSS
+            <input type="checkbox" name="subject[]" value="JS"> JS
+            <input type="checkbox" name="subject[]" value="PHP"> PHP
+            <input type="checkbox" name="subject[]" value="SQL"> SQL
+            <input type="checkbox" name="subject[]" value="Teoria"> Inne pytania teoretyczne
+        </fieldset>
+        <button type="submit">Zaakceptuj</button>
+    </form>
+
+    <?php if (!empty($question)): ?>
+        <section id="question-block">
+            <p><?= htmlspecialchars($question['content']) ?></p>
+            <form method="POST">
+                <?php foreach ($answers as $answer): ?>
+                    <input type="radio" name="answer"> <?= htmlspecialchars($answer['content']) ?> <br>
+                <?php endforeach; ?>
+                <button type="submit">Sprawdź</button>
+            </form>
+        </section>
+    <?php endif; ?>
 </body>
 </html>

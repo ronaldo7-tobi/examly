@@ -50,7 +50,8 @@ class Router
                 break;
             
             case 'inf03_one_question':
-                require_once __DIR__ . '/../../views/inf03_one_question.php';
+                $testController = new TestController();
+                $testController->handleRequest('one_question');
                 break;
             
             case 'inf03_personalized_test':
