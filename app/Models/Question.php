@@ -11,20 +11,24 @@ class Question
     public function getQuestions(array $subjects, int $limit, string $examType): array
     {
         if (empty($subjects)) {
-            exit("Brak tematów pytań.");
+            return [];
         }
 
-        // Zamień tablicę tematów na listę wartości SQL w cudzysłowie
-        $subjectStr = implode(',', array_map(function($s) {
-            return "'" . addslashes($s) . "'";
-        }, $subjects));
+        $placeholders = implode(',', array_fill(0, count($subjects), '?'));
 
-        $stmt = $this->db->prepare("SELECT * FROM questions 
-                                    WHERE subject IN ($subjectStr) 
-                                    AND exam_type = :exam_type 
-                                    ORDER BY RAND() 
-                                    LIMIT $limit");
-        $stmt->execute([':exam_type' => $examType]);
+        // Upewniamy się, że limit jest liczbą całkowitą
+        $limit = (int)$limit;
+
+        $sql = "SELECT * FROM questions 
+                WHERE subject IN ($placeholders) 
+                AND exam_type = ? 
+                ORDER BY RAND() 
+                LIMIT $limit"; // W przypadku LIMIT, wklejenie zrzutowanej na int wartości jest bezpieczne.
+
+        $params = array_merge($subjects, [$examType]);
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

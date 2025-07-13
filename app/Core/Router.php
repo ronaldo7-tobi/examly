@@ -16,6 +16,31 @@ class Router
         $uri = str_replace($basePath, '', $uri); // usuń prefix
         $uri = trim($uri, '/');
 
+        // --- NOWA LOGIKA OBSŁUGI API ---
+        // Sprawdzamy, czy URI zaczyna się od "api/"
+        if (strpos($uri, 'api/') === 0) {
+            // Usuwamy "api/" z początku, aby uzyskać nazwę akcji
+            $apiAction = substr($uri, 4); // 4 to długość "api/"
+            
+            // Tworzymy instancję ApiController
+            $apiController = new ApiController();
+
+            // Konwertujemy nazwę akcji z URL (np. get-question) na nazwę metody (getQuestion)
+            $methodName = lcfirst(str_replace('-', '', ucwords($apiAction, '-')));
+
+            if (method_exists($apiController, $methodName)) {
+                // Wywołujemy odpowiednią metodę w ApiController
+                $apiController->$methodName();
+            } else {
+                // Jeśli metoda nie istnieje, zwracamy błąd 404 w formacie JSON
+                header('Content-Type: application/json');
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'API endpoint not found.']);
+            }
+            // Ważne: kończymy wykonanie skryptu, aby nie przechodzić do starego switcha
+            return; 
+        }
+
         switch ($uri) {
             case '':
                 require_once __DIR__ . '/../../views/home.php';

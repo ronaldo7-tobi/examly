@@ -1,0 +1,95 @@
+// Plik: public/js/quiz.js
+
+// Importujemy funkcje z naszych modułów
+import * as api from './modules/api.js';
+import * as ui from './modules/ui.js';
+
+// Klasa Quiz zarządza stanem i logiką całego quizu
+class Quiz {
+    constructor(topicFormId, quizContainerId) {
+        this.topicForm = document.getElementById(topicFormId);
+        this.quizContainer = document.getElementById(quizContainerId);
+        this.currentSubjects = [];
+        this.currentExplanation = null;
+
+        // "Bindowanie" metod, aby `this` wskazywało na instancję klasy
+        this.handleTopicSubmit = this.handleTopicSubmit.bind(this);
+        this.handleAnswerClick = this.handleAnswerClick.bind(this);
+        this.startNewQuestion = this.startNewQuestion.bind(this);
+    }
+
+    // Inicjalizuje quiz, dodając nasłuchiwacze
+    init() {
+        this.topicForm.addEventListener('submit', this.handleTopicSubmit);
+    }
+
+    // Obsługuje wysłanie formularza z tematami
+    async handleTopicSubmit(event) {
+        event.preventDefault();
+        const formData = new FormData(this.topicForm);
+        this.currentSubjects = formData.getAll('subject[]');
+
+        if (this.currentSubjects.length === 0) {
+            alert('Proszę wybrać przynajmniej jeden temat.');
+            return;
+        }
+
+        this.topicForm.style.display = 'none';
+        await this.startNewQuestion();
+    }
+    
+    // Pobiera i renderuje nowe pytanie
+    async startNewQuestion() {
+        ui.showLoading(this.quizContainer);
+        this.currentExplanation = null;
+
+        try {
+            const data = await api.fetchQuestion(this.currentSubjects);
+            if (data.success) {
+                this.currentExplanation = data.question.explanation;
+                ui.renderQuestion(this.quizContainer, data.question, data.answers);
+                // Dodajemy nasłuchiwacz do nowo wyrenderowanych odpowiedzi
+                document.getElementById('answers-container').addEventListener('click', this.handleAnswerClick);
+            } else {
+                ui.showError(this.quizContainer, data.message);
+                this.topicForm.style.display = 'block';
+            }
+        } catch (error) {
+            console.error(error);
+            ui.showError(this.quizContainer, 'Wystąpił błąd komunikacji z serwerem.');
+        }
+    }
+    
+    // Obsługuje kliknięcie w odpowiedź
+    async handleAnswerClick(event) {
+        const clickedLabel = event.target.closest('.answer-label');
+        if (!clickedLabel) return;
+        
+        const answersContainer = document.getElementById('answers-container');
+        answersContainer.style.pointerEvents = 'none'; // Blokujemy kliknięcia
+
+        const userAnswerId = clickedLabel.querySelector('input[type="radio"]').value;
+        const questionId = document.getElementById('question_id_hidden').value;
+
+        try {
+            const data = await api.checkAnswer(questionId, userAnswerId);
+            if (data.success) {
+                ui.showAnswerFeedback(data.is_correct, data.correct_answer_id, userAnswerId);
+                ui.renderActionButtons(this.currentExplanation, this.startNewQuestion);
+            } else {
+                alert(`Błąd sprawdzania odpowiedzi: ${data.message}`);
+                answersContainer.style.pointerEvents = 'auto'; // Odblokowujemy w razie błędu
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Wystąpił błąd komunikacji z serwerem.');
+            answersContainer.style.pointerEvents = 'auto';
+        }
+    }
+}
+
+// Uruchamiamy quiz po załadowaniu strony
+document.addEventListener('DOMContentLoaded', () => {
+    const quiz = new Quiz('topic-form', 'quiz-container');
+    quiz.init();
+});
