@@ -1,0 +1,69 @@
+// Plik: scss/6-components/_info-card.scss
+
+// Komponent .info-card do wyświetlania stron systemowych
+// (weryfikacja, potwierdzenia, błędy itp.)
+.info-card {
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  margin: 3rem auto; // Centrowanie i odstępy
+  padding: 2.5rem;
+  background-color: var(--bg);
+  border: 1px solid var(--subtle-border);
+  border-radius: var(--border-radius-large, 12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  // Wrapper do centrowania karty na ekranie, jeśli potrzebne
+  &--centered-fullscreen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh; // Trochę mniej niż 100vh dla lepszego wyglądu
+    margin: 0; // Resetujemy marginesy, bo centrowanie jest przez flex
+  }
+  
+  // Element: ikona
+  &__icon {
+    font-size: 3.5rem; // 56px
+    margin-bottom: 1rem;
+    line-height: 1;
+
+    // Modyfikator dla sukcesu
+    &--success {
+      color: var(--success-color, #28a745);
+    }
+    
+    // Modyfikator dla błędu
+    &--error {
+      color: var(--error-color, #dc3545);
+    }
+    
+    // Modyfikator neutralny
+    &--info {
+        color: var(--accent);
+    }
+  }
+  
+  // Element: tytuł
+  &__title {
+    font-size: 1.5rem; // 24px
+    font-weight: 700;
+    margin: 0 0 0.75rem 0;
+    color: var(--text);
+  }
+  
+  // Element: treść wiadomości
+  &__message {
+    font-size: 1rem;
+    color: var(--muted-text);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  
+  // Element: kontener na akcje (przyciski)
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

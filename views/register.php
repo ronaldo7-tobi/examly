@@ -11,51 +11,67 @@
     <title>Formularz rejestracji</title>
 
     <!-- Linki do styli -->
-    <link rel="stylesheet" href="../public/css/form_pages.css">
-    <link rel="stylesheet" href="../public/css/button.css">
-    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="../public/scss/main.css"> 
 
     <!-- Link do ikonek -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <?php include 'partials/navbar.php'; ?>
-    <header>
-        <h1>Rejestracja</h1>
-    </header>
-    <?php if (!empty($errors)): ?>
-        <div class="errors">
-            <?php foreach ($errors as $error): ?>
-                <p><?= htmlspecialchars($error) ?></p>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
 
-    <form method="post" action="">
-        <fieldset>
-            <legend>Dane osobowe</legend>
-            <label for="first_name">Imię:</label><br>
-            <input type="text" id="first_name" name="first_name" 
-                value="<?= htmlspecialchars($formData['first_name'] ?? '') ?>"><br>
-            <label for="last_name">Nazwisko:</label><br>
-            <input type="text" id="last_name" name="last_name" 
-                value="<?= htmlspecialchars($formData['last_name'] ?? '') ?>"><br>
-            <label for="email">E-mail:</label><br>
-            <input type="email" id="email" name="email" 
-                value="<?= htmlspecialchars($formData['email'] ?? '') ?>"><br>
-        </fieldset>
+    <main>
+        <form method="POST" class="form-card">
+            <div class="form-card__header">
+                <h1 class="form-card__title">Stwórz nowe konto</h1>
+                <p class="form-card__subtitle">Dołącz do nas i zacznij przygotowania do egzaminu!</p>
+            </div>
 
-        <fieldset>
-            <legend>Ustaw hasło</legend>
-            <label for="password">Hasło:</label><br>
-            <input type="password" id="password" name="password"><br>
-            <label for="confirm_password">Potwierdź hasło:</label><br>
-            <input type="password" id="confirm_password" name="confirm_password"><br><br>
-        </fieldset>
+            <?php if (!empty($errors)): ?>
+                <div class="alert alert--error" role="alert">
+                    <ul class="alert__list">
+                        <?php foreach ($errors as $error): ?>
+                            <li class="alert__item"><?= htmlspecialchars($error) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+            
+            <div class="form-card__group">
+                <label for="first_name" class="form-card__label">Imię</label>
+                <input type="text" id="first_name" name="first_name" class="form-card__input" 
+                       value="<?= htmlspecialchars($formData['first_name'] ?? '') ?>" required>
+            </div>
+            
+            <div class="form-card__group">
+                <label for="last_name" class="form-card__label">Nazwisko</label>
+                <input type="text" id="last_name" name="last_name" class="form-card__input" 
+                       value="<?= htmlspecialchars($formData['last_name'] ?? '') ?>" required>
+            </div>
 
-        <button type="submit">Zarejestruj się</button>
-        <p>Masz już konto? <a href="login">Zaloguj się</a></p>
-    </form>
+            <div class="form-card__group">
+                <label for="email" class="form-card__label">Adres e-mail</label>
+                <input type="email" id="email" name="email" class="form-card__input" 
+                       value="<?= htmlspecialchars($formData['email'] ?? '') ?>" required>
+            </div>
+          
+            <div class="form-card__group">
+                <label for="password" class="form-card__label">Hasło</label>
+                <input type="password" id="password" name="password" class="form-card__input" required>
+            </div>
+          
+            <div class="form-card__group">
+                <label for="confirm_password" class="form-card__label">Potwierdź hasło</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-card__input" required>
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--full-width">Zarejestruj się</button>
+
+            <div class="form-card__footer">
+                <p>Masz już konto? <a href="login">Zaloguj się</a></p>
+            </div>
+        </form>
+    </main>
+
     <?php include 'partials/footer.php'; ?>
 </body>
 </html>

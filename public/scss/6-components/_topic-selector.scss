@@ -1,0 +1,71 @@
+// Plik: scss/6-components/_topic-selector.scss
+
+// Komponent do wyboru tematów w formie klikalnych tagów
+.topic-selector {
+  max-width: 800px;
+  margin: 3rem auto;
+  text-align: center;
+
+  // Element: kontener na tagi (zastępuje fieldset)
+  &__options {
+    border: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  // Element: tytuł/legenda
+  &__legend {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2rem;
+    width: 100%;
+  }
+
+  // Element: pojedynczy tag/opcja
+  &__label {
+    // Ukrywamy domyślny checkbox
+    input[type="checkbox"] {
+      display: none;
+    }
+
+    // Widoczna część "pigułki"
+    span {
+      display: inline-block;
+      padding: 10px 20px;
+      border: 2px solid var(--border);
+      border-radius: 50px;
+      font-weight: 500;
+      color: var(--muted-text);
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+
+    // Efekt hover
+    &:hover span {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    // Zaznaczony tag
+    input[type="checkbox"]:checked + span {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+
+      // Ikona "ptaszka"
+      &::before {
+        content: '✔ ';
+        font-weight: bold;
+      }
+    }
+  }
+}

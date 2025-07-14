@@ -1,0 +1,81 @@
+// Plik: scss/6-components/_form-card.scss
+
+// Komponent .form-card, który jest eleganckim tłem dla formularzy
+.form-card {
+  max-width: 500px;
+  margin: 3rem auto;
+  padding: 2.5rem;
+  background-color: var(--bg);
+  border-radius: var(--border-radius-large, 12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+  // Element: nagłówek formularza
+  &__header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  // Element: tytuł formularza
+  &__title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: var(--text);
+  }
+  
+  // Element: podtytuł/opis
+  &__subtitle {
+    font-size: 1rem;
+    color: var(--muted-text);
+    margin: 0;
+  }
+
+  // Element: kontener na pola formularza
+  &__group {
+    margin-bottom: 1.25rem;
+  }
+
+  // Element: etykieta
+  &__label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  // Element: pole tekstowe
+  &__input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: var(--border-radius-base, 8px);
+    border: 1px solid var(--border);
+    font-size: 1rem;
+    background-color: var(--field-bg);
+    color: var(--text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      outline: none;
+    }
+  }
+
+  // Element: stopka formularza (np. z linkiem "Nie masz konta?")
+  &__footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

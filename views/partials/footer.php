@@ -1,38 +1,53 @@
-<footer class="site-footer">
-    <div class="footer-content">
-        <div class="footer-section">
-            <h4>Examly</h4>
-            <ul>
-                <li><a href="/">Strona główna</a></li>
-                <li><a href="/register">Rejestracja</a></li>
-                <li><a href="/login">Logowanie</a></li>
-                <li><a href="/statistics">Statystyki</a></li>
+<footer class="footer">
+    <div class="footer__content">
+        <!-- Sekcja: Nawigacja po stronie -->
+        <div class="footer__section">
+            <h4 class="footer__heading">Examly</h4>
+            <ul class="footer__list">
+                <li class="footer__item"><a href="/" class="footer__link">Strona główna</a></li>
+                <li class="footer__item"><a href="/register" class="footer__link">Rejestracja</a></li>
+                <li class="footer__item"><a href="/login" class="footer__link">Logowanie</a></li>
+                <li class="footer__item"><a href="/statistics" class="footer__link">Statystyki</a></li>
             </ul>
         </div>
 
-        <div class="footer-section">
-            <h4>Materiały</h4>
-            <ul>
-                <li><a href="/inf03_course">Kurs INF.03</a></li>
-                <li><a href="/inf03_one_question">Jedno pytanie</a></li>
-                <li><a href="/inf03_test">Egzamin próbny</a></li>
+        <!-- Sekcja: Materiały -->
+        <div class="footer__section">
+            <h4 class="footer__heading">Materiały</h4>
+            <ul class="footer__list">
+                <li class="footer__item"><a href="/inf03_course" class="footer__link">Kurs INF.03</a></li>
+                <li class="footer__item"><a href="/inf03_one_question" class="footer__link">Jedno pytanie</a></li>
+                <li class="footer__item"><a href="/inf03_test" class="footer__link">Egzamin próbny</a></li>
             </ul>
         </div>
 
-        <div class="footer-section">
-            <h4>Kontakt</h4>
-            <p><i class="fas fa-map-marker-alt"></i> ul. Przykładowa 12, 64-100 Leszno</p>
-            <p><i class="fas fa-envelope"></i> <a href="mailto:kontakt@examly.pl">kontakt@examly.pl</a></p>
-            <p><i class="fas fa-phone"></i> <a href="tel:+48123456789">+48 123 456 789</a></p>
-            <div class="socials">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
+        <!-- Sekcja: Kontakt -->
+        <div class="footer__section">
+            <h4 class="footer__heading">Kontakt</h4>
+            <ul class="footer__list">
+                <li class="footer__item">
+                    <i class="footer__icon fas fa-map-marker-alt"></i>
+                    ul. Jabłonkowa 28, 64-113 Osieczna
+                </li>
+                <li class="footer__item">
+                    <i class="footer__icon fas fa-envelope"></i>
+                    <a href="mailto:kontakt@examly.pl" class="footer__link">kontakt@examly.pl</a>
+                </li>
+                <li class="footer__item">
+                    <i class="footer__icon fas fa-phone"></i>
+                    <a href="tel:+48123456789" class="footer__link">+48 784 803 409</a>
+                </li>
+            </ul>
+            <div class="footer__socials">
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
             </div>
         </div>
     </div>
 
-    <div class="footer-bottom">
+    <!-- Dolna część stopki -->
+    <div class="footer__bottom">
         <p>&copy; <?= date("Y") ?> Examly. Wszelkie prawa zastrzeżone.</p>
     </div>
 </footer>

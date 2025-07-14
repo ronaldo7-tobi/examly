@@ -40,23 +40,45 @@ if (!$token) {
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Weryfikacja e-mail</title>
-    <link rel="stylesheet" href="../public/css/layout.css">
-    <link rel="stylesheet" href="../public/css/button.css">
-    <link rel="stylesheet" href="../public/css/verify.css">
-</head>
-<body class="verify">
-    <div class="container">
-        <div class="icon <?= $status ?>">
-            <?= $status === 'success' ? '✅' : '❌' ?>
-        </div>
-        <div class="message"><?= htmlspecialchars($message) ?></div>
+    <!-- Tytuł strony -->
+    <title>Weryfikacja E-mail</title>
 
-        <?php if ($status === 'success'): ?>
-            <a href="login.php" class="button">Zaloguj się</a>
-        <?php else: ?>
-            <a href="/" class="button">Powrót na stronę</a>
-        <?php endif; ?>
-    </div>
+    <!-- Link do styli -->
+    <link rel="stylesheet" href="../public/scss/main.css"> 
+</head>
+<body> <!-- Można dodać klasę dla ogólnych stylów stron systemowych -->
+    <main>
+        <div class="info-card--centered-fullscreen">
+            <div class="info-card">
+
+                <?php if ($status === 'success'): ?>
+
+                    <!-- WARIANT: SUKCES -->
+                    <div class="info-card__icon info-card__icon--success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h1 class="info-card__title">Weryfikacja zakończona!</h1>
+                    <p class="info-card__message"><?= htmlspecialchars($message) ?></p>
+                    <div class="info-card__actions">
+                        <a href="/login" class="btn btn--primary btn--full-width">Przejdź do logowania</a>
+                    </div>
+                
+                <?php else: ?>
+
+                    <!-- WARIANT: BŁĄD -->
+                    <div class="info-card__icon info-card__icon--error">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <h1 class="info-card__title">Wystąpił błąd</h1>
+                    <p class="info-card__message"><?= htmlspecialchars($message) ?></p>
+                    <div class="info-card__actions">
+                        <a href="/" class="btn btn--secondary btn--full-width">Wróć na stronę główną</a>
+                    </div>
+
+                <?php endif; ?>
+
+            </div>
+        </div>
+    </main>
 </body>
 </html>

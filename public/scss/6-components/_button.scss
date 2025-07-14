@@ -1,0 +1,46 @@
+// Plik: scss/6-components/_button.scss
+
+// Główna klasa komponentu .btn
+.btn {
+    display: inline-block; // Zmienione z `width: 100%`, aby był bardziej elastyczny
+    width: auto;
+    padding: 0.75rem 1.5rem; // Większy padding na boki
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+
+    &:hover {
+        background-color: var(--accent-hover);
+        transform: translateY(-2px); // Dodaje subtelny efekt "uniesienia"
+    }
+
+    // Modyfikator BEM dla przycisku o pełnej szerokości
+    &--full-width {
+        display: block;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    &:disabled,
+    &[disabled] {
+        background-color: #d1d5db;
+        color: #6b7280;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        opacity: 0.7;
+    }
+    
+    // Zapewniamy, że motyw ciemny również poprawnie obsłuży stan disabled
+    .dark &:disabled,
+    .dark &[disabled] {
+        background-color: #3f3f46;
+        color: #9ca3af;
+    }
+}

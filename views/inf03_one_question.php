@@ -44,55 +44,65 @@
     <title>Examly - INF.03 jedno pytanie</title>
 
     <!-- Link do styli -->
-    <link rel="stylesheet" href="../public/css/style.css">
-    <link rel="stylesheet" href="../public/css/questions.css">
-    <link rel="stylesheet" href="../public/css/choice_form.css">
+    <link rel="stylesheet" href="../public/scss/main.css"> 
 
     <!-- Link do ikonek -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <?php include 'partials/navbar.php'; ?>
-    <!-- Formularz wyboru tematów pozostaje, ale dajemy mu ID -->
-    <form id="topic-form">
-        <fieldset>
-            <legend>Wybierz z jakiej części materiału chcesz otrzymać pytanie</legend>
+    <!-- Formularz wyboru tematów -->
+    <form id="topic-form" class="topic-selector">
+
+        <!-- Używamy semantycznego nagłówka z klasą BEM -->
+        <h2 class="topic-selector__legend">Wybierz, z jakiej części materiału chcesz otrzymać pytanie</h2>
+
+        <!-- Używamy <div> z klasą BEM -->
+        <div class="topic-selector__options">
             
-            <!-- Nowa, ulepszona struktura z <label> opakowującym input i span -->
-            <label class="topic-label">
+            <!-- Każdy tag to osobny element .topic-selector__label -->
+            <label class="topic-selector__label">
                 <input type="checkbox" name="subject[]" value="inf03">
                 <span>Cały materiał INF.03</span>
             </label>
-            <label class="topic-label">
+            
+            <label class="topic-selector__label">
                 <input type="checkbox" name="subject[]" value="HTML">
                 <span>HTML</span>
             </label>
-            <label class="topic-label">
+            
+            <label class="topic-selector__label">
                 <input type="checkbox" name="subject[]" value="CSS">
                 <span>CSS</span>
             </label>
-            <label class="topic-label">
+            
+            <label class="topic-selector__label">
                 <input type="checkbox" name="subject[]" value="JS">
                 <span>JS</span>
             </label>
-            <label class="topic-label">
+            
+            <label class="topic-selector__label">
                 <input type="checkbox" name="subject[]" value="PHP">
                 <span>PHP</span>
             </label>
-            <label class="topic-label">
+            
+            <label class="topic-selector__label">
                 <input type="checkbox" name="subject[]" value="SQL">
                 <span>SQL</span>
             </label>
-            <label class="topic-label">
+            
+            <label class="topic-selector__label">
                 <input type="checkbox" name="subject[]" value="Teoria">
                 <span>Inne pytania teoretyczne</span>
             </label>
-        </fieldset>
-        <!-- Dodajemy te same klasy, co do przycisków w quizie dla spójności -->
-        <button type="submit" class="quiz-button quiz-button--primary">Rozpocznij naukę!</button>
+
+        </div>
+
+        <!-- Przycisk używa standardowych klas .btn z biblioteki komponentów -->
+        <button type="submit" class="btn btn--primary">Rozpocznij naukę!</button>
     </form>
 
-    <!-- Kontener, w którym będziemy dynamicznie wyświetlać quiz -->
+    <!-- Kontener, w którym dynamicznie wyświetla się quiz -->
     <div id="quiz-container" style="margin-top: 20px;"></div>
 
     <script type="module" src="/examly/public/js/quiz.js"></script>

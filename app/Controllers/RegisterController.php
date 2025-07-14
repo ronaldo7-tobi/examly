@@ -93,29 +93,33 @@ class RegisterController
         }
 
         // Generowanie i wysyłka tylko co 60s.
-        if (
-            isset($_GET['resend']) &&
-            $_GET['resend'] === 'true' &&
-            (!isset($_SESSION['email_sent']) || time() - $_SESSION['email_sent'] >= 60)
-        ) {
-            $tokenService = new TokenService();
-            $token = $tokenService->generateToken($userId, 'email_verify');
+        if (isset($_GET['resend']) && $_GET['resend'] === 'true') {
+            if (!isset($_SESSION['email_sent']) || time() - $_SESSION['email_sent'] >= 60) {
+                // Logika wysyłki e-maila
+                $tokenService = new TokenService();
+                $token = $tokenService->generateToken($userId, 'email_verify');
+                $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
+                $body = "<p>Witaj {$user->getFullName()},</p>"
+                    . "<p>Kliknij poniższy link, aby zweryfikować swój adres e-mail:</p>"
+                    . "<p><a href='$verifyLink'>$verifyLink</a></p>";
 
-            $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
-            $body  = "<p>Witaj {$user->getFullName()},</p>"
-                   . "<p>Kliknij poniższy link, aby zweryfikować swój adres e-mail:</p>"
-                   . "<p><a href='$verifyLink'>$verifyLink</a></p>";
-
-            $mailer = new Mailer();
-            if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
-                $_SESSION['email_sent'] = time();
-                return ["Wiadomość została wysłana na adres {$user->getEmail()}. Sprawdź skrzynkę odbiorczą."];
+                $mailer = new Mailer();
+                if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
+                    $_SESSION['email_sent'] = time();
+                    // Zwracamy tablicę z kluczem 'success'
+                    return ['success' => "Wiadomość została wysłana na adres {$user->getEmail()}. Sprawdź skrzynkę odbiorczą."];
+                } else {
+                    // Zwracamy tablicę z kluczem 'error'
+                    return ['error' => "Wystąpił błąd podczas wysyłania e-maila."];
+                }
             } else {
-                return ["Wystąpił błąd podczas wysyłania e-maila."];
+                // Zwracamy tablicę z kluczem 'error', gdy użytkownik próbuje wysłać za wcześnie
+                return ['error' => "Możesz ponownie wysłać e-mail dopiero po upływie minuty."];
             }
         }
-
-        return ["Nie możesz jeszcze ponownie wysłać e-maila."];
+        
+        // Zwracamy pustą tablicę, jeśli strona jest po prostu ładowana bez akcji
+        return []; 
     }
 }
 ?>

@@ -1,0 +1,148 @@
+// Plik: scss/6-components/_quiz.scss
+
+// Komponent .quiz-card, który zawiera pytanie, odpowiedzi i akcje
+.quiz-card {
+  max-width: 800px;
+  margin: 3rem auto;
+  background: var(--bg);
+  border-radius: var(--border-radius-large, 12px);
+  padding: 2rem 2.5rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+
+  // Element: tekst pytania
+  &__question-text {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    margin: 0 0 2rem 0;
+  }
+
+  // Element: kontener na opcje odpowiedzi
+  &__answers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  // Element: pojedyncza odpowiedź (label)
+  &__answer {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--border-radius-base, 8px);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    overflow: hidden;
+
+    // Ukrywamy domyślne radio
+    input[type="radio"] {
+      display: none;
+    }
+
+    &:hover {
+      border-color: var(--accent);
+      background-color: var(--primary-color-light, #f0e6ff); // Używamy zmiennej lub fallbacku
+    }
+
+    // Modyfikator: poprawna odpowiedź
+    &--correct {
+      border-color: var(--success-color, #28a745);
+      background-color: var(--success-color-light, #e9f6ec);
+      font-weight: 600;
+
+      .quiz-card__answer-prefix {
+        background-color: var(--success-color, #28a745);
+        border-color: var(--success-color, #28a745);
+        color: white;
+      }
+    }
+
+    // Modyfikator: niepoprawna odpowiedź
+    &--incorrect {
+      border-color: var(--error-color, #dc3545);
+      background-color: var(--error-color-light, #fbebed);
+      font-weight: 600;
+      
+      .quiz-card__answer-prefix {
+        background-color: var(--error-color, #dc3545);
+        border-color: var(--error-color, #dc3545);
+        color: white;
+      }
+    }
+    
+    // Ikony ✔ i ✖ dla feedbacku
+    &--correct::after,
+    &--incorrect::after {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        right: 1.25rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    &--correct::after {
+        content: '✔';
+        color: var(--success-color, #28a745);
+    }
+    &--incorrect::after {
+        content: '✖';
+        color: var(--error-color, #dc3545);
+    }
+  }
+
+  // Element: prefiks odpowiedzi (A, B, C, D)
+  &__answer-prefix {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    margin-right: 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  // Element: kontener na akcje (przyciski i wyjaśnienie)
+  &__actions {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--subtle-border);
+  }
+
+  // Element: kontener na same przyciski
+  &__button-container {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  // Element: panel z wyjaśnieniem
+  &__explanation {
+    background-color: var(--field-bg);
+    color: var(--muted-text);
+    line-height: 1.6;
+    border-radius: var(--border-radius-base, 8px);
+    
+    // Animacja rozwijania
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    padding: 0 1.25rem;
+    margin-top: 0;
+    transition: max-height 0.5s ease-in-out, opacity 0.3s ease, padding 0.5s ease, margin 0.5s ease;
+
+    // Modyfikator: widoczny
+    &--visible {
+      max-height: 500px;
+      opacity: 1;
+      padding: 1.25rem;
+      margin-top: 1.5rem;
+    }
+  }
+}

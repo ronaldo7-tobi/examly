@@ -1,0 +1,27 @@
+// Plik: scss/main.scss
+//
+// Główny plik importujący wszystkie częściowe pliki SASS
+// w poprawnej kolejności zgodnej z architekturą ITCSS.
+
+// 1. Ustawienia
+@import '1-settings/variables';
+
+// (Tutaj będą importy z innych folderów w przyszłości)
+
+// 4. Elementy bazowe
+@import '4-elements/base';
+@import '4-elements/typography';
+
+// (Tutaj będą importy z innych folderów w przyszłości)
+
+// 6. Komponenty
+@import '6-components/button';
+@import '6-components/nav';
+@import '6-components/footer';
+@import '6-components/form-card';
+@import '6-components/alert'; 
+@import '6-components/info-card';
+@import '6-components/topic-selector';
+@import '6-components/quiz-card';  
+
+// (Twoje pliki nav.css i footer.css również trafią tutaj jako komponenty)

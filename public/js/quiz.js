@@ -48,8 +48,11 @@ class Quiz {
             if (data.success) {
                 this.currentExplanation = data.question.explanation;
                 ui.renderQuestion(this.quizContainer, data.question, data.answers);
-                // Dodajemy nasłuchiwacz do nowo wyrenderowanych odpowiedzi
-                document.getElementById('answers-container').addEventListener('click', this.handleAnswerClick);
+
+                const answersContainer = document.querySelector('.quiz-card__answers');
+                if (answersContainer) {
+                    answersContainer.addEventListener('click', this.handleAnswerClick);
+                }
             } else {
                 ui.showError(this.quizContainer, data.message);
                 this.topicForm.style.display = 'block';
@@ -62,10 +65,13 @@ class Quiz {
     
     // Obsługuje kliknięcie w odpowiedź
     async handleAnswerClick(event) {
-        const clickedLabel = event.target.closest('.answer-label');
+        const clickedLabel = event.target.closest('.quiz-card__answer');
         if (!clickedLabel) return;
         
-        const answersContainer = document.getElementById('answers-container');
+        const answersContainer = document.querySelector('.quiz-card__answers');
+        if (answersContainer) {
+            answersContainer.style.pointerEvents = 'none'; // Blokujemy kliknięcia
+        }
         answersContainer.style.pointerEvents = 'none'; // Blokujemy kliknięcia
 
         const userAnswerId = clickedLabel.querySelector('input[type="radio"]').value;

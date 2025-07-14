@@ -1,0 +1,118 @@
+// Plik: scss/6-components/_nav.scss
+
+// Główny blok komponentu .main-nav
+.main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg);
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  // Efekt gradientu na dolnej krawędzi
+  border-bottom: 5px solid transparent;
+  background-image: linear-gradient(to bottom, var(--bg), var(--bg)),
+                    linear-gradient(to right, var(--accent), #8b5cf6);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+
+  // Element: lista linków nawigacyjnych
+  &__links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  // Element: pojedynczy link w nawigacji
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+      color: var(--accent);
+    }
+  }
+
+  // Element: ikona w linku
+  &__icon {
+    font-size: 1.2rem;
+    color: var(--accent);
+  }
+}
+
+// Komponent .dropdown (może być używany wewnątrz .main-nav lub gdziekolwiek indziej)
+.dropdown {
+  position: relative; // Kluczowe dla pozycjonowania menu
+
+  &:hover > .dropdown__menu { // Pokazujemy menu przy najechaniu na rodzica
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  // Element: rozwijane menu
+  &__menu {
+    position: absolute;
+    top: 100%; // Pozycjonowanie pod rodzicem
+    left: 0;
+    background-color: var(--bg);
+    border: 1px solid var(--subtle-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    display: none; // Ukryte domyślnie
+    flex-direction: column;
+    min-width: 200px;
+    padding: 0.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    pointer-events: none; // Ukryte menu nie powinno łapać kliknięć
+  }
+
+  // Element: pojedynczy element w dropdownie
+  &__item {
+    list-style-type: none;
+  }
+
+  // Element: link w dropdownie
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease;
+    border-radius: 0.5rem;
+    white-space: nowrap; // Zapobiega łamaniu tekstu
+
+    &:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+      color: var(--accent);
+    }
+  }
+
+  // Element: ikona w linku dropdowna
+  &__icon {
+    color: var(--accent);
+    font-size: 1rem;
+    min-width: 1.25rem;
+  }
+}

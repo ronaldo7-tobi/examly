@@ -1,0 +1,101 @@
+// Plik: scss/6-components/_footer.scss
+
+// Główny blok komponentu .footer
+.footer {
+  background-color: var(--footer-bg);
+  padding: 2rem 1rem 1rem;
+  border-top: 1px solid var(--subtle-border);
+  font-size: 0.95rem;
+  color: var(--text);
+
+  // Element: kontener na treść
+  &__content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  // Element: pojedyncza sekcja w stopce
+  &__section {
+    flex: 1 1 250px;
+  }
+
+  // Element: nagłówek sekcji
+  &__heading {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 0; // Reset
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+
+  // Element: lista linków lub kontaktów
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  // Element: pojedynczy element listy
+  &__item {
+    margin-bottom: 0.5rem;
+    color: var(--muted-text);
+  }
+
+  // Element: link w liście
+  &__link {
+    text-decoration: none;
+    color: var(--muted-text);
+    transition: color 0.3s;
+
+    &:hover {
+      color: var(--accent);
+    }
+  }
+
+  // Element: ikona przy tekście
+  &__icon {
+    margin-right: 0.5rem;
+    color: var(--footer-icon);
+  }
+
+  // Element: kontener na ikony social media
+  &__socials {
+    a {
+      margin-right: 0.75rem;
+      color: var(--footer-icon);
+      font-size: 1.2rem;
+      transition: color 0.3s;
+
+      &:hover {
+        color: var(--accent);
+      }
+    }
+  }
+
+  // Element: dolna część stopki z prawami autorskimi
+  &__bottom {
+    text-align: center;
+    margin-top: 2rem;
+    color: var(--muted-text);
+    font-size: 0.875rem;
+  }
+}
+
+// Media query dla responsywności
+@media (max-width: 768px) {
+  .footer {
+    &__content {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    &__section {
+      flex: none;
+    }
+  }
+}

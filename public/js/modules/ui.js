@@ -22,19 +22,22 @@ export function renderQuestion(container, question, answers) {
     answers.forEach((answer, index) => {
         const letter = String.fromCharCode(65 + index);
         answersHTML += `
-            <label class="answer-label">
+            <label class="quiz-card__answer">
                 <input type="radio" name="answer" value="${answer.id}">
-                <span class="answer-prefix">${letter}</span>
-                <span class="answer-text">${escapeHTML(answer.content)}</span>
+                <span class="quiz-card__answer-prefix">${letter}</span>
+                <span class="quiz-card__answer-text">${escapeHTML(answer.content)}</span>
             </label>
         `;
     });
 
     container.innerHTML = `
-        <section id="question-block">
-            <p><strong>${escapeHTML(question.content)}</strong></p>
-            <div id="answers-container">${answersHTML}</div>
-            <div id="feedback-and-actions-container"></div>
+        <section class="quiz-card">
+            <p class="quiz-card__question-text">${escapeHTML(question.content)}</p>
+            <div class="quiz-card__answers">${answersHTML}</div>
+            <div class="quiz-card__actions">
+                <div class="quiz-card__button-container"></div>
+                <div class="quiz-card__explanation"></div>
+            </div>
             <input type="hidden" id="question_id_hidden" value="${question.id}">
         </section>
     `;
@@ -47,16 +50,22 @@ export function renderQuestion(container, question, answers) {
  * @param {number|string} userAnswerId - ID odpowiedzi wybranej przez użytkownika.
  */
 export function showAnswerFeedback(isCorrect, correctAnswerId, userAnswerId) {
-    const radioButtons = document.querySelectorAll('input[name="answer"]');
-    radioButtons.forEach(radio => {
-        const label = radio.closest('.answer-label');
-        if (label) {
-            if (!isCorrect && radio.value == userAnswerId) {
-                label.classList.add('incorrect');
-            }
-            if (radio.value == correctAnswerId) {
-                label.classList.add('correct');
-            }
+    // Używamy querySelectorAll, aby znaleźć wszystkie elementy pasujące do selektora
+    const answerLabels = document.querySelectorAll('.quiz-card__answer');
+    
+    answerLabels.forEach(label => {
+        // Pobieramy input radio, który jest wewnątrz tej etykiety
+        const radioInput = label.querySelector('input[type="radio"]');
+        if (!radioInput) return; // Zabezpieczenie
+
+        // Sprawdzamy, czy to jest błędna odpowiedź, którą zaznaczył użytkownik
+        if (!isCorrect && radioInput.value == userAnswerId) {
+            label.classList.add('quiz-card__answer--incorrect');
+        }
+        
+        // Zawsze zaznaczamy poprawną odpowiedź na zielono
+        if (radioInput.value == correctAnswerId) {
+            label.classList.add('quiz-card__answer--correct');
         }
     });
 }
@@ -67,38 +76,54 @@ export function showAnswerFeedback(isCorrect, correctAnswerId, userAnswerId) {
  * @param {function} onNextClick - Funkcja do wywołania po kliknięciu "Następne".
  */
 export function renderActionButtons(explanation, onNextClick) {
-    const actionsContainer = document.getElementById('feedback-and-actions-container');
-    actionsContainer.innerHTML = '';
+    // 1. Znajdź główny kontener na akcje
+    const actionsContainer = document.querySelector('.quiz-card__actions');
+    if (!actionsContainer) {
+        console.error('Nie znaleziono kontenera .quiz-card__actions!');
+        return;
+    }
 
+    // 2. Znajdź sub-kontenery (na przyciski i na wyjaśnienie)
+    // UWAGA: Te elementy są tworzone dynamicznie, więc musimy je stworzyć tutaj!
+    
+    // Czyścimy kontener akcji na wszelki wypadek
+    actionsContainer.innerHTML = ''; 
+    
     const buttonContainer = document.createElement('div');
-    buttonContainer.style.marginTop = '25px';
+    buttonContainer.className = 'quiz-card__button-container';
 
     const explanationContainer = document.createElement('div');
-    explanationContainer.id = 'explanation-container';
+    explanationContainer.className = 'quiz-card__explanation';
     
+    // Logika tworzenia przycisku 'Wyjaśnienie'
     if (explanation && explanation.trim() !== '') {
         explanationContainer.innerHTML = escapeHTML(explanation);
         const explanationButton = document.createElement('button');
         explanationButton.type = 'button';
         explanationButton.textContent = 'Pokaż wyjaśnienie';
-        explanationButton.className = 'quiz-button quiz-button--secondary';
+        explanationButton.className = 'btn btn--secondary'; // Używamy standardowych klas
         explanationButton.style.marginRight = '10px';
+        
         explanationButton.addEventListener('click', () => {
-            explanationContainer.classList.toggle('visible');
-            explanationButton.textContent = explanationContainer.classList.contains('visible') 
+            // Dodajemy klasę modyfikatora --visible
+            explanationContainer.classList.toggle('quiz-card__explanation--visible');
+            explanationButton.textContent = explanationContainer.classList.contains('quiz-card__explanation--visible') 
                 ? 'Ukryj wyjaśnienie' 
                 : 'Pokaż wyjaśnienie';
         });
+        
         buttonContainer.appendChild(explanationButton);
     }
 
+    // Logika tworzenia przycisku 'Następne'
     const nextButton = document.createElement('button');
     nextButton.type = 'button';
     nextButton.textContent = 'Następne';
-    nextButton.className = 'quiz-button quiz-button--primary';
+    nextButton.className = 'btn btn--primary'; // Używamy standardowych klas
     nextButton.addEventListener('click', onNextClick);
     buttonContainer.appendChild(nextButton);
 
+    // Dodajemy gotowe elementy do głównego kontenera akcji
     actionsContainer.appendChild(buttonContainer);
     actionsContainer.appendChild(explanationContainer);
 }

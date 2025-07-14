@@ -1,0 +1,44 @@
+// Plik: scss/6-components/_alert.scss
+
+// Komponent .alert do wyświetlania wiadomości i błędów
+.alert {
+  max-width: 500px;
+  margin: 1.5rem auto 0;
+  padding: 1rem;
+  border-left: 5px solid;
+  border-radius: var(--border-radius-base, 8px);
+  font-weight: 500;
+  
+  // Modyfikator błędu
+  &--error {
+    background-color: var(--error-bg);
+    border-color: #dc2626;
+    color: #991b1b;
+
+    .dark & { // Specjalne style dla motywu ciemnego
+      color: #fca5a5;
+    }
+  }
+  
+  // Modyfikator sukcesu
+  &--success {
+    background-color: var(--success-bg);
+    border-color: #16a34a;
+    color: #14532d;
+    
+    .dark & { // Specjalne style dla motywu ciemnego
+      color: #86efac;
+    }
+  }
+
+  // Element: lista błędów
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  &__item {
+    margin-bottom: 0.25rem;
+  }
+}
