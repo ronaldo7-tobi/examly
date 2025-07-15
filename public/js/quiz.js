@@ -20,9 +20,13 @@ class Quiz {
 
     // Inicjalizuje quiz, dodając nasłuchiwacze
     init() {
-        this.topicForm.addEventListener('submit', this.handleTopicSubmit);
+        if (this.topicForm) {
+            this.topicForm.addEventListener('submit', this.handleTopicSubmit);
+        }
+        if (this.quizContainer) {
+            this.quizContainer.addEventListener('click', this.handleAnswerClick);
+        }
     }
-
     // Obsługuje wysłanie formularza z tematami
     async handleTopicSubmit(event) {
         event.preventDefault();
@@ -30,12 +34,14 @@ class Quiz {
         this.currentSubjects = formData.getAll('subject[]');
 
         if (this.currentSubjects.length === 0) {
-            alert('Proszę wybrać przynajmniej jeden temat.');
+            // Jeśli nie ma wybranych tematów, czyścimy kontener z quizem
+            this.quizContainer.innerHTML = '<p class="quiz-placeholder">Wybierz przynajmniej jeden temat, aby rozpocząć naukę.</p>';
             return;
         }
 
-        this.topicForm.style.display = 'none';
+        this.topicForm.style.pointerEvents = 'none';
         await this.startNewQuestion();
+        this.topicForm.style.pointerEvents = 'auto';
     }
     
     // Pobiera i renderuje nowe pytanie

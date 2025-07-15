@@ -1,5 +1,5 @@
 // Plik: public/js/modules/api.js
-
+export const IMAGE_BASE_PATH = '/examly/public/images/questions/';
 const API_BASE_PATH = '/examly/public/api'; // Centralne miejsce na ścieżkę do API
 
 /**

@@ -1,4 +1,5 @@
 // Plik: public/js/modules/ui.js
+import { IMAGE_BASE_PATH } from './api.js';
 
 /**
  * Pomocnicza funkcja do unikania XSS.
@@ -14,12 +15,13 @@ function escapeHTML(str) {
 /**
  * Renderuje pytanie i odpowiedzi w kontenerze.
  * @param {HTMLElement} container - Kontener, w którym ma być renderowany quiz.
- * @param {Object} question - Obiekt pytania.
+ * @param {Object} question - Obiekt pytania (może zawierać właściwość 'image').
  * @param {Array<Object>} answers - Tablica obiektów odpowiedzi.
  */
 export function renderQuestion(container, question, answers) {
     let answersHTML = '';
     answers.forEach((answer, index) => {
+        // ... (ta część pozostaje bez zmian) ...
         const letter = String.fromCharCode(65 + index);
         answersHTML += `
             <label class="quiz-card__answer">
@@ -29,12 +31,25 @@ export function renderQuestion(container, question, answers) {
             </label>
         `;
     });
+    
+    // ZMIANA: Tworzymy zmienną na HTML obrazka
+    let imageHTML = '';
+    // Sprawdzamy, czy obiekt pytania zawiera niepustą właściwość 'image'
+    if (question.image && question.image.trim() !== '') {
+        imageHTML = `
+            <div class="quiz-card__image-container">
+                <img src="${IMAGE_BASE_PATH}${escapeHTML(question.image)}" alt="Ilustracja do pytania" class="quiz-card__image">
+            </div>
+        `;
+    }
 
     container.innerHTML = `
         <section class="quiz-card">
             <p class="quiz-card__question-text">${escapeHTML(question.content)}</p>
+            ${imageHTML}
             <div class="quiz-card__answers">${answersHTML}</div>
             <div class="quiz-card__actions">
+                <!-- Te kontenery zostają puste, JS je wypełni -->
                 <div class="quiz-card__button-container"></div>
                 <div class="quiz-card__explanation"></div>
             </div>

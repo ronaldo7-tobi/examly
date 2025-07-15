@@ -1,0 +1,54 @@
+// Plik: scss/6-components/_quiz-page-layout.scss
+
+// Komponent layoutu dla strony z quizem
+.quiz-page-layout {
+  display: flex;
+  flex-wrap: wrap; // Pozwala na łamanie na mniejszych ekranach
+  gap: 2rem;
+  max-width: 1400px; // Większa szerokość maksymalna dla układu dwukolumnowego
+  margin: 2rem auto;
+  padding: 0 1rem; // Odstępy po bokach
+
+  // Boczna kolumna z formularzem
+  &__sidebar {
+    flex: 1 1 350px; // Rośnie, ale ma bazową szerokość 350px
+    position: sticky; // Przyklejamy do góry
+    top: 100px; // Odstęp od nawigacji
+    align-self: flex-start; // Wyrównanie do góry
+    max-height: calc(100vh - 120px); // Zapobiega wyjeżdżaniu poza ekran
+    overflow-y: auto; // Umożliwia przewijanie, jeśli jest za dużo tematów
+  }
+
+  // Główna kolumna z quizem
+  &__main-content {
+    flex: 2 1 600px; // Rośnie 2x szybciej, bazowa szerokość 600px
+  }
+}
+
+// Styl dla placeholdera, gdy quiz nie jest aktywny
+.quiz-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background-color: var(--field-bg);
+  border: 2px dashed var(--border);
+  border-radius: var(--border-radius-large, 12px);
+  color: var(--muted-text);
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 2rem;
+}
+
+// Media query dla mniejszych ekranów
+@media (max-width: 992px) {
+  .quiz-page-layout {
+    flex-direction: column;
+
+    &__sidebar {
+      position: static; // Wyłączamy przyklejenie
+      max-height: none;
+    }
+  }
+}

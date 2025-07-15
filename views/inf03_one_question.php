@@ -52,58 +52,61 @@
 <body>
     <?php include 'partials/navbar.php'; ?>
     <!-- Formularz wyboru tematów -->
-    <form id="topic-form" class="topic-selector">
-
-        <!-- Używamy semantycznego nagłówka z klasą BEM -->
-        <h2 class="topic-selector__legend">Wybierz, z jakiej części materiału chcesz otrzymać pytanie</h2>
-
-        <!-- Używamy <div> z klasą BEM -->
-        <div class="topic-selector__options">
-            
-            <!-- Każdy tag to osobny element .topic-selector__label -->
-            <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="inf03">
-                <span>Cały materiał INF.03</span>
-            </label>
-            
-            <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="HTML">
-                <span>HTML</span>
-            </label>
-            
-            <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="CSS">
-                <span>CSS</span>
-            </label>
-            
-            <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="JS">
-                <span>JS</span>
-            </label>
-            
-            <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="PHP">
-                <span>PHP</span>
-            </label>
-            
-            <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="SQL">
-                <span>SQL</span>
-            </label>
-            
-            <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="Teoria">
-                <span>Inne pytania teoretyczne</span>
-            </label>
-
-        </div>
-
-        <!-- Przycisk używa standardowych klas .btn z biblioteki komponentów -->
-        <button type="submit" class="btn btn--primary">Rozpocznij naukę!</button>
-    </form>
-
-    <!-- Kontener, w którym dynamicznie wyświetla się quiz -->
-    <div id="quiz-container" style="margin-top: 20px;"></div>
+    <div class="quiz-page-layout">
+        <aside class="quiz-page-layout__sidebar">
+            <!-- Formularz wyboru tematów trafia tutaj -->
+            <form id="topic-form" class="topic-selector">
+                <!-- Używamy semantycznego nagłówka z klasą BEM -->
+                <h2 class="topic-selector__legend">Wybierz, z jakiej części materiału chcesz otrzymać pytanie</h2>
+                <!-- Używamy <div> z klasą BEM -->
+                <div class="topic-selector__options">
+                    <!-- Każdy tag to osobny element .topic-selector__label -->
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="inf03">
+                        <span>Cały materiał INF.03</span>
+                    </label>
+                    
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="HTML">
+                        <span>HTML</span>
+                    </label>
+                    
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="CSS">
+                        <span>CSS</span>
+                    </label>
+                    
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="JS">
+                        <span>JS</span>
+                    </label>
+                    
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="PHP">
+                        <span>PHP</span>
+                    </label>
+                    
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="SQL">
+                        <span>SQL</span>
+                    </label>
+                    
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="Teoria">
+                        <span>Inne pytania teoretyczne</span>
+                    </label>
+                </div>
+                <!-- Przycisk używa standardowych klas .btn z biblioteki komponentów -->
+                <button type="submit" class="btn btn--primary">Rozpocznij naukę!</button>
+            </form>
+        </aside>
+        <main class="quiz-page-layout__main-content">
+            <!-- Kontener, w którym dynamicznie wyświetla się quiz -->
+            <div id="quiz-container" style="margin-top: 20px;">
+                <p class="quiz-placeholder">Wybierz przynajmniej jeden temat, aby rozpocząć naukę.</p>
+            </div>
+        </main>
+    </div>
 
     <script type="module" src="/examly/public/js/quiz.js"></script>
 

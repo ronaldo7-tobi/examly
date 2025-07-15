@@ -9,6 +9,23 @@
   padding: 2rem 2.5rem;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
 
+  // Element: kontener na obrazek
+  &__image-container {
+    margin-bottom: 1.5rem; // Odstęp od tekstu pytania
+    border-radius: var(--border-radius-base, 8px);
+    overflow: hidden; // Ukrywa wystające rogi obrazka
+    border: 1px solid var(--border);
+  }
+
+  // Element: sam obrazek
+  &__image {
+    display: block;  // Usuwa domyślny mały odstęp pod obrazkiem
+    width: 100%;     // Obrazek jest w pełni responsywny, dopasowuje się do szerokości kontenera
+    height: auto;    // Zachowuje proporcje
+    max-height: 400px; // Opcjonalnie: ogranicza maksymalną wysokość, by nie zdominował widoku
+    object-fit: contain; // Zapewnia, że cały obrazek będzie widoczny, nawet jeśli ma inne proporcje
+  }
+
   // Element: tekst pytania
   &__question-text {
     font-size: 1.3rem;
