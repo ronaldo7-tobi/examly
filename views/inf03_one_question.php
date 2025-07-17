@@ -95,6 +95,23 @@
                         <input type="checkbox" name="subject[]" value="Teoria">
                         <span>Inne pytania teoretyczne</span>
                     </label>
+
+                    <p>Opcje premium: </p>
+
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="toDiscover" class="premium">
+                        <span>Nieodkryte pytania</span>
+                    </label>
+
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="toImprove" class="premium">
+                        <span>Pytania, które gorzej Ci idą</span>
+                    </label>
+
+                    <label class="topic-selector__label">
+                        <input type="checkbox" name="subject[]" value="toRemind" class="premium">
+                        <span>Pytania najdawniej powtórzone</span>
+                    </label>
                 </div>
                 <!-- Przycisk używa standardowych klas .btn z biblioteki komponentów -->
                 <button type="submit" class="btn btn--primary">Rozpocznij naukę!</button>
@@ -107,6 +124,43 @@
             </div>
         </main>
     </div>
+
+    <script>
+        // 1. Poprawnie przekaż stan zalogowania z PHP do JS
+        const isUserLoggedIn = <?= isset($_SESSION['user']) ? 'true' : 'false' ?>;
+
+        // 2. Znajdź wszystkie checkboxy premium
+        const premiumCheckboxes = document.querySelectorAll('.premium');
+
+        // 3. Jeśli użytkownik nie jest zalogowany, wyłącz je
+        if (!isUserLoggedIn) {
+            premiumCheckboxes.forEach(checkbox => {
+                checkbox.disabled = true;
+                // Dodajmy też tooltip, aby wyjaśnić, dlaczego opcja jest nieaktywna
+                const label = checkbox.closest('.topic-selector__label');
+                if (label) {
+                    label.title = 'Ta opcja jest dostępna tylko dla zalogowanych użytkowników.';
+                    label.style.cursor = 'not-allowed'; // Zmień kursor, aby wizualnie wskazać nieaktywność
+                }
+            });
+        }
+
+        // 4. Logika do obsługi pojedynczego wyboru opcji premium
+        premiumCheckboxes.forEach(checkboxToListen => {
+            checkboxToListen.addEventListener('change', (e) => {
+                // Jeśli ten checkbox został właśnie zaznaczony...
+                if (e.target.checked) {
+                    // ...przejdź przez wszystkie inne checkboxy premium...
+                    premiumCheckboxes.forEach(otherCheckbox => {
+                        // ...i jeśli to nie jest ten sam checkbox, odznacz go.
+                        if (otherCheckbox !== e.target) {
+                            otherCheckbox.checked = false;
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 
     <script type="module" src="/examly/public/js/quiz.js"></script>
 

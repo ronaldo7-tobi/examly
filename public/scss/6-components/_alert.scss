@@ -31,6 +31,19 @@
     }
   }
 
+  // Modyfikator informacyjny
+  &--info {
+    background-color: #e0f2fe; // Jasnoniebieskie tło
+    border-color: #0ea5e9;    // Niebieska ramka
+    color: #0c4a6e;           // Ciemnoniebieski tekst
+
+    .dark & { // Style dla motywu ciemnego
+      background-color: #1e293b;
+      border-color: #38bdf8;
+      color: #7dd3fc;
+    }
+  }
+
   // Element: lista błędów
   &__list {
     list-style: none;

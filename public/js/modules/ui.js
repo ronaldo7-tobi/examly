@@ -157,5 +157,14 @@ export function showLoading(container) {
  * @param {string} message - Treść błędu.
  */
 export function showError(container, message) {
-    container.innerHTML = `<p style="color: red;">Błąd: ${message}</p>`;
+    container.innerHTML = `<p class="alert alert--error";">Błąd: ${message}</p>`;
+}
+
+/**
+ * Wyświetla komunikat informacyjny. (NOWA FUNKCJA)
+ * @param {HTMLElement} container - Kontener, w którym ma się pojawić komunikat.
+ * @param {string} message - Treść informacji.
+ */
+export function showInfo(container, message) {
+    container.innerHTML = `<div class="alert alert--info">${escapeHTML(message)}</div>`;
 }

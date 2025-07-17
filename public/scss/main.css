@@ -333,6 +333,16 @@ body {
 .dark .alert--success {
   color: #86efac;
 }
+.alert--info {
+  background-color: #e0f2fe;
+  border-color: #0ea5e9;
+  color: #0c4a6e;
+}
+.dark .alert--info {
+  background-color: #1e293b;
+  border-color: #38bdf8;
+  color: #7dd3fc;
+}
 .alert__list {
   list-style: none;
   padding: 0;

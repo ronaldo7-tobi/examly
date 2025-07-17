@@ -13,24 +13,73 @@ class ApiController {
 
     /**
      * Endpoint: /api/get-question
-     * Zwraca nowe pytanie w formacie JSON.
+     * Zwraca nowe pytanie w formacie JSON lub odpowiedni komunikat.
      */
-    public function getQuestion() {
+    public function getQuestion()
+    {
         $this->ensurePostRequest();
 
-        if (empty($_POST['subjects'])) {
+        $isUserLoggedIn = session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user']);
+        $userId = $isUserLoggedIn ? $_SESSION['user']->getId() : null;
+
+        $subjectsAndOptions = $_POST['subjects'] ?? [];
+        if (empty($subjectsAndOptions)) {
             $this->sendJsonResponse(['success' => false, 'message' => 'Nie wybrano żadnych tematów.'], 400);
             return;
         }
 
-        $subjects = $_POST['subjects'];
-        $questions = $this->questionModel->getQuestions($subjects, 1, 'INF.03');
+        $isUndiscoveredMode = in_array('toDiscover', $subjectsAndOptions);
+        $subjects = array_filter($subjectsAndOptions, function($value) {
+            return !in_array($value, ['toDiscover', 'toImprove', 'toRemind']);
+        });
 
-        if (empty($questions)) {
-            $this->sendJsonResponse(['success' => false, 'message' => 'Nie znaleziono pytań dla wybranych tematów.']);
+        if (empty($subjects)) {
+            $this->sendJsonResponse(['success' => false, 'message' => 'Wybierz przynajmniej jedną kategorię materiału.'], 400);
             return;
         }
 
+        $questions = []; // Inicjujemy pustą tablicę na pytania
+
+        if ($isUndiscoveredMode) {
+            if (!$isUserLoggedIn) {
+                $this->sendJsonResponse(['success' => false, 'message' => 'Opcja "Nieodkryte" jest dostępna tylko dla zalogowanych użytkowników.']);
+                return;
+            }
+            $questions = $this->questionModel->getUndiscoveredQuestions($userId, $subjects, 1, 'INF.03');
+        } else {
+            // Standardowa logika, gdy opcje premium nie są wybrane
+            $questions = $this->questionModel->getQuestions($subjects, 1, 'INF.03');
+        }
+
+        // Teraz mamy JEDNO miejsce, które obsługuje wynik, niezależnie od trybu.
+
+        if (empty($questions)) {
+            // Jeśli nie znaleziono pytań, wyślij odpowiedni komunikat informacyjny.
+            $seenSubjects = [];
+            if($isUndiscoveredMode){
+                foreach ($subjects as $subject) {
+                    if (empty($this->questionModel->getUndiscoveredQuestions($userId, [$subject], 1, 'INF.03'))) {
+                        $seenSubjects[] = $subject;
+                    }
+                }
+            }
+        
+            $message = 'Gratulacje! Odpowiedziałeś już na wszystkie pytania z kategorii: ' . implode(', ', $subjects) . '.';
+            if (count($seenSubjects) !== count($subjects) && $isUndiscoveredMode){
+                // Jeśli rozwiązano tylko część kategorii, a dla reszty po prostu nie ma pytań
+                $message = 'Nie znaleziono więcej pytań dla wybranych kryteriów.';
+            }
+
+
+            $this->sendJsonResponse([
+                'success' => true,
+                'status' => 'no_questions_left',
+                'message' => $message
+            ]);
+            return;
+        }
+
+        // Jeśli znaleziono pytanie, przygotuj i wyślij odpowiedź.
         $question = $questions[0];
         $answers = $this->answerModel->getAnswersToQuestion($question['id']);
 
@@ -59,7 +108,10 @@ class ApiController {
         $correctAnswer = $this->answerModel->getCorrectAnswerForQuestion($questionId);
 
         if (!$correctAnswer) {
-            $this->sendJsonResponse(['success' => false, 'message' => 'Nie znaleziono poprawnej odpowiedzi dla tego pytania.']);
+            $this->sendJsonResponse([
+                'success' => false,
+                'message' => 'Nie znaleziono poprawnej odpowiedzi dla tego pytania.'
+            ]);
             return;
         }
         
