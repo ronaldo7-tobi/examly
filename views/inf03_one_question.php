@@ -54,71 +54,65 @@
     <!-- Formularz wyboru tematów -->
     <div class="quiz-page-layout">
         <aside class="quiz-page-layout__sidebar">
-            <!-- Formularz wyboru tematów trafia tutaj -->
             <form id="topic-form" class="topic-selector">
-                <!-- Używamy semantycznego nagłówka z klasą BEM -->
                 <h2 class="topic-selector__legend">Wybierz, z jakiej części materiału chcesz otrzymać pytanie</h2>
-                <!-- Używamy <div> z klasą BEM -->
-                <div class="topic-selector__options">
-                    <!-- Każdy tag to osobny element .topic-selector__label -->
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="inf03">
-                        <span>Cały materiał INF.03</span>
-                    </label>
-                    
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="HTML">
-                        <span>HTML</span>
-                    </label>
-                    
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="CSS">
-                        <span>CSS</span>
-                    </label>
-                    
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="JS">
-                        <span>JS</span>
-                    </label>
-                    
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="PHP">
-                        <span>PHP</span>
-                    </label>
-                    
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="SQL">
-                        <span>SQL</span>
-                    </label>
-                    
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="Teoria">
-                        <span>Inne pytania teoretyczne</span>
-                    </label>
 
-                    <p>Opcje premium: </p>
+                <fieldset class="topic-selector__fieldset">
+                    <legend class="topic-selector__sub-legend">Główne kategorie</legend>
+                    <div class="topic-selector__options">
+                        <label class="topic-selector__label">
+                            <input type="checkbox" value="inf03" id="select-all-inf03">
+                            <span>Cały materiał INF.03</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="HTML" class="topic-checkbox">
+                            <span>HTML</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="CSS" class="topic-checkbox">
+                            <span>CSS</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="JS" class="topic-checkbox">
+                            <span>JS</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="PHP" class="topic-checkbox">
+                            <span>PHP</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="SQL" class="topic-checkbox">
+                            <span>SQL</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="Teoria" class="topic-checkbox">
+                            <span>Inne pytania teoretyczne</span>
+                        </label>
+                    </div>
+                </fieldset>
 
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="toDiscover" class="premium">
-                        <span>Nieodkryte pytania</span>
-                    </label>
-
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="toImprove" class="premium">
-                        <span>Pytania, które gorzej Ci idą</span>
-                    </label>
-
-                    <label class="topic-selector__label">
-                        <input type="checkbox" name="subject[]" value="toRemind" class="premium">
-                        <span>Pytania najdawniej powtórzone</span>
-                    </label>
-                </div>
-                <!-- Przycisk używa standardowych klas .btn z biblioteki komponentów -->
+                <fieldset class="topic-selector__fieldset">
+                    <legend class="topic-selector__sub-legend">Inteligentna nauka</legend>
+                    <div class="topic-selector__options">
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="toDiscover" class="premium-checkbox">
+                            <span>Nieodkryte pytania</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="toImprove" class="premium-checkbox">
+                            <span>Pytania, które gorzej Ci idą</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="subject[]" value="toRemind" class="premium-checkbox">
+                            <span>Pytania najdawniej powtórzone</span>
+                        </label>
+                    </div>
+                </fieldset>
+                
                 <button type="submit" class="btn btn--primary">Rozpocznij naukę!</button>
             </form>
         </aside>
         <main class="quiz-page-layout__main-content">
-            <!-- Kontener, w którym dynamicznie wyświetla się quiz -->
             <div id="quiz-container" style="margin-top: 20px;">
                 <p class="quiz-placeholder">Wybierz przynajmniej jeden temat, aby rozpocząć naukę.</p>
             </div>
@@ -126,44 +120,13 @@
     </div>
 
     <script>
-        // 1. Poprawnie przekaż stan zalogowania z PHP do JS
-        const isUserLoggedIn = <?= isset($_SESSION['user']) ? 'true' : 'false' ?>;
-
-        // 2. Znajdź wszystkie checkboxy premium
-        const premiumCheckboxes = document.querySelectorAll('.premium');
-
-        // 3. Jeśli użytkownik nie jest zalogowany, wyłącz je
-        if (!isUserLoggedIn) {
-            premiumCheckboxes.forEach(checkbox => {
-                checkbox.disabled = true;
-                // Dodajmy też tooltip, aby wyjaśnić, dlaczego opcja jest nieaktywna
-                const label = checkbox.closest('.topic-selector__label');
-                if (label) {
-                    label.title = 'Ta opcja jest dostępna tylko dla zalogowanych użytkowników.';
-                    label.style.cursor = 'not-allowed'; // Zmień kursor, aby wizualnie wskazać nieaktywność
-                }
-            });
-        }
-
-        // 4. Logika do obsługi pojedynczego wyboru opcji premium
-        premiumCheckboxes.forEach(checkboxToListen => {
-            checkboxToListen.addEventListener('change', (e) => {
-                // Jeśli ten checkbox został właśnie zaznaczony...
-                if (e.target.checked) {
-                    // ...przejdź przez wszystkie inne checkboxy premium...
-                    premiumCheckboxes.forEach(otherCheckbox => {
-                        // ...i jeśli to nie jest ten sam checkbox, odznacz go.
-                        if (otherCheckbox !== e.target) {
-                            otherCheckbox.checked = false;
-                        }
-                    });
-                }
-            });
-        });
+        // Przekazujemy stan zalogowania do globalnego obiektu, aby skrypty miały do niego dostęp
+        window.examlyAppState = {
+            isUserLoggedIn: <?= isset($_SESSION['user']) ? 'true' : 'false' ?>
+        };
     </script>
-
+    <script type="module" src="/examly/public/js/topic-form-enhancer.js"></script>
     <script type="module" src="/examly/public/js/quiz.js"></script>
-
     <?php include 'partials//footer.php'; ?>
 </body>
 </html>

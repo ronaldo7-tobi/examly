@@ -423,6 +423,20 @@ body {
   margin-bottom: 2rem;
   width: 100%;
 }
+.topic-selector__fieldset {
+  border: 1px solid var(--subtle-border);
+  border-radius: var(--border-radius-large, 12px);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+.topic-selector__sub-legend {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--muted-text);
+  padding: 0 0.5rem;
+  margin-left: 1rem;
+}
 .topic-selector__label input[type=checkbox] {
   display: none;
 }
@@ -435,6 +449,9 @@ body {
   color: var(--muted-text);
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+}
+.topic-selector__label[style*=not-allowed] {
+  cursor: not-allowed;
 }
 .topic-selector__label:hover span {
   border-color: var(--accent);

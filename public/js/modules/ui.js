@@ -144,14 +144,6 @@ export function renderActionButtons(explanation, onNextClick) {
 }
 
 /**
- * Wyświetla komunikat o ładowaniu.
- * @param {HTMLElement} container - Kontener, w którym ma się pojawić komunikat.
- */
-export function showLoading(container) {
-    container.innerHTML = '<p>Ładowanie pytania...</p>';
-}
-
-/**
  * Wyświetla komunikat o błędzie.
  * @param {HTMLElement} container - Kontener, w którym ma się pojawić komunikat.
  * @param {string} message - Treść błędu.

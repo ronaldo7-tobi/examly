@@ -52,7 +52,6 @@ class Quiz {
     
     // Pobiera i renderuje nowe pytanie
     async startNewQuestion() {
-        ui.showLoading(this.quizContainer);
         this.currentExplanation = null;
 
         try {

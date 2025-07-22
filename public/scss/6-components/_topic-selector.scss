@@ -26,6 +26,22 @@
     width: 100%;
   }
 
+  &__fieldset {
+    border: 1px solid var(--subtle-border);
+    border-radius: var(--border-radius-large, 12px);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: left; // Wyrównanie dla legendy
+  }
+
+  &__sub-legend {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--muted-text);
+    padding: 0 0.5rem;
+    margin-left: 1rem;
+  }
+
   // Element: pojedynczy tag/opcja
   &__label {
     // Ukrywamy domyślny checkbox
@@ -43,6 +59,10 @@
       color: var(--muted-text);
       cursor: pointer;
       transition: all 0.2s ease-in-out;
+    }
+    
+    &[style*="not-allowed"] {
+        cursor: not-allowed;
     }
 
     // Efekt hover

@@ -1,45 +1,55 @@
 // Plik: public/js/modules/api.js
 export const IMAGE_BASE_PATH = '/examly/public/images/questions/';
-const API_BASE_PATH = '/examly/public/api'; // Centralne miejsce na ścieżkę do API
+const API_BASE_URL = '/examly/public/api';
 
 /**
- * Pobiera nowe pytanie z serwera na podstawie wybranych tematów.
- * @param {string[]} subjects - Tablica z nazwami tematów.
- * @returns {Promise<Object>} - Obietnica, która zwróci dane pytania.
+ * Pobiera pytanie z serwera na podstawie wybranych tematów.
+ * Używa teraz metody GET, zgodnie z najlepszymi praktykami.
+ * * @param {string[]} subjects - Tablica z wybranymi tematami.
+ * @returns {Promise<object>} - Obietnica z danymi pytania.
  */
 export async function fetchQuestion(subjects) {
-    const formData = new FormData();
-    subjects.forEach(subject => formData.append('subjects[]', subject));
+    // 1. Tworzymy parametry, które dodamy do adresu URL
+    const params = new URLSearchParams();
+    subjects.forEach(subject => params.append('subject[]', subject));
 
-    const response = await fetch(`${API_BASE_PATH}/get-question`, {
-        method: 'POST',
-        body: formData
+    // 2. Budujemy pełny adres URL razem z naszymi parametrami
+    const url = `${API_BASE_URL}/get-question?${params.toString()}`;
+
+    // 3. Wysyłamy żądanie metodą GET
+    const response = await fetch(url, {
+        method: 'GET', // Zmienione z 'POST' na 'GET'
+        headers: {
+            'Accept': 'application/json',
+            // Nie potrzebujemy już 'Content-Type', bo nie wysyłamy body
+        },
+        // Nie ma już obiektu 'body'
     });
 
     if (!response.ok) {
-        throw new Error('Błąd sieci podczas pobierania pytania.');
+        throw new Error(`Błąd serwera: ${response.status}`);
     }
     return response.json();
 }
 
 /**
  * Wysyła odpowiedź użytkownika do sprawdzenia.
- * @param {number|string} questionId - ID pytania.
- * @param {number|string} answerId - ID wybranej odpowiedzi.
- * @returns {Promise<Object>} - Obietnica, która zwróci wynik sprawdzenia.
+ * Ta funkcja pozostaje bez zmian (używa POST, co jest poprawne).
+ * * @param {number|string} questionId - ID pytania.
+ * @param {number|string} answerId - ID odpowiedzi wybranej przez użytkownika.
+ * @returns {Promise<object>} - Obietnica z wynikiem sprawdzenia.
  */
 export async function checkAnswer(questionId, answerId) {
-    const formData = new FormData();
-    formData.append('question_id', questionId);
-    formData.append('answer_id', answerId);
-
-    const response = await fetch(`${API_BASE_PATH}/check-answer`, {
+    const response = await fetch(`${API_BASE_URL}/check-answer`, {
         method: 'POST',
-        body: formData
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `question_id=${questionId}&answer_id=${answerId}`
     });
 
     if (!response.ok) {
-        throw new Error('Błąd sieci podczas sprawdzania odpowiedzi.');
+        throw new Error(`Błąd serwera: ${response.status}`);
     }
     return response.json();
 }

@@ -76,7 +76,7 @@ $isUserLoggedIn = isset($_SESSION['user']);
             <li class="main-nav__item dropdown">
                 <a href="/statistics" class="main-nav__link" aria-label="Profil użytkownika">
                     <!-- Możesz tu użyć avatara użytkownika z sesji -->
-                    <img src="/path/to/your/user.png" alt="Avatar użytkownika" class="main-nav__user-avatar">
+                    <img src="../../public/images/user.png" alt="Avatar użytkownika" class="main-nav__user-avatar">
                 </a>
                 <ul class="dropdown__menu">
                     <li class="dropdown__item">

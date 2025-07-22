@@ -6,81 +6,80 @@ class ApiController {
     private $userProgressModel;
 
     public function __construct() {
-        $this->questionModel = new Question();
+        // Upewnij się, że używasz poprawnych nazw klas swoich modeli
+        $this->questionModel = new Question(); 
         $this->answerModel = new Answer();
         $this->userProgressModel = new UserProgress();
     }
 
     /**
      * Endpoint: /api/get-question
-     * Zwraca nowe pytanie w formacie JSON lub odpowiedni komunikat.
+     * Zwraca nowe pytanie w formacie JSON na podstawie wybranych kryteriów.
+     * Używa metody GET.
      */
     public function getQuestion()
     {
-        $this->ensurePostRequest();
+        $this->ensureGetRequest();
 
-        $isUserLoggedIn = session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user']);
-        $userId = $isUserLoggedIn ? $_SESSION['user']->getId() : null;
-
-        $subjectsAndOptions = $_POST['subjects'] ?? [];
+        $subjectsAndOptions = $_GET['subject'] ?? [];
         if (empty($subjectsAndOptions)) {
             $this->sendJsonResponse(['success' => false, 'message' => 'Nie wybrano żadnych tematów.'], 400);
             return;
         }
 
-        $isUndiscoveredMode = in_array('toDiscover', $subjectsAndOptions);
-        $subjects = array_filter($subjectsAndOptions, function($value) {
-            return !in_array($value, ['toDiscover', 'toImprove', 'toRemind']);
-        });
+        $isUserLoggedIn = session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user']);
+        $userId = $isUserLoggedIn ? $_SESSION['user']->getId() : null;
+        
+        $premiumFilters = ['toDiscover', 'toImprove', 'toRemind'];
+        $specialFilter = null;
+        
+        foreach ($premiumFilters as $filter) {
+            if (in_array($filter, $subjectsAndOptions)) {
+                $specialFilter = $filter;
+                break;
+            }
+        }
 
+        $subjects = array_diff($subjectsAndOptions, $premiumFilters);
+        
         if (empty($subjects)) {
             $this->sendJsonResponse(['success' => false, 'message' => 'Wybierz przynajmniej jedną kategorię materiału.'], 400);
             return;
         }
 
-        $questions = []; // Inicjujemy pustą tablicę na pytania
-
-        if ($isUndiscoveredMode) {
-            if (!$isUserLoggedIn) {
-                $this->sendJsonResponse(['success' => false, 'message' => 'Opcja "Nieodkryte" jest dostępna tylko dla zalogowanych użytkowników.']);
-                return;
-            }
-            $questions = $this->questionModel->getUndiscoveredQuestions($userId, $subjects, 1, 'INF.03');
-        } else {
-            // Standardowa logika, gdy opcje premium nie są wybrane
-            $questions = $this->questionModel->getQuestions($subjects, 1, 'INF.03');
+        if ($specialFilter && !$isUserLoggedIn) {
+            $this->sendJsonResponse(['success' => false, 'message' => "Opcje premium są dostępne tylko dla zalogowanych użytkowników."], 403);
+            return;
         }
 
-        // Teraz mamy JEDNO miejsce, które obsługuje wynik, niezależnie od trybu.
+        // --- NOWA, POPRAWIONA LOGIKA ---
+        $question = null;
+        $limit = 1; // Zawsze pobieramy jedno pytanie
+        $examType = 'INF.03'; // Ustaw typ egzaminu na sztywno lub pobierz go dynamicznie
 
-        if (empty($questions)) {
-            // Jeśli nie znaleziono pytań, wyślij odpowiedni komunikat informacyjny.
-            $seenSubjects = [];
-            if($isUndiscoveredMode){
-                foreach ($subjects as $subject) {
-                    if (empty($this->questionModel->getUndiscoveredQuestions($userId, [$subject], 1, 'INF.03'))) {
-                        $seenSubjects[] = $subject;
-                    }
-                }
-            }
-        
-            $message = 'Gratulacje! Odpowiedziałeś już na wszystkie pytania z kategorii: ' . implode(', ', $subjects) . '.';
-            if (count($seenSubjects) !== count($subjects) && $isUndiscoveredMode){
-                // Jeśli rozwiązano tylko część kategorii, a dla reszty po prostu nie ma pytań
-                $message = 'Nie znaleziono więcej pytań dla wybranych kryteriów.';
-            }
+        if ($specialFilter === 'toDiscover' && $isUserLoggedIn) {
+            // Użyj metody do pobierania nieodkrytych pytań
+            $questions = $this->questionModel->getUndiscoveredQuestions($userId, $subjects, $limit, $examType);
+            $question = $questions[0] ?? null; // Pobierz pierwszy element, jeśli istnieje
+        }
+        // TODO: Tutaj dodaj logikę dla pozostałych filtrów premium ('toImprove', 'toRemind'),
+        //       które będą wymagały stworzenia nowych metod w modelu Question.php
+        else {
+            // Standardowe pobieranie losowego pytania
+            $questions = $this->questionModel->getQuestions($subjects, $limit, $examType);
+            $question = $questions[0] ?? null; // Pobierz pierwszy element, jeśli istnieje
+        }
+        // --- KONIEC NOWEJ LOGIKI ---
 
-
+        if (!$question) {
             $this->sendJsonResponse([
                 'success' => true,
                 'status' => 'no_questions_left',
-                'message' => $message
+                'message' => 'Gratulacje! Wygląda na to, że odpowiedziałeś na wszystkie dostępne pytania z wybranych kategorii.'
             ]);
             return;
         }
 
-        // Jeśli znaleziono pytanie, przygotuj i wyślij odpowiedź.
-        $question = $questions[0];
         $answers = $this->answerModel->getAnswersToQuestion($question['id']);
 
         $this->sendJsonResponse([
@@ -111,13 +110,12 @@ class ApiController {
             $this->sendJsonResponse([
                 'success' => false,
                 'message' => 'Nie znaleziono poprawnej odpowiedzi dla tego pytania.'
-            ]);
+            ], 404);
             return;
         }
         
         $isCorrect = ($userAnswerId === (int)$correctAnswer['id']);
 
-        // Sprawdzamy, czy sesja jest aktywna i użytkownik jest zalogowany
         if (session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user'])) {
             $this->userProgressModel->saveProgressForQuestion($_SESSION['user']->getId(), $questionId, $isCorrect);
         }
@@ -140,9 +138,17 @@ class ApiController {
     }
 
     /**
+     * Upewnia się, że żądanie jest typu GET.
+     */
+    private function ensureGetRequest() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            $this->sendJsonResponse(['success' => false, 'message' => 'Metoda niedozwolona. Wymagany GET.'], 405);
+            exit;
+        }
+    }
+
+    /**
      * Wysyła odpowiedź w formacie JSON i ustawia kod statusu HTTP.
-     * @param array $data Dane do zakodowania.
-     * @param int $statusCode Kod statusu HTTP (domyślnie 200).
      */
     private function sendJsonResponse(array $data, int $statusCode = 200) {
         header('Content-Type: application/json');
