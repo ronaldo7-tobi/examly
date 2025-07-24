@@ -91,36 +91,30 @@ export function showAnswerFeedback(isCorrect, correctAnswerId, userAnswerId) {
  * @param {function} onNextClick - Funkcja do wywołania po kliknięciu "Następne".
  */
 export function renderActionButtons(explanation, onNextClick) {
-    // 1. Znajdź główny kontener na akcje
-    const actionsContainer = document.querySelector('.quiz-card__actions');
-    if (!actionsContainer) {
-        console.error('Nie znaleziono kontenera .quiz-card__actions!');
+    // 1. Znajdź istniejące kontenery, które zostały stworzone przez renderQuestion
+    const buttonContainer = document.querySelector('.quiz-card__button-container');
+    const explanationContainer = document.querySelector('.quiz-card__explanation');
+
+    if (!buttonContainer || !explanationContainer) {
+        console.error('Nie znaleziono kontenerów na przyciski lub wyjaśnienie!');
         return;
     }
 
-    // 2. Znajdź sub-kontenery (na przyciski i na wyjaśnienie)
-    // UWAGA: Te elementy są tworzone dynamicznie, więc musimy je stworzyć tutaj!
-    
-    // Czyścimy kontener akcji na wszelki wypadek
-    actionsContainer.innerHTML = ''; 
-    
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'quiz-card__button-container';
+    // 2. Wyczyść ich zawartość, a nie całego rodzica
+    buttonContainer.innerHTML = '';
+    explanationContainer.innerHTML = '';
+    explanationContainer.classList.remove('quiz-card__explanation--visible'); // Resetuj widoczność
 
-    const explanationContainer = document.createElement('div');
-    explanationContainer.className = 'quiz-card__explanation';
-    
     // Logika tworzenia przycisku 'Wyjaśnienie'
     if (explanation && explanation.trim() !== '') {
         explanationContainer.innerHTML = escapeHTML(explanation);
         const explanationButton = document.createElement('button');
         explanationButton.type = 'button';
         explanationButton.textContent = 'Pokaż wyjaśnienie';
-        explanationButton.className = 'btn btn--secondary'; // Używamy standardowych klas
+        explanationButton.className = 'btn btn--secondary';
         explanationButton.style.marginRight = '10px';
         
         explanationButton.addEventListener('click', () => {
-            // Dodajemy klasę modyfikatora --visible
             explanationContainer.classList.toggle('quiz-card__explanation--visible');
             explanationButton.textContent = explanationContainer.classList.contains('quiz-card__explanation--visible') 
                 ? 'Ukryj wyjaśnienie' 
@@ -134,13 +128,9 @@ export function renderActionButtons(explanation, onNextClick) {
     const nextButton = document.createElement('button');
     nextButton.type = 'button';
     nextButton.textContent = 'Następne';
-    nextButton.className = 'btn btn--primary'; // Używamy standardowych klas
+    nextButton.className = 'btn btn--primary';
     nextButton.addEventListener('click', onNextClick);
     buttonContainer.appendChild(nextButton);
-
-    // Dodajemy gotowe elementy do głównego kontenera akcji
-    actionsContainer.appendChild(buttonContainer);
-    actionsContainer.appendChild(explanationContainer);
 }
 
 /**

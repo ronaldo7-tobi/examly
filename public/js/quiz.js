@@ -34,14 +34,13 @@ class Quiz {
         const formData = new FormData(this.topicForm);
         this.currentSubjects = formData.getAll('subject[]');
 
-        const specialOptions = ['toDiscover', 'toRemind', 'toImprove'];
-        const selectedTopics = this.currentSubjects.filter(subject => !specialOptions.includes(subject));
+        // BARDZIEJ ODPORNY SPOSÓB ZNALEZIENIA OPCJI PREMIUM
+        const premiumCheckbox = this.topicForm.querySelector('.premium-checkbox:checked');
+        this.currentOption = premiumCheckbox ? premiumCheckbox.value : null;
 
-        if (selectedTopics.length === 0) {
-            const message = this.currentSubjects.length > 0 ?
-                'Proszę wybrać przynajmniej jedną kategorię tematyczną.' :
-                'Wybierz temat, aby rozpocząć naukę.';
-            ui.showError(this.quizContainer, message);
+        if (this.currentSubjects.length === 0) {
+            // W tym miejscu logika pozostaje bez zmian
+            ui.showError(this.quizContainer, 'Wybierz temat, aby rozpocząć naukę.');
             return;
         }
 
@@ -55,7 +54,7 @@ class Quiz {
         this.currentExplanation = null;
 
         try {
-            const data = await api.fetchQuestion(this.currentSubjects);
+            const data = await api.fetchQuestion(this.currentSubjects, this.currentOption);
             
             if (data.success) {
                 // Sprawdzamy, czy serwer nie poinformował nas o braku pytań

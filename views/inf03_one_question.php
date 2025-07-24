@@ -95,16 +95,20 @@
                     <legend class="topic-selector__sub-legend">Inteligentna nauka</legend>
                     <div class="topic-selector__options">
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="toDiscover" class="premium-checkbox">
+                            <input type="checkbox" name="premium_option" value="toDiscover" class="premium-checkbox">
                             <span>Nieodkryte pytania</span>
                         </label>
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="toImprove" class="premium-checkbox">
+                            <input type="checkbox" name="premium_option" value="toImprove" class="premium-checkbox">
                             <span>Pytania, które gorzej Ci idą</span>
                         </label>
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="toRemind" class="premium-checkbox">
+                            <input type="checkbox" name="premium_option" value="toRemind" class="premium-checkbox">
                             <span>Pytania najdawniej powtórzone</span>
+                        </label>
+                        <label class="topic-selector__label">
+                            <input type="checkbox" name="premium_option" value="lastMistakes" class="premium-checkbox">
+                            <span>Ostatnio błędne</span>
                         </label>
                     </div>
                 </fieldset>

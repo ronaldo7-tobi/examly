@@ -82,6 +82,121 @@ class Question
         }
     }
 
+    public function getLowerAccuracyQuestions(int $userId, array $subjects, int $limit, string $examType)
+    {
+        if (empty($subjects)) {
+            return [];
+        }
+
+        // Tworzymy placeholdery dla klauzuli IN (...)
+        $subjectPlaceholders = implode(',', array_fill(0, count($subjects), '?'));
+        $limit = (int)$limit;
+
+        /*
+        * POPRAWIONE ZAPYTANIE:
+        * 1. Dodano warunek (up.correct_attempts + up.wrong_attempts) > 0, aby uniknąć dzielenia przez zero.
+        * 2. Pomnożono przez 100.0 (zamiast 100), aby wymusić operacje na liczbach zmiennoprzecinkowych 
+        * dla dokładniejszego wyniku procentowego.
+        */
+        $sql = "SELECT q.*
+                FROM questions q
+                -- Używamy INNER JOIN, ponieważ interesują nas tylko pytania, na które użytkownik już odpowiadał.
+                -- LEFT JOIN z warunkiem na tabeli 'up' w klauzuli WHERE działałby tak samo, ale INNER jest czytelniejszy.
+                INNER JOIN user_progress up ON q.id = up.question_id AND up.user_id = ?
+                WHERE q.subject IN ($subjectPlaceholders)
+                AND q.exam_type = ?
+                -- Warunek zabezpieczający przed dzieleniem przez zero
+                AND (up.correct_attempts + up.wrong_attempts) > 0
+                -- Poprawiona kalkulacja procentowa
+                AND (up.correct_attempts * 100.0 / (up.correct_attempts + up.wrong_attempts)) <= 60
+                ORDER BY RAND()
+                LIMIT $limit";
+
+        // Łączymy wszystkie parametry w JEDNEJ tablicy w odpowiedniej kolejności
+        $params = array_merge([$userId], $subjects, [$examType]);
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            // PDO samo zajmie się prawidłowym bindowaniem typów (string/int)
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Dobra praktyka: logowanie błędu, aby ułatwić debugowanie w przyszłości
+            // Na razie zwrócimy pustą tablicę, aby uniknąć "wykrzaczenia" aplikacji
+            error_log("Błąd zapytania w getLowerAccuracyQuestions: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getQuestionsRepeatedAtTheLatest(int $userId, array $subjects, int $limit, string $examType)
+    {
+        if (empty($subjects)) {
+            return [];
+        }
+
+        // Tworzymy placeholdery dla klauzuli IN (...)
+        $subjectPlaceholders = implode(',', array_fill(0, count($subjects), '?'));
+        $limit = (int)$limit;
+
+        $sql = "SELECT q.*
+                FROM questions q
+                INNER JOIN user_progress up ON q.id = up.question_id AND up.user_id = ?
+                WHERE q.subject IN ($subjectPlaceholders)
+                AND q.exam_type = ?
+                ORDER BY up.last_attempt
+                LIMIT $limit";
+
+        // Łączymy wszystkie parametry w JEDNEJ tablicy w odpowiedniej kolejności
+        $params = array_merge([$userId], $subjects, [$examType]);
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            // PDO samo zajmie się prawidłowym bindowaniem typów (string/int)
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Dobra praktyka: logowanie błędu, aby ułatwić debugowanie w przyszłości
+            // Na razie zwrócimy pustą tablicę, aby uniknąć "wykrzaczenia" aplikacji
+            error_log("Błąd zapytania w getQuestionsRepeatedAtTheLatest: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getLastMistakes(int $userId, array $subjects, int $limit, string $examType)
+    {
+        if (empty($subjects)) {
+            return [];
+        }
+
+        // Tworzymy placeholdery dla klauzuli IN (...)
+        $subjectPlaceholders = implode(',', array_fill(0, count($subjects), '?'));
+        $limit = (int)$limit;
+
+        $sql = "SELECT q.*
+                FROM questions q
+                INNER JOIN user_progress up ON q.id = up.question_id AND up.user_id = ?
+                WHERE q.subject IN ($subjectPlaceholders)
+                AND q.exam_type = ?
+                AND up.last_result = 0
+                ORDER BY RAND()
+                LIMIT $limit";
+
+        // Łączymy wszystkie parametry w JEDNEJ tablicy w odpowiedniej kolejności
+        $params = array_merge([$userId], $subjects, [$examType]);
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            // PDO samo zajmie się prawidłowym bindowaniem typów (string/int)
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Dobra praktyka: logowanie błędu, aby ułatwić debugowanie w przyszłości
+            // Na razie zwrócimy pustą tablicę, aby uniknąć "wykrzaczenia" aplikacji
+            error_log("Błąd zapytania w getLastMistakes: " . $e->getMessage());
+            return [];
+        }
+    }
+
     public function getQuestionById(int $id): array
     {
         $stmt = $this->db->prepare("SELECT * FROM questions WHERE id = :id");

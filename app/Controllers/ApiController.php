@@ -21,31 +21,16 @@ class ApiController {
     {
         $this->ensureGetRequest();
 
-        $subjectsAndOptions = $_GET['subject'] ?? [];
-        if (empty($subjectsAndOptions)) {
-            $this->sendJsonResponse(['success' => false, 'message' => 'Nie wybrano żadnych tematów.'], 400);
-            return;
-        }
-
-        $isUserLoggedIn = session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user']);
-        $userId = $isUserLoggedIn ? $_SESSION['user']->getId() : null;
-        
-        $premiumFilters = ['toDiscover', 'toImprove', 'toRemind'];
-        $specialFilter = null;
-        
-        foreach ($premiumFilters as $filter) {
-            if (in_array($filter, $subjectsAndOptions)) {
-                $specialFilter = $filter;
-                break;
-            }
-        }
-
-        $subjects = array_diff($subjectsAndOptions, $premiumFilters);
+        $subjects = $_GET['subject'] ?? [];
+        $specialFilter = $_GET['premium_option'] ?? null; // Odczytujemy opcję premium
         
         if (empty($subjects)) {
             $this->sendJsonResponse(['success' => false, 'message' => 'Wybierz przynajmniej jedną kategorię materiału.'], 400);
             return;
         }
+
+        $isUserLoggedIn = session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user']);
+        $userId = $isUserLoggedIn ? $_SESSION['user']->getId() : null;
 
         if ($specialFilter && !$isUserLoggedIn) {
             $this->sendJsonResponse(['success' => false, 'message' => "Opcje premium są dostępne tylko dla zalogowanych użytkowników."], 403);
@@ -61,24 +46,45 @@ class ApiController {
             // Użyj metody do pobierania nieodkrytych pytań
             $questions = $this->questionModel->getUndiscoveredQuestions($userId, $subjects, $limit, $examType);
             $question = $questions[0] ?? null; // Pobierz pierwszy element, jeśli istnieje
-        }
-        // TODO: Tutaj dodaj logikę dla pozostałych filtrów premium ('toImprove', 'toRemind'),
-        //       które będą wymagały stworzenia nowych metod w modelu Question.php
-        else {
+            if (!$question) {
+                $this->sendJsonResponse([
+                    'success' => true,
+                    'status' => 'no_questions_left',
+                    'message' => 'Gratulacje! Wygląda na to, że odpowiedziałeś na wszystkie dostępne pytania z wybranych kategorii.'
+                ]);
+                return;
+            }
+        } else if ($specialFilter === 'toImprove' && $isUserLoggedIn) {
+            $questions = $this->questionModel->getLowerAccuracyQuestions($userId, $subjects, $limit, $examType);
+            $question = $questions[0] ?? null;
+            if (!$question) {
+                $this->sendJsonResponse([
+                    'success' => true,
+                    'status' => 'no_questions_left',
+                    'message' => 'Gratulacje! Wygląda na to, że masz wysoką skuteczność odpowiedzi z wybranych kategorii.'
+                ]);
+                return;
+            }
+        } else if ($specialFilter === 'toRemind') {
+            $questions = $this->questionModel->getQuestionsRepeatedAtTheLatest($userId, $subjects, $limit, $examType);
+            $question = $questions[0] ?? null;
+        } else if ($specialFilter === 'lastMistakes') {
+            $questions = $this->questionModel->getLastMistakes($userId, $subjects, $limit, $examType);
+            $question = $questions[0] ?? null;
+            if (!$question) {
+                $this->sendJsonResponse([
+                    'success' => true,
+                    'status' => 'no_questions_left',
+                    'message' => 'Gratulacje! Wygląda na to, że na wszystkie pytania z wybranych kategorii ostatnio odpowiadałeś poprawnie'
+                ]);
+                return;
+            }
+        } else {
             // Standardowe pobieranie losowego pytania
             $questions = $this->questionModel->getQuestions($subjects, $limit, $examType);
             $question = $questions[0] ?? null; // Pobierz pierwszy element, jeśli istnieje
         }
         // --- KONIEC NOWEJ LOGIKI ---
-
-        if (!$question) {
-            $this->sendJsonResponse([
-                'success' => true,
-                'status' => 'no_questions_left',
-                'message' => 'Gratulacje! Wygląda na to, że odpowiedziałeś na wszystkie dostępne pytania z wybranych kategorii.'
-            ]);
-            return;
-        }
 
         $answers = $this->answerModel->getAnswersToQuestion($question['id']);
 
