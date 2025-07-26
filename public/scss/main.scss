@@ -1,28 +1,72 @@
-// Plik: scss/main.scss
-//
-// Główny plik importujący wszystkie częściowe pliki SASS
-// w poprawnej kolejności zgodnej z architekturą ITCSS.
+/**
+ * @file main.scss
+ * @author Tobiasz Szerszeń
+ * @group main
+ *
+ * @description
+ * Główny plik SCSS, będący punktem wejściowym dla całego projektu stylów.
+ * Nie zawiera żadnych reguł CSS, a jego jedynym zadaniem jest importowanie
+ * wszystkich plików częściowych (partials) w odpowiedniej kolejności,
+ * zgodnie z architekturą ITCSS (Inverted Triangle CSS).
+ */
 
-// 1. Ustawienia
+// =============================================================================
+// 1. USTAWIENIA (SETTINGS)
+// Globalne zmienne, mapy kolorów, konfiguracja czcionek.
+// Nic nie powinno generować tutaj kodu CSS.
+// =============================================================================
 @import '1-settings/variables';
 
-// (Tutaj będą importy z innych folderów w przyszłości)
 
-// 4. Elementy bazowe
+// =============================================================================
+// 2. NARZĘDZIA (TOOLS)
+// Globalne mixiny i funkcje.
+// Nic nie powinno generować tutaj kodu CSS.
+// =============================================================================
+// @import '2-tools/mixins';
+
+
+// =============================================================================
+// 3. OGÓLNE (GENERIC)
+// Resetowanie stylów (reset, normalize), box-sizing.
+// Generuje pierwsze reguły CSS.
+// =============================================================================
+// @import '3-generic/reset';
+
+
+// =============================================================================
+// 4. ELEMENTY (ELEMENTS)
+// Style dla czystych, niestylowanych tagów HTML (body, h1, a, p).
+// =============================================================================
 @import '4-elements/base';
 @import '4-elements/typography';
 
-// (Tutaj będą importy z innych folderów w przyszłości)
 
-// 6. Komponenty
+// =============================================================================
+// 5. OBIEKTY (OBJECTS)
+// Niestylowane wzorce projektowe, np. layouty, siatki (grid).
+// =============================================================================
+// @import '5-objects/layout';
+
+
+// =============================================================================
+// 6. KOMPONENTY (COMPONENTS)
+// Konkretne, ostylowane elementy interfejsu użytkownika.
+// Największa część projektu.
+// =============================================================================
 @import '6-components/button';
 @import '6-components/nav';
 @import '6-components/footer';
 @import '6-components/form-card';
-@import '6-components/alert'; 
+@import '6-components/alert';
 @import '6-components/info-card';
 @import '6-components/topic-selector';
 @import '6-components/quiz-card';
 @import '6-components/quiz-page-layout';
 
-// (Twoje pliki nav.css i footer.css również trafią tutaj jako komponenty)
+
+// =============================================================================
+// 7. NARZĘDZIA POMOCNICZE (UTILITIES)
+// Klasy pomocnicze nadpisujące inne style, np. .text-center, .margin-top-large.
+// =============================================================================
+// @import '7-utilities/spacing';

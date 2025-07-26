@@ -1,12 +1,29 @@
-// Plik: scss/4-elements/_typography.scss
+/**
+ * @file _typography.scss
+ * @author Tobiasz Szerszeń
+ * @group elements
+ *
+ * @description
+ * Zawiera globalne style dla elementów typograficznych (nagłówki, linki, etc.)
+ * oraz ogólne klasy pomocnicze związane z tekstem.
+ */
 
+// Globalne style dla wszystkich nagłówków.
+// Można tu zdefiniować wspólny margines, grubość czcionki itp.
 h1, h2, h3, h4, h5, h6 {
-
+  // na przykład:
+  // margin-bottom: 1.25rem;
+  // font-weight: 700;
 }
 
+/**
+ * Klasa pomocnicza dla głównych tytułów stron.
+ * Zapewnia spójny wygląd tytułów na różnych podstronach.
+ */
 .page-title {
   text-align: center;
   margin-top: 2rem;
+  margin-bottom: 2rem; // Dobra praktyka, by dodać też margines dolny
   font-size: 2rem;
   color: var(--text);
 }

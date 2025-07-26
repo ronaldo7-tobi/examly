@@ -1,71 +1,72 @@
 <?php
+
+/**
+ * Model Postępów Użytkownika (UserProgress).
+ *
+ * Odpowiada za zapisywanie i aktualizowanie postępów użytkownika w nauce.
+ * Wykorzystuje zoptymalizowane zapytanie "upsert" (INSERT ... ON DUPLICATE KEY UPDATE)
+ * do wydajnej obsługi danych w jednym zapytaniu do bazy.
+ *
+ * @version 2.0.0
+ * @author Tobiasz Szerszeń
+ */
 class UserProgress
 {
-    private PDO $db;
+    /**
+     * Instancja naszej klasy do obsługi bazy danych.
+     * @var Database
+     */
+    private Database $db;
 
+    /**
+     * Konstruktor klasy UserProgress.
+     * Pobiera instancję klasy Database.
+     */
     public function __construct()
     {
         $this->db = Database::getInstance();
     }
 
-    public function checkIfProgressExist($userId, $questionId): bool
+    /**
+     * Zapisuje lub aktualizuje postęp użytkownika dla danego pytania.
+     *
+     * Używa jednej operacji "upsert". Jeśli wpis dla pary user_id i question_id
+     * jeszcze nie istnieje, tworzy go. Jeśli istnieje, aktualizuje liczniki
+     * prób, ostatni wynik i datę ostatniej próby.
+     *
+     * @param int $userId ID zalogowanego użytkownika.
+     * @param int $questionId ID pytania, na które odpowiedział.
+     * @param int $result Wynik odpowiedzi (1 dla poprawnej, 0 dla błędnej).
+     * @return bool Zwraca true w przypadku powodzenia operacji, false w przypadku błędu.
+     */
+    public function saveProgressForQuestion(int $userId, int $questionId, int $result): bool
     {
-        $stmt = $this->db->prepare("SELECT COUNT(*) FROM user_progress
-                                    WHERE user_id = :user_id 
-                                    AND question_id = :question_id");
-        $stmt->execute([
-            ':user_id' => $userId,
-            ':question_id' => $questionId
-        ]);
-        return $stmt->fetchColumn() > 0;
-    }
+        // Przygotowujemy wartości do inkrementacji w zapytaniu SQL.
+        // Jeśli odpowiedź jest poprawna, zwiększamy 'correct_attempts' o 1, a 'wrong_attempts' o 0. I na odwrót.
+        $correctIncrement = ($result === 1) ? 1 : 0;
+        $wrongIncrement = ($result === 1) ? 0 : 1;
 
-    public function saveProgressForQuestion(int $userId, int $questionId, int $result): void
-    {
-        // Ustawiamy poprawny format daty raz, na początku funkcji
-        $currentTime = date('Y-m-d H:i:s');
+        $sql = "
+            INSERT INTO user_progress 
+                (user_id, question_id, correct_attempts, wrong_attempts, last_result, last_attempt)
+            VALUES 
+                (?, ?, ?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE
+                correct_attempts = correct_attempts + VALUES(correct_attempts),
+                wrong_attempts = wrong_attempts + VALUES(wrong_attempts),
+                last_result = VALUES(last_result),
+                last_attempt = NOW()
+        ";
+        
+        $params = [
+            $userId,
+            $questionId,
+            $correctIncrement,
+            $wrongIncrement,
+            $result
+        ];
 
-        if ($this->checkIfProgressExist($userId, $questionId)) {
-            
-            // Budujemy zapytanie dynamicznie, aby uniknąć powtarzania kodu
-            $fieldToIncrement = ($result === 1) ? 'correct_attempts' : 'wrong_attempts';
-            
-            $sql = "UPDATE user_progress 
-                    SET {$fieldToIncrement} = {$fieldToIncrement} + 1,
-                        last_attempt = :curTime,
-                        last_result = :result 
-                    WHERE user_id = :user_id AND question_id = :question_id";
-
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                ':curTime' => $currentTime,
-                ':result' => $result,
-                ':user_id' => $userId,
-                ':question_id' => $questionId
-            ]);
-
-        } else {
-            // --- DODAWANIE NOWEGO REKORDU ---
-            
-            $correct = ($result === 1) ? 1 : 0;
-            $wrong = ($result === 1) ? 0 : 1;
-
-            // POPRAWIONE ZAPYTANIE: Dodano brakujące pole `last_attempt`
-            $sql = "INSERT INTO user_progress 
-                        (user_id, question_id, correct_attempts, wrong_attempts, last_result, last_attempt)
-                    VALUES 
-                        (:user_id, :question_id, :correct, :wrong, :result, :curTime)";
-            
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                ':user_id' => $userId,
-                ':question_id' => $questionId,
-                ':correct' => $correct,
-                ':wrong' => $wrong,
-                ':result' => $result,
-                ':curTime' => $currentTime // Używamy poprawnie sformatowanej daty
-            ]);
-        }
+        // Używamy metody execute(), ponieważ jest to operacja zapisu, która nie zwraca wierszy.
+        return $this->db->execute($sql, $params);
     }
 }
-?>

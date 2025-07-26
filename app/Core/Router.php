@@ -16,7 +16,7 @@ class Router
         $uri = str_replace($basePath, '', $uri); // usuń prefix
         $uri = trim($uri, '/');
 
-        // --- NOWA LOGIKA OBSŁUGI API ---
+        // --- LOGIKA OBSŁUGI API ---
         // Sprawdzamy, czy URI zaczyna się od "api/"
         if (strpos($uri, 'api/') === 0) {
             // Usuwamy "api/" z początku, aby uzyskać nazwę akcji
@@ -75,8 +75,7 @@ class Router
                 break;
             
             case 'inf03_one_question':
-                $testController = new TestController();
-                $testController->handleRequest('one_question');
+                require_once __DIR__ . '/../../views/inf03_one_question.php';
                 break;
             
             case 'inf03_personalized_test':

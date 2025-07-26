@@ -37,9 +37,8 @@ class LoginController
             $formData = $_POST;
             $result = $this->auth->login($formData);
 
-            if ($result === true) {
+            if ($result['success']) {
                 session_regenerate_id(true);
-                $_SESSION['user'] = $this->auth->getLoggedUser();
                 unset($_SESSION['verify_user_id']);
                 unset($_SESSION['verify_user_email']);
                 unset($_SESSION['flash_error']);

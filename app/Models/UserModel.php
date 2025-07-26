@@ -1,20 +1,25 @@
 <?php
+
 /**
- * Klasa UserModel odpowiedzialna za operacje na danych użytkowników w bazie danych.
- * 
- * Zawiera metody do rejestracji i logowania.
+ * Model Użytkownika (User).
+ *
+ * Klasa odpowiedzialna za operacje na danych użytkowników, takie jak rejestracja,
+ * logowanie, weryfikacja i pobieranie danych. Wykorzystuje centralną klasę Database.
+ *
+ * @version 2.0.0
+ * @author Tobiasz Szerszeń
  */
 class UserModel
 {
     /**
-     * Obiekt PDO do komunikacji z bazą danych.
-     * 
-     * @var PDO
+     * Instancja naszej klasy do obsługi bazy danych.
+     * @var Database
      */
-    private PDO $db;
+    private Database $db;
 
     /**
-     * Konstruktor inicjalizujący połączenie z bazą danych.
+     * Konstruktor klasy UserModel.
+     * Pobiera instancję klasy Database.
      */
     public function __construct()
     {
@@ -22,117 +27,95 @@ class UserModel
     }
 
     /**
-     * Sprawdza istnienie adresu email w systemie.
-     * 
-     * @param $email Email użytkownika.
-     * 
-     * @return bool Zwraca true, jeśli e-mail istnieje, w przeciwnym razie false.
+     * Sprawdza, czy w bazie danych istnieje użytkownik o podanym adresie email.
+     *
+     * @param string $email Adres email do sprawdzenia.
+     * @return bool Zwraca true, jeśli email istnieje, w przeciwnym razie false.
      */
     public function checkEmail(string $email): bool
     {
-        $stmt = $this->db->prepare("SELECT id FROM users WHERE email = :email");
-        $stmt->execute([':email' => $email]);
-        return $stmt->fetch() !== false;
+        $sql = "SELECT id FROM users WHERE email = ?";
+        $result = $this->db->fetch($sql, [$email]);
+        
+        return $result !== false;
     }
 
     /**
      * Rejestruje nowego użytkownika w bazie danych.
+     * Hasło jest automatycznie hashowane przed zapisem.
      *
-     * @param array $data Tablica danych użytkownika, zawierająca klucze:
-     *                    'first_name', 'last_name', 'email', 'password'.
-     * @return bool Zwraca true, jeśli rejestracja powiodła się, lub false w przeciwnym razie.
+     * @param array<string, string> $data Dane użytkownika: 'first_name', 'last_name', 'email', 'password'.
+     * @return bool Zwraca true, jeśli rejestracja powiodła się, w przeciwnym razie false.
      */
     public function register(array $data): bool
     {
-        $stmt = $this->db->prepare("INSERT INTO users (first_name, last_name, email, password_hash)
-            VALUES (:first_name, :last_name, :email, :password_hash)");
+        $sql = "INSERT INTO users (first_name, last_name, email, password_hash)
+                VALUES (?, ?, ?, ?)";
+        
+        $params = [
+            $data['first_name'],
+            $data['last_name'],
+            $data['email'],
+            password_hash($data['password'], PASSWORD_DEFAULT)
+        ];
 
-        return $stmt->execute([
-            ':first_name'    => $data['first_name'],
-            ':last_name'     => $data['last_name'],
-            ':email'         => $data['email'],
-            ':password_hash' => password_hash($data['password'], PASSWORD_DEFAULT)
-        ]);
+        return $this->db->execute($sql, $params);
     }
-
+    
     /**
-     * Ustawia status weryfikacji użytkownika na true.
-     * 
-     * @param $userId Id użytkownika poddanego operacji.
-     * 
-     * @return bool Zwraca true, jeśli uda się zweryfikować użytkownika lub false w przeciwnym wypadku.
+     * Zmienia status weryfikacji użytkownika na "zweryfikowany".
+     *
+     * @param int $userId ID użytkownika do zweryfikowania.
+     * @return bool Zwraca true w przypadku sukcesu, false w przypadku błędu.
      */
     public function verifyUser(int $userId): bool
     {
-        $stmt = $this->db->prepare("UPDATE users SET is_verified = 1 WHERE id = :id");
-        return $stmt->execute([':id' => $userId]);
+        $sql = "UPDATE users SET is_verified = 1 WHERE id = ?";
+        return $this->db->execute($sql, [$userId]);
     }
 
     /**
-     * Próbuje zalogować użytkownika na podstawie podanego emaila i hasła.
+     * Weryfikuje dane logowania i zwraca obiekt użytkownika w przypadku sukcesu.
      *
-     * @param array $data Tablica z kluczami 'email' oraz 'password'.
-     * 
-     * @return User|array Zwraca obiekt User, jeśli dane są poprawne, lub tablicę błędów podczas logowania.
+     * @param array<string, string> $data Tablica z danymi: 'email' i 'password'.
+     * @return User|null Zwraca obiekt `User` w przypadku pomyślnego logowania, w przeciwnym razie `null`.
      */
-    public function login(array $data): User|array
-    {   
-        $errors = [];
+    public function login(array $data): ?User
+    {
+        $sql = "SELECT id, first_name, last_name, email, password_hash, is_verified, role FROM users WHERE email = ?";
+        $user_data = $this->db->fetch($sql, [$data['email']]);
 
-        $stmt = $this->db->prepare("SELECT id, first_name, last_name, email, password_hash, is_verified, role FROM users 
-                                    WHERE email = :email");
-        $stmt->execute([':email' => $data['email']]);
-        $user = $stmt->fetch();
-        if($user == null) {
-            $errors[] = "W systemie nie istnieje konto z podanym adresem e-mail.";
-            return [
-                'success' => false,
-                'errors' => $errors
-            ];
+        // Jeśli użytkownik istnieje i hasło się zgadza
+        if ($user_data && password_verify($data['password'], $user_data['password_hash'])) {
+            unset($user_data['password_hash']); // Usuń hash hasła przed utworzeniem obiektu
+            return new User($user_data);
         }
 
-        if ($user && password_verify($data['password'], $user['password_hash'])) {
-            unset($user['password_hash']);
-            return new User($user);
-        } else {
-            $errors[] = "Błędne hasło. Spróbuj ponownie.";
-        }
-
-        return [
-            'success' => false, 
-            'errors' => $errors
-        ];
+        // W każdym innym przypadku (brak użytkownika, błędne hasło) zwracamy null
+        return null;
     }
 
     /**
-     * Zwraca ID ostatnio dodanego użytkownika.
+     * Zwraca ID ostatnio zarejestrowanego użytkownika.
      *
-     * @return int|null Zwraca ID użytkownika lub null, jeśli nie można go pobrać.
+     * @return int|null Zwraca ID użytkownika lub null w przypadku błędu.
      */
     public function getLastInsertId(): ?int
     {
-        $id = $this->db->lastInsertId();
-        return $id ? (int) $id : null;
+        return $this->db->lastInsertId();
     }
 
     /**
-     * Pobiera użytkownika na podstawie jego ID.
+     * Pobiera dane użytkownika na podstawie jego ID.
      *
-     * @param int $id ID użytkownika.
-     * 
-     * @return User|null Obiekt użytkownika lub null, jeśli nie znaleziono.
+     * @param int $id ID szukanego użytkownika.
+     * @return User|null Zwraca obiekt `User` lub `null`, jeśli użytkownik nie został znaleziony.
      */
     public function getUserById(int $id): ?User
     {
-        $stmt = $this->db->prepare("SELECT id, first_name, last_name, email, is_verified, role FROM users WHERE id = :id");
-        $stmt->execute([':id' => $id]);
-        $user = $stmt->fetch();
+        $sql = "SELECT id, first_name, last_name, email, is_verified, role FROM users WHERE id = ?";
+        $user_data = $this->db->fetch($sql, [$id]);
 
-        if ($user) {
-            return new User($user);
-        }
-
-        return null;
+        return $user_data ? new User($user_data) : null;
     }
 }
-?>

@@ -1,45 +1,42 @@
 <?php
+
 /**
- * Klasa odpowiadająca za logikę aplikacji dotyczącą logowania i rejestracji.
+ * Kontroler Uwierzytelniania (Auth).
+ *
+ * Klasa-serwis, która orkiestruje procesy rejestracji i logowania.
+ * Odpowiada za walidację danych wejściowych, komunikację z modelem użytkownika
+ * oraz zarządzanie sesją użytkownika.
+ *
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
  */
 class AuthController
-{   
+{ 
     /**
-     * Instancja klasy UserModel, która zarządza dostępem do danych użytkowników w bazie.
-     *
+     * Instancja modelu użytkownika.
      * @var UserModel
      */
     private UserModel $userModel;
 
     /**
-     * Przechowuje aktualnie zalogowanego użytkownika lub null, jeśli brak zalogowanego użytkownika.
-     *
+     * Obiekt aktualnie zalogowanego użytkownika.
      * @var User|null
      */
     private ?User $loggedUser = null;
 
-    // Konstruktor, inicjalizuje instancję UserModel.
+    /**
+     * Konstruktor, inicjalizuje instancję UserModel.
+     */
     public function __construct()
     {
         $this->userModel = new UserModel();
     }
 
     /**
-     * Rejestruje nowego użytkownika w systemie po walidacji danych formularza.
+     * Rejestruje nowego użytkownika po walidacji danych z formularza.
      *
-     * Funkcja najpierw waliduje dane takie jak imię, nazwisko, email oraz hasło.
-     * Jeśli walidacja przejdzie pomyślnie, wywołuje metodę rejestracji w UserModel.
-     * 
-     * @param array $formData Tablica asocjacyjna z danymi z formularza rejestracji:
-     *                        - 'first_name' => string Imię użytkownika
-     *                        - 'last_name' => string Nazwisko użytkownika
-     *                        - 'email' => string Adres e-mail użytkownika
-     *                        - 'password' => string Hasło
-     *                        - 'confirm_password' => string Potwierdzenie hasła
-     * 
-     * @return array Zwraca tablicę z wynikiem działania oraz ewentualnymi błędami:
-     *               - 'success' => bool Informacja, czy rejestracja zakończyła się sukcesem
-     *               - 'errors' => array Lista komunikatów o błędach, jeśli wystąpiły
+     * @param array<string, string> $formData Dane z formularza rejestracji.
+     * @return array Wynik operacji: `['success' => bool, 'errors' => array]`.
      */
     public function register(array $formData): array
     {
@@ -51,32 +48,30 @@ class AuthController
         $password = $formData['password'] ?? '';
         $confirmPassword = $formData['confirm_password'] ?? '';
         
-        // Walidacja imienia
+        // Walidacja danych...
         if (mb_strlen($firstName) < 2 || !preg_match('/^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,}$/u', $firstName)) {
             $errors[] = 'Imię musi zaczynać się z dużej litery i mieć co najmniej 2 znaki.';
         }
-        // Walidacja nazwiska
         if (mb_strlen($lastName) < 2 || !preg_match('/^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,}$/u', $lastName)) {
             $errors[] = 'Nazwisko musi zaczynać się z dużej litery i mieć co najmniej 2 znaki.';
         }
-        // Walidacja adresu e-mail
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'Niepoprawny e-mail.';
+            $errors[] = 'Podano niepoprawny format adresu e-mail.';
         } elseif ($this->userModel->checkEmail($email)) {
-            $errors[] = 'Ten e-mail już istnieje.';
+            $errors[] = 'Konto z podanym adresem e-mail już istnieje w systemie.';
         }
-        // Walidacja hasła
         if (strlen($password) < 6) {
             $errors[] = 'Hasło musi mieć co najmniej 6 znaków.';
         }
         if ($password !== $confirmPassword) {
-            $errors[] = 'Hasła nie są zgodne.';
+            $errors[] = 'Podane hasła nie są identyczne.';
         }
 
         if (!empty($errors)) {
             return ['success' => false, 'errors' => $errors];
         }
 
+        // Rejestracja użytkownika przez model
         $success = $this->userModel->register([
             'first_name' => $firstName,
             'last_name'  => $lastName,
@@ -84,57 +79,49 @@ class AuthController
             'password'   => $password
         ]);
         
-        // Jeśli udało się zarejestrować, zapisujemy chwilowo do sesji id tego użytkownika, 
-        // by móć operować na nim w procesie weryfikacji adresu e-mail.
-        if($success) {
+        if ($success) {
+            // Zapisz ID nowego użytkownika do sesji na potrzeby procesu weryfikacji
             $userId = $this->userModel->getLastInsertId();
             $_SESSION['verify_user_id'] = $userId;
+            return ['success' => true, 'errors' => []];
         }
 
-        return [
-            'success' => $success,
-            'errors' => $success ? [] : ['Rejestracja nie powiodła się.']
-        ];
+        // Jeśli rejestracja w modelu się nie udała (np. błąd bazy danych)
+        return ['success' => false, 'errors' => ['Rejestracja nie powiodła się z powodu błędu serwera.']];
     }
 
     /**
-     * Próbuje zalogować użytkownika na podstawie danych z formularza.
-     * 
-     * @param array $formData Tablica z danymi formularza.
-     * @return bool|array Zwraca true, jeśli logowanie powiodło się (użytkownik znaleziony i hasło poprawne), 
-     *              w przeciwnym razie tablica błędów w logowaniu.
+     * Loguje użytkownika na podstawie danych z formularza.
+     *
+     * @param array<string, string> $formData Dane formularza: 'email' i 'password'.
+     * @return array Wynik operacji: `['success' => bool, 'errors' => array]`.
      */
-    public function login(array $formData): bool|array
-    {   
-        // Walidacja pól czy nie są puste.
+    public function login(array $formData): array
+    { 
         $email = $formData['email'] ?? '';
         $password = $formData['password'] ?? '';
 
         if (empty($email) || empty($password)) {
-            return [
-                'success' => false,
-                'errors' => ['Email i hasło są wymagane.']
-            ];
+            return ['success' => false, 'errors' => ['Pola e-mail i hasło są wymagane.']];
         }
 
-        $result = $this->userModel->login($formData);
+        // Model zwraca obiekt User lub null
+        $user = $this->userModel->login($formData);
 
-        if ($result instanceof User) {
-            $this->loggedUser = $result;
-            return true;
+        if ($user instanceof User) {
+            // Dodatkowy warunek: sprawdź, czy konto jest zweryfikowane
+            if (!$user->isVerified()) {
+                return ['success' => false, 'errors' => ['Konto nie zostało jeszcze zweryfikowane. Sprawdź swoją skrzynkę e-mail.']];
+            }
+            
+            // Logowanie pomyślne: ustaw użytkownika w sesji
+            $this->loggedUser = $user;
+            $_SESSION['user'] = $this->loggedUser;
+            
+            return ['success' => true];
         }
 
-        return $result;
-    }
-
-    /**
-     * Zwraca aktualnie zalogowanego użytkownika.
-     * 
-     * @return User|null Obiekt zalogowanego użytkownika lub null, jeśli nikt nie jest zalogowany.
-     */
-    public function getLoggedUser(): ?User
-    {
-        return $this->loggedUser;
+        // Jeśli $user jest null, oznacza to błędne dane logowania
+        return ['success' => false, 'errors' => ['Niepoprawny e-mail lub hasło.']];
     }
 }
-?>

@@ -1,10 +1,21 @@
-// Plik: public/js/modules/ui.js
-import { IMAGE_BASE_PATH } from './api.js';
+/**
+ * @module ui
+ * @description Moduł odpowiedzialny za renderowanie komponentów interfejsu użytkownika quizu.
+ * Zawiera funkcje do wyświetlania pytań, odpowiedzi, przycisków i komunikatów.
+ */
 
 /**
- * Pomocnicza funkcja do unikania XSS.
+ * Ścieżka bazowa do obrazków powiązanych z pytaniami.
+ * @type {string}
+ * @constant
+ */
+const IMAGE_BASE_PATH = '/examly/public/images/questions/';
+
+/**
+ * Zabezpiecza tekst przed atakami XSS poprzez zamianę znaków specjalnych na encje HTML.
+ * @private
  * @param {string} str - Tekst do "oczyszczenia".
- * @returns {string} - Bezpieczny tekst HTML.
+ * @returns {string} - Bezpieczny do wstawienia w HTML tekst.
  */
 function escapeHTML(str) {
     const div = document.createElement('div');
@@ -13,15 +24,15 @@ function escapeHTML(str) {
 }
 
 /**
- * Renderuje pytanie i odpowiedzi w kontenerze.
- * @param {HTMLElement} container - Kontener, w którym ma być renderowany quiz.
- * @param {Object} question - Obiekt pytania (może zawierać właściwość 'image').
- * @param {Array<Object>} answers - Tablica obiektów odpowiedzi.
+ * Renderuje pełen widok pytania wraz z odpowiedziami w określonym kontenerze.
+ * @param {HTMLElement} container - Element DOM, w którym ma być renderowany quiz.
+ * @param {object} question - Obiekt pytania, np. `{id: 1, content: '...', image: 'img.png'}`.
+ * @param {object[]} answers - Tablica obiektów odpowiedzi, np. `[{id: 1, content: '...'}, ...]`.
+ * @returns {void}
  */
 export function renderQuestion(container, question, answers) {
     let answersHTML = '';
     answers.forEach((answer, index) => {
-        // ... (ta część pozostaje bez zmian) ...
         const letter = String.fromCharCode(65 + index);
         answersHTML += `
             <label class="quiz-card__answer">
@@ -32,9 +43,7 @@ export function renderQuestion(container, question, answers) {
         `;
     });
     
-    // ZMIANA: Tworzymy zmienną na HTML obrazka
     let imageHTML = '';
-    // Sprawdzamy, czy obiekt pytania zawiera niepustą właściwość 'image'
     if (question.image && question.image.trim() !== '') {
         imageHTML = `
             <div class="quiz-card__image-container">
@@ -49,7 +58,6 @@ export function renderQuestion(container, question, answers) {
             ${imageHTML}
             <div class="quiz-card__answers">${answersHTML}</div>
             <div class="quiz-card__actions">
-                <!-- Te kontenery zostają puste, JS je wypełni -->
                 <div class="quiz-card__button-container"></div>
                 <div class="quiz-card__explanation"></div>
             </div>
@@ -59,26 +67,26 @@ export function renderQuestion(container, question, answers) {
 }
 
 /**
- * Wyświetla feedback (koloruje odpowiedzi).
- * @param {boolean} isCorrect - Czy odpowiedź była poprawna.
+ * Wyświetla wizualny feedback po udzieleniu odpowiedzi.
+ * Koloruje odpowiedź użytkownika (na czerwono, jeśli błędna) i poprawną odpowiedź (na zielono).
+ * @param {boolean} isCorrect - Czy odpowiedź użytkownika była poprawna.
  * @param {number|string} correctAnswerId - ID poprawnej odpowiedzi.
  * @param {number|string} userAnswerId - ID odpowiedzi wybranej przez użytkownika.
+ * @returns {void}
  */
 export function showAnswerFeedback(isCorrect, correctAnswerId, userAnswerId) {
-    // Używamy querySelectorAll, aby znaleźć wszystkie elementy pasujące do selektora
     const answerLabels = document.querySelectorAll('.quiz-card__answer');
     
     answerLabels.forEach(label => {
-        // Pobieramy input radio, który jest wewnątrz tej etykiety
         const radioInput = label.querySelector('input[type="radio"]');
-        if (!radioInput) return; // Zabezpieczenie
+        if (!radioInput) return;
 
-        // Sprawdzamy, czy to jest błędna odpowiedź, którą zaznaczył użytkownik
+        // Oznacz błędną odpowiedź użytkownika
         if (!isCorrect && radioInput.value == userAnswerId) {
             label.classList.add('quiz-card__answer--incorrect');
         }
         
-        // Zawsze zaznaczamy poprawną odpowiedź na zielono
+        // Zawsze oznacz poprawną odpowiedź
         if (radioInput.value == correctAnswerId) {
             label.classList.add('quiz-card__answer--correct');
         }
@@ -86,12 +94,13 @@ export function showAnswerFeedback(isCorrect, correctAnswerId, userAnswerId) {
 }
 
 /**
- * Tworzy i wyświetla przyciski akcji (Następne, Wyjaśnienie).
- * @param {string|null} explanation - Tekst wyjaśnienia.
- * @param {function} onNextClick - Funkcja do wywołania po kliknięciu "Następne".
+ * Tworzy i wyświetla przyciski akcji (np. "Następne pytanie", "Pokaż wyjaśnienie")
+ * po udzieleniu odpowiedzi przez użytkownika.
+ * @param {string|null} explanation - Tekst wyjaśnienia pytania. Jeśli null, przycisk wyjaśnienia się nie pojawi.
+ * @param {function} onNextClick - Funkcja (callback), która zostanie wywołana po kliknięciu przycisku "Następne".
+ * @returns {void}
  */
 export function renderActionButtons(explanation, onNextClick) {
-    // 1. Znajdź istniejące kontenery, które zostały stworzone przez renderQuestion
     const buttonContainer = document.querySelector('.quiz-card__button-container');
     const explanationContainer = document.querySelector('.quiz-card__explanation');
 
@@ -100,12 +109,12 @@ export function renderActionButtons(explanation, onNextClick) {
         return;
     }
 
-    // 2. Wyczyść ich zawartość, a nie całego rodzica
+    // Wyczyść kontenery przed dodaniem nowej zawartości
     buttonContainer.innerHTML = '';
     explanationContainer.innerHTML = '';
-    explanationContainer.classList.remove('quiz-card__explanation--visible'); // Resetuj widoczność
+    explanationContainer.classList.remove('quiz-card__explanation--visible');
 
-    // Logika tworzenia przycisku 'Wyjaśnienie'
+    // Renderuj przycisk "Pokaż wyjaśnienie", jeśli wyjaśnienie istnieje
     if (explanation && explanation.trim() !== '') {
         explanationContainer.innerHTML = escapeHTML(explanation);
         const explanationButton = document.createElement('button');
@@ -124,7 +133,7 @@ export function renderActionButtons(explanation, onNextClick) {
         buttonContainer.appendChild(explanationButton);
     }
 
-    // Logika tworzenia przycisku 'Następne'
+    // Zawsze renderuj przycisk "Następne pytanie"
     const nextButton = document.createElement('button');
     nextButton.type = 'button';
     nextButton.textContent = 'Następne';
@@ -134,18 +143,20 @@ export function renderActionButtons(explanation, onNextClick) {
 }
 
 /**
- * Wyświetla komunikat o błędzie.
- * @param {HTMLElement} container - Kontener, w którym ma się pojawić komunikat.
- * @param {string} message - Treść błędu.
+ * Wyświetla sformatowany komunikat o błędzie w danym kontenerze.
+ * @param {HTMLElement} container - Element DOM, w którym ma się pojawić komunikat.
+ * @param {string} message - Treść komunikatu o błędzie.
+ * @returns {void}
  */
 export function showError(container, message) {
-    container.innerHTML = `<p class="alert alert--error";">Błąd: ${message}</p>`;
+    container.innerHTML = `<p class="alert alert--error";">Błąd: ${escapeHTML(message)}</p>`;
 }
 
 /**
- * Wyświetla komunikat informacyjny. (NOWA FUNKCJA)
- * @param {HTMLElement} container - Kontener, w którym ma się pojawić komunikat.
- * @param {string} message - Treść informacji.
+ * Wyświetla sformatowany komunikat informacyjny w danym kontenerze.
+ * @param {HTMLElement} container - Element DOM, w którym ma się pojawić komunikat.
+ * @param {string} message - Treść komunikatu informacyjnego.
+ * @returns {void}
  */
 export function showInfo(container, message) {
     container.innerHTML = `<div class="alert alert--info">${escapeHTML(message)}</div>`;

@@ -1,6 +1,27 @@
 @charset "UTF-8";
+/**
+ * @file main.scss
+ * @author Tobiasz Szerszeń
+ * @group main
+ *
+ * @description
+ * Główny plik SCSS, będący punktem wejściowym dla całego projektu stylów.
+ * Nie zawiera żadnych reguł CSS, a jego jedynym zadaniem jest importowanie
+ * wszystkich plików częściowych (partials) w odpowiedniej kolejności,
+ * zgodnie z architekturą ITCSS (Inverted Triangle CSS).
+ */
+/**
+ * @file _variables.scss
+ * @author Tobiasz Szerszeń
+ * @group theme
+ *
+ * @description
+ * Definiuje globalne zmienne CSS (custom properties) dla motywu jasnego
+ * i ciemnego. Użycie zmiennych CSS zamiast zmiennych SASS pozwala na
+ * dynamiczną zmianę motywu w przeglądarce poprzez dodanie/usunięcie
+ * klasy `.dark` na elemencie `<body>`.
+ */
 :root {
-  /* Zmienne motywu jasnego (domyślny) */
   --bg: #fff;
   --text: #000;
   --accent: #3b82f6;
@@ -15,8 +36,13 @@
   --footer-icon: #6b7280;
 }
 
+/**
+ * Nadpisanie zmiennych dla motywu ciemnego.
+ *
+ * Kiedy element `<body>` otrzymuje klasę `.dark`,
+ * wartości tych zmiennych zastępują te zdefiniowane w `:root`.
+ */
 body.dark {
-  /* Zmienne motywu ciemnego */
   --bg: #212325;
   --text: #fff;
   --accent: #3b82f6;
@@ -31,15 +57,41 @@ body.dark {
   --footer-icon: #9ca3af;
 }
 
+/**
+ * @file _base.scss
+ * @author Tobiasz Szerszeń
+ * @group elements
+ *
+ * @description
+ * Definiuje najbardziej podstawowe style dla elementu `<body>`.
+ * Stosuje globalne zmienne motywu (jasny/ciemny) i ustawia domyślną
+ * czcionkę dla całej aplikacji.
+ */
 body {
   font-family: "Manrope", sans-serif;
   background-color: var(--bg);
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/**
+ * @file _typography.scss
+ * @author Tobiasz Szerszeń
+ * @group elements
+ *
+ * @description
+ * Zawiera globalne style dla elementów typograficznych (nagłówki, linki, etc.)
+ * oraz ogólne klasy pomocnicze związane z tekstem.
+ */
+/**
+ * Klasa pomocnicza dla głównych tytułów stron.
+ * Zapewnia spójny wygląd tytułów na różnych podstronach.
+ */
 .page-title {
   text-align: center;
   margin-top: 2rem;
+  margin-bottom: 2rem;
   font-size: 2rem;
   color: var(--text);
 }

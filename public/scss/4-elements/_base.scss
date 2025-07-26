@@ -1,7 +1,20 @@
-// Plik: scss/4-elements/_base.scss
+/**
+ * @file _base.scss
+ * @author Tobiasz Szerszeń
+ * @group elements
+ *
+ * @description
+ * Definiuje najbardziej podstawowe style dla elementu `<body>`.
+ * Stosuje globalne zmienne motywu (jasny/ciemny) i ustawia domyślną
+ * czcionkę dla całej aplikacji.
+ */
 
 body {
   font-family: 'Manrope', sans-serif;
   background-color: var(--bg);
   color: var(--text);
+
+  // Poprawia renderowanie czcionek na różnych systemach
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

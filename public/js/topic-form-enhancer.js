@@ -1,64 +1,107 @@
-// Plik: public/js/topic-form-enhancer.js
+/**
+ * @module topicFormEnhancer
+ * @description Skrypt, który wzbogaca formularz wyboru tematów o dodatkową interaktywność,
+ * taką jak "zaznacz wszystko" oraz dynamiczne zarządzanie opcjami premium.
+ */
 
 /**
- * Klasa TopicFormEnhancer zarządza zaawansowaną logiką
- * formularza wyboru tematów.
+ * @class TopicFormEnhancer
+ * @classdesc Zarządza zaawansowaną logiką interfejsu użytkownika
+ * dla formularza wyboru tematów quizu.
  */
 class TopicFormEnhancer {
+    /**
+     * @param {string} formId - ID elementu formularza, który ma zostać wzbogacony.
+     */
     constructor(formId) {
+        /**
+         * Element DOM formularza.
+         * @type {HTMLFormElement|null}
+         * @private
+         */
         this.form = document.getElementById(formId);
         if (!this.form) return;
 
-        // Pobranie kluczowych elementów formularza
+        /**
+         * Checkbox "Zaznacz wszystko".
+         * @type {HTMLInputElement}
+         * @private
+         */
         this.selectAllCheckbox = this.form.querySelector('#select-all-inf03');
+        
+        /**
+         * Lista wszystkich checkboxów z kategoriami tematycznymi.
+         * @type {NodeListOf<HTMLInputElement>}
+         * @private
+         */
         this.topicCheckboxes = this.form.querySelectorAll('.topic-checkbox');
+
+        /**
+         * Lista wszystkich checkboxów z opcjami premium.
+         * @type {NodeListOf<HTMLInputElement>}
+         * @private
+         */
         this.premiumCheckboxes = this.form.querySelectorAll('.premium-checkbox');
         
+        /**
+         * Stan zalogowania użytkownika, pobierany z globalnego obiektu.
+         * @type {boolean}
+         * @private
+         */
         this.isUserLoggedIn = window.examlyAppState?.isUserLoggedIn || false;
 
         this.bindEvents();
-        this.updateFormState(); // Zmieniono nazwę dla większej jasności
+        this.updateFormState();
     }
 
     /**
      * Wiąże wszystkie potrzebne zdarzenia z elementami formularza.
+     * @private
+     * @returns {void}
      */
     bindEvents() {
         this.selectAllCheckbox.addEventListener('change', () => this.handleSelectAll());
+        
         this.topicCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', () => this.handleSingleTopicChange());
         });
+
         this.premiumCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', (e) => this.handlePremiumChange(e.target));
         });
     }
 
     /**
-     * Obsługuje kliknięcie w checkbox "Cały materiał INF.03".
-     * Zaznacza lub odznacza wszystkie podkategorie, ale ich nie blokuje.
+     * Obsługuje zmianę stanu checkboxa "Zaznacz wszystko".
+     * Synchronizuje stan wszystkich podrzędnych checkboxów tematycznych.
+     * @private
+     * @returns {void}
      */
     handleSelectAll() {
         const isChecked = this.selectAllCheckbox.checked;
         this.topicCheckboxes.forEach(cb => {
             cb.checked = isChecked;
-            // Usunęliśmy blokowanie checkboxów!
         });
         this.updatePremiumOptionsState();
     }
 
     /**
-     * Aktualizuje stan checkboxa "Cały materiał" w zależności od stanu podkategorii.
+     * Obsługuje zmianę stanu pojedynczego checkboxa tematycznego.
+     * Aktualizuje stan głównego checkboxa "Zaznacz wszystko".
+     * @private
+     * @returns {void}
      */
     handleSingleTopicChange() {
-        // Sprawdza, czy wszystkie podkategorie są zaznaczone
         const allChecked = [...this.topicCheckboxes].every(cb => cb.checked);
         this.selectAllCheckbox.checked = allChecked;
-        
         this.updatePremiumOptionsState();
     }
     
     /**
      * Zapewnia, że tylko jedna opcja premium może być aktywna w danym momencie.
+     * @private
+     * @param {HTMLInputElement} changedCheckbox - Checkbox, który właśnie został zmieniony.
+     * @returns {void}
      */
     handlePremiumChange(changedCheckbox) {
         if (changedCheckbox.checked) {
@@ -71,15 +114,20 @@ class TopicFormEnhancer {
     }
 
     /**
-     * Aktualizuje stan całego formularza, w tym opcji premium.
+     * Ustawia początkowy, poprawny stan całego formularza przy ładowaniu strony.
+     * @private
+     * @returns {void}
      */
     updateFormState() {
-        this.handleSingleTopicChange(); // Aktualizuje "Zaznacz wszystko" na starcie
-        this.updatePremiumOptionsState(); // Aktualizuje opcje premium na starcie
+        this.handleSingleTopicChange();
+        this.updatePremiumOptionsState();
     }
 
     /**
-     * Zarządza stanem opcji premium na podstawie logowania i wyboru tematów.
+     * Zarządza stanem (włączony/wyłączony) opcji premium.
+     * Opcje te są aktywne tylko dla zalogowanych użytkowników, którzy wybrali co najmniej jeden temat.
+     * @private
+     * @returns {void}
      */
     updatePremiumOptionsState() {
         const anyTopicSelected = [...this.topicCheckboxes].some(cb => cb.checked);
@@ -107,7 +155,11 @@ class TopicFormEnhancer {
     }
 }
 
-// Inicjalizujemy klasę po załadowaniu drzewa DOM
+/**
+ * Punkt wejściowy skryptu.
+ * Po załadowaniu struktury DOM, tworzy instancję klasy `TopicFormEnhancer`,
+ * aby aktywować zaawansowaną logikę formularza.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     new TopicFormEnhancer('topic-form');
 });

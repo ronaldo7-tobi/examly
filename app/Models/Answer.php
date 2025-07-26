@@ -1,26 +1,56 @@
 <?php
+
+/**
+ * Model Odpowiedzi (Answer).
+ *
+ * Klasa odpowiedzialna za definiowanie zapytań SQL dotyczących odpowiedzi na pytania.
+ * Deleguje wykonanie zapytań i obsługę błędów do centralnej klasy Database.
+ *
+ * @version 2.0.0
+ * @author Tobiasz Szerszeń
+ */
 class Answer
 {
-    private PDO $db;
+    /**
+     * Instancja naszej klasy do obsługi bazy danych.
+     * @var Database
+     */
+    private Database $db;
 
+    /**
+     * Konstruktor klasy Answer.
+     * Pobiera instancję klasy Database.
+     */
     public function __construct()
     {
         $this->db = Database::getInstance();
     }
 
+    /**
+     * Pobiera wszystkie odpowiedzi przypisane do danego pytania.
+     *
+     * Zwraca tablicę odpowiedzi w losowej kolejności.
+     *
+     * @param int $questionId ID pytania, dla którego mają zostać pobrane odpowiedzi.
+     * @return array Tablica asocjacyjna z odpowiedziami.
+     */
     public function getAnswersToQuestion(int $questionId): array
     {
-        $stmt = $this->db->prepare("SELECT id, content FROM answers WHERE question_id = :question_id ORDER BY RAND()");
-        $stmt->execute([':question_id' => $questionId]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $sql = "SELECT id, content FROM answers WHERE question_id = ? ORDER BY RAND()";
+        
+        return $this->db->fetchAll($sql, [$questionId]);
     }
 
-    public function getCorrectAnswerForQuestion(int $questionId): bool|array
+    /**
+     * Pobiera poprawną odpowiedź dla danego pytania.
+     *
+     * @param int $questionId ID pytania, dla którego szukana jest poprawna odpowiedź.
+     * @return array|false Zwraca tablicę asocjacyjną z ID poprawnej odpowiedzi lub `false`.
+     */
+    public function getCorrectAnswerForQuestion(int $questionId): array|false
     {
-        $stmt = $this->db->prepare("SELECT id FROM answers WHERE question_id = :qid AND is_correct = 1");
-        $stmt->execute([':qid' => $questionId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $sql = "SELECT id FROM answers WHERE question_id = ? AND is_correct = 1";
+        
+        return $this->db->fetch($sql, [$questionId]);
     }
 }
-?>
