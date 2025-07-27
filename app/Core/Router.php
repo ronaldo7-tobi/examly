@@ -76,6 +76,10 @@ class Router
                 }
                 break;
 
+            case 'verify':
+                (new VerificationController())->handle();
+                break;
+
             case 'logout':
                 (new UserController())->logout();
                 break;

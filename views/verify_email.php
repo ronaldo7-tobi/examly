@@ -31,7 +31,7 @@ if (isset($_SESSION['email_sent'])) {
 <body>
     <?php include 'partials/navbar.php'; ?>
 
-    <main>
+<main>
         <div class="info-card--centered-fullscreen"> 
             <div class="info-card">
                 <div class="info-card__icon info-card__icon--info">
@@ -44,17 +44,17 @@ if (isset($_SESSION['email_sent'])) {
                     Aby zakończyć rejestrację, kliknij w link aktywacyjny, który wysłaliśmy na Twój adres e-mail.
                 </p>
 
-                <?php if (!empty($messages)): ?>
-                    <?php if (isset($messages['success'])): ?>
-                        <div class="alert alert--success" role="status"><?= htmlspecialchars($messages['success']) ?></div>
-                    <?php elseif (isset($messages['error'])): ?>
-                        <div class="alert alert--error" role="alert"><?= htmlspecialchars($messages['error']) ?></div>
-                    <?php endif; ?>
+                <?php
+                if (isset($flashMessage) && is_array($flashMessage)):
+                ?>
+                    <div class="alert alert--<?= htmlspecialchars($flashMessage['type']) ?>" role="alert">
+                        <?= htmlspecialchars($flashMessage['text']) ?>
+                    </div>
                 <?php endif; ?>
 
                 <div class="info-card__actions">
-                    <form method="GET" action="verify_email">
-                        <input type="hidden" name="resend" value="true">
+                    <form method="GET" action="/examly/public/verify_email">
+                        <input type="hidden" name="send" value="true">
                         <button 
                             type="submit"
                             id="resendButton" 
@@ -110,7 +110,7 @@ if (isset($_SESSION['email_sent'])) {
             
             button.disabled = true;
             button.textContent = 'Wysyłanie...';
-            window.location.href = '/verify_email?resend=true';
+            window.location.href = '/verify_email?send=true';
         });
     </script>
 </body>

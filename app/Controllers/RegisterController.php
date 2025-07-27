@@ -76,7 +76,22 @@ class RegisterController extends BaseController
      */
     public function showVerificationPage(): void
     {
-        // Pobierz komunikat z sesji, jeśli istnieje, a następnie go usuń.
+        // Sprawdź, czy użytkownik w sesji jest już zweryfikowany.
+        if (isset($_SESSION['verify_user_id'])) {
+            $userModel = new UserModel();
+            $user = $userModel->getUserById($_SESSION['verify_user_id']);
+
+            // Jeśli użytkownik istnieje i jest zweryfikowany, przenieś go na stronę logowania.
+            if ($user && $user->isVerified()) {
+                unset($_SESSION['verify_user_id']); // Wyczyść sesję
+                unset($_SESSION['email_sent']);
+
+                $_SESSION['flash_message'] = ['type' => 'info', 'text' => 'Twoje konto jest już aktywne. Możesz się zalogować.'];
+                header("Location: /login");
+                exit;
+            }
+        }
+        
         $flashMessage = $_SESSION['flash_message'] ?? null;
         unset($_SESSION['flash_message']);
         
