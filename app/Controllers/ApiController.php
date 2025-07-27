@@ -6,7 +6,7 @@
  * z modelami bazy danych oraz zwracanie danych w formacie JSON.
  *
  * @version 1.0.0
- * @author Twoje Imię/Nazwa Firmy
+ * @author Tobiasz Szerszeń
  */
 class ApiController {
     

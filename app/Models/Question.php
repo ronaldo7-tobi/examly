@@ -6,7 +6,7 @@
  * Klasa odpowiedzialna za definiowanie zapytań SQL dotyczących pytań.
  * Deleguje wykonanie zapytań i obsługę błędów do centralnej klasy Database.
  *
- * @version 3.0.0
+ * @version 1.0.0
  * @author Tobiasz Szerszeń
  */
 class Question

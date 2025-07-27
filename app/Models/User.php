@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Klasa reprezentująca użytkownika w systemie.
  * 
@@ -116,4 +117,3 @@ class User
         return $this->isVerified;
     }
 }
-?>

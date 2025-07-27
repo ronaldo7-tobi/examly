@@ -14,4 +14,3 @@ if (session_status() === PHP_SESSION_NONE) {
 // Utworzenie obiektu Router'a.
 $router = new Router();
 $router->handleRequest();
-?>

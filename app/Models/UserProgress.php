@@ -7,7 +7,7 @@
  * Wykorzystuje zoptymalizowane zapytanie "upsert" (INSERT ... ON DUPLICATE KEY UPDATE)
  * do wydajnej obsługi danych w jednym zapytaniu do bazy.
  *
- * @version 2.0.0
+ * @version 1.0.0
  * @author Tobiasz Szerszeń
  */
 class UserProgress

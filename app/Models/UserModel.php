@@ -6,7 +6,7 @@
  * Klasa odpowiedzialna za operacje na danych użytkowników, takie jak rejestracja,
  * logowanie, weryfikacja i pobieranie danych. Wykorzystuje centralną klasę Database.
  *
- * @version 2.0.0
+ * @version 1.0.0
  * @author Tobiasz Szerszeń
  */
 class UserModel

@@ -1,17 +1,20 @@
 <?php
 /**
- * Klasa TokenService odpowiedzialna za obsługę tokenów weryfikacyjnych i resetujących.
- * 
- * Obsługuje generowanie, walidację i usuwanie tokenów z bazy danych.
+ * Serwis Tokenów (TokenService).
+ *
+ * Klasa odpowiedzialna za zarządzanie cyklem życia tokenów jednorazowych
+ * (np. do weryfikacji e-maila, resetowania hasła).
+ *
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
  */
 class TokenService
 {
     /**
-     * Obiekt PDO do komunikacji z bazą danych.
-     * 
-     * @var PDO
+     * Instancja naszej klasy do obsługi bazy danych.
+     * @var Database
      */
-    private PDO $db;
+    private Database $db;
 
     /**
      * Konstruktor inicjalizujący połączenie z bazą danych.
@@ -22,59 +25,48 @@ class TokenService
     }
 
     /**
-     * Generuje nowy token i zapisuje go w bazie danych.
-     * 
-     * @param int $userId ID użytkownika.
-     * 
-     * @param string $type Typ tokena: email_verify, password_reset, email_reset.
-     * 
-     * @return string Wygenerowany token.
+     * Generuje nowy, unikalny token i zapisuje go w bazie danych.
+     *
+     * @param int $userId ID użytkownika, dla którego tworzony jest token.
+     * @param string $type Typ tokena (np. 'email_verify', 'password_reset').
+     * @return string Wygenerowany, 64-znakowy token.
      */
     public function generateToken(int $userId, string $type): string
     {
         $token = bin2hex(random_bytes(32));
-        $stmt = $this->db->prepare("INSERT INTO user_tokens (user_id, token, type, expires_at)
-            VALUES (:user_id, :token, :type, DATE_ADD(NOW(), INTERVAL 1 HOUR))");
+        $sql = "INSERT INTO user_tokens (user_id, token, type, expires_at)
+                VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))";
 
-        $stmt->execute([
-            ':user_id' => $userId,
-            ':token'   => $token,
-            ':type'    => $type
-        ]);
+        $this->db->execute($sql, [$userId, $token, $type]);
 
         return $token;
     }
 
     /**
-     * Usuwa token z bazy danych.
-     * 
-     * @param string $token Token do usunięcia.
-     * 
+     * Usuwa wszystkie tokeny danego typu dla określonego użytkownika.
+     * Używane np. po pomyślnej weryfikacji, aby usunąć stare tokeny.
+     *
+     * @param int $userId ID użytkownika.
+     * @param string $type Typ tokenów do usunięcia.
      * @return void
      */
-    public function deleteAllEmailVerifyTokens(int $userId, string $type): void
+    public function deleteTokensForUserByType(int $userId, string $type): void
     {
-        $stmt = $this->db->prepare(
-            "DELETE FROM user_tokens WHERE user_id = :user_id AND type = :type"
-        );
-        $stmt->execute([
-            ':user_id' => $userId,
-            ':type'    => $type
-        ]);
+        $sql = "DELETE FROM user_tokens WHERE user_id = ? AND type = ?";
+        $this->db->execute($sql, [$userId, $type]);
     }
 
     /**
-     * Zwraca cały rekord wybranego tokena z bazy danych.
-     * 
-     * @param string $token Wybrany token.
-     * 
-     * @return array|null Zwraca tablicę z danymi wybranego rekordu lub null, jeśli taki nie istnieje.
+     * Pobiera pełny rekord tokena z bazy danych na podstawie jego wartości.
+     *
+     * @param string $token Wartość tokena do wyszukania.
+     * @return array|null Zwraca tablicę z danymi rekordu tokena lub null, jeśli nie istnieje.
      */
     public function getTokenRecord(string $token): ?array
     {
-        $stmt = $this->db->prepare("SELECT * FROM user_tokens WHERE token = :token");
-        $stmt->execute([':token' => $token]);
-        $record = $stmt->fetch();
-        return $record ?: null;
+        $sql = "SELECT * FROM user_tokens WHERE token = ?";
+        $result = $this->db->fetch($sql, [$token]);
+        
+        return $result ?: null; // Zapewnia, że zawsze zwracany jest null zamiast false
     }
 }

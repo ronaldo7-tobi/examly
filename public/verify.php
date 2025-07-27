@@ -26,7 +26,7 @@ if (!$token) {
         $status = 'error';
     } else {
         if ($userModel->verifyUser($tokenRecord['user_id'])) {
-            $tokenService->deleteAllEmailVerifyTokens($tokenRecord['user_id'], 'email_verify');
+            $tokenService->deleteTokensForUserByType($tokenRecord['user_id'], 'email_verify');
             $message = 'Adres e-mail został pomyślnie zweryfikowany!';
             $status = 'success';
         } else {
