@@ -21,17 +21,11 @@
 
     <main>
         <?php 
-            // Uproszczona i bezpieczna obsługa wiadomości flash
-            if (isset($_SESSION['flash_error'])): ?>
-                <div class="alert alert--error" role="alert">
-                    <?= htmlspecialchars($_SESSION['flash_error']); ?>
+            if (isset($_SESSION['flash_message']) && is_array($_SESSION['flash_message'])): ?>
+                <div class="alert alert--<?= htmlspecialchars($_SESSION['flash_message']['type']) ?>" role="alert">
+                    <?= htmlspecialchars($_SESSION['flash_message']['text']); ?>
                 </div>
-                <?php unset($_SESSION['flash_error']); ?>
-            <?php elseif (isset($_SESSION['flash_success'])): ?>
-                <div class="alert alert--success" role="alert">
-                    <?= htmlspecialchars($_SESSION['flash_success']); ?>
-                </div>
-                <?php unset($_SESSION['flash_success']); ?>
+                <?php unset($_SESSION['flash_message']); ?>
             <?php endif; 
         ?>
 
@@ -40,8 +34,7 @@
                 <h1 class="form-card__title">Witaj ponownie!</h1>
                 <p class="form-card__subtitle">Zaloguj się, aby kontynuować naukę.</p>
             </div>
-          
-            <!-- Wyświetlanie błędów walidacji formularza -->
+        
             <?php if (!empty($errors)): ?>
                 <div class="alert alert--error" role="alert">
                     <ul class="alert__list">
@@ -56,13 +49,12 @@
                 <label for="email" class="form-card__label">Adres e-mail</label>
                 <input type="email" id="email" name="email" class="form-card__input" value="<?= htmlspecialchars($formData['email'] ?? '') ?>" required>
             </div>
-          
+        
             <div class="form-card__group">
                 <label for="password" class="form-card__label">Hasło</label>
                 <input type="password" id="password" name="password" class="form-card__input" required>
             </div>
 
-            <!-- Używamy reużywalnego komponentu przycisku -->
             <button type="submit" class="btn btn--primary btn--full-width">Zaloguj się</button>
 
             <div class="form-card__footer">
