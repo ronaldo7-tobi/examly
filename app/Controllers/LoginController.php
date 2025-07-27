@@ -1,57 +1,79 @@
 <?php 
+
 /**
- * Klasa odpowiadająca za logikę wyświetlania widoku logowania.
+ * Kontroler Strony Logowania.
+ *
+ * Odpowiada za logikę związaną z wyświetlaniem i obsługą formularza logowania.
+ * Działa jako "klej" między żądaniem HTTP użytkownika, serwisem uwierzytelniania
+ * a widokiem HTML. Dziedziczy po `BaseController`, aby mieć dostęp do
+ * globalnego stanu aplikacji (np. statusu logowania).
+ *
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
  */
-class LoginController
+class LoginController extends BaseController
 {
     /**
-     * Instancja klasy AuthController, która zarządza rejestrowaniem i logowaniem się użytkowników.
-     *
+     * Serwis uwierzytelniania, który zawiera główną logikę biznesową logowania.
      * @var AuthController
      */
     private AuthController $auth;
 
-    // Konstruktor, incijalizuje instancję AuthController.
+    /**
+     * Konstruktor Kontrolera Logowania.
+     * * Wywołuje konstruktor klasy nadrzędnej (`BaseController`) w celu
+     * inicjalizacji sesji i sprawdzenia statusu logowania, a następnie
+     * tworzy instancję serwisu `AuthController`.
+     */
     public function __construct()
     {
+        parent::__construct();
         $this->auth = new AuthController();
     }
 
     /**
-     * Zarządza widokiem logowania.
-     * 
-     * @return void
+     * Główna metoda kontrolera, zarządzająca całą logiką strony logowania.
+     * * 1. Sprawdza, czy użytkownik jest już zalogowany, i jeśli tak, przekierowuje go.
+     * 2. Jeśli żądanie jest typu POST, przetwarza dane z formularza, wywołując serwis `auth->login()`.
+     * 3. W przypadku sukcesu: regeneruje ID sesji (ze względów bezpieczeństwa) i przekierowuje na stronę główną.
+     * 4. W przypadku błędu: zbiera komunikaty o błędach.
+     * 5. Na koniec renderuje widok `login.php`, przekazując do niego ewentualne błędy
+     * oraz dane wprowadzone przez użytkownika w formularzu.
+     * * @return void
      */
     public function handleRequest(): void
     {
-        $errors = [];
-        $formData = [];
-        $result = false;
-
-        if (isset($_SESSION['user'])) {
+        // 1. Przekieruj, jeśli użytkownik jest już zalogowany
+        if ($this->isUserLoggedIn) {
             header('Location: /');
             exit;
         }
 
+        $errors = [];
+        $formData = [];
+
+        // 2. Obsłuż dane z formularza
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $formData = $_POST;
             $result = $this->auth->login($formData);
 
+            // 3. Reakcja na sukces
             if ($result['success']) {
-                session_regenerate_id(true);
-                unset($_SESSION['verify_user_id']);
-                unset($_SESSION['verify_user_email']);
-                unset($_SESSION['flash_error']);
-                unset($_SESSION['flash_success']);
+                session_regenerate_id(true); // Zabezpieczenie przed atakiem session fixation
+                unset($_SESSION['verify_user_id']); // Sprzątanie po procesie rejestracji
+                
                 header('Location: /examly/public/');
                 exit;
             } else {
+            // 4. Reakcja na błąd
                 $errors = $result['errors'];
             }
         }
 
-        include __DIR__ . '/../../views/login.php';
+        // 5. Renderowanie widoku
+        $this->renderView('login', [
+            'errors' => $errors,
+            'formData' => $formData
+        ]);
     }
 }
-
-?>

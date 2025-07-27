@@ -51,6 +51,14 @@ class Question
     /**
      * Pobiera losowe pytania, na które użytkownik jeszcze nie odpowiadał ("Nieodkryte").
      *
+     * Logika zapytania krok po kroku:
+     * 1. `FROM questions q` - Bierzemy wszystkie pytania z tabeli `questions`.
+     * 2. `LEFT JOIN user_progress up ON ... AND up.user_id = ?` - Próbujemy do każdego pytania dołączyć wpis
+     * z postępów, ale **tylko dla aktualnie zalogowanego użytkownika**.
+     * 3. `WHERE q.subject IN (...)` - Filtrujemy tylko do wybranych przez użytkownika kategorii.
+     * 4. `AND up.question_id IS NULL` - To jest klucz! Zatrzymujemy tylko te wiersze, gdzie **nie udało się**
+     * znaleźć wpisu w `user_progress`. Oznacza to, że użytkownik nigdy nie odpowiadał na to pytanie.
+     *
      * @param int $userId ID zalogowanego użytkownika.
      * @param array<string> $subjects Tablica z nazwami kategorii.
      * @param int $limit Limit pytań do pobrania.
@@ -74,6 +82,18 @@ class Question
 
     /**
      * Pobiera pytania, z którymi użytkownik radzi sobie najsłabiej (skuteczność <= 60%).
+     *
+     * Logika zapytania krok po kroku:
+     * 1. `FROM questions q INNER JOIN user_progress up ON ...` - Bierzemy tylko te pytania, na które
+     * użytkownik **już kiedyś odpowiadał** (INNER JOIN wymaga dopasowania w obu tabelach).
+     * 2. `SELECT q.*, (up.correct_attempts * 100.0 / (...)) as accuracy` - Dla każdego z tych pytań
+     * obliczamy na bieżąco procentową skuteczność odpowiedzi i nazywamy tę kolumnę `accuracy`.
+     * 3. `WHERE ... AND (up.correct_attempts + up.wrong_attempts) > 0` - Zabezpieczenie, aby
+     * uniknąć dzielenia przez zero, jeśli jakimś cudem w bazie byłyby same zera.
+     * 4. `HAVING accuracy <= 60` - Po obliczeniu skuteczności dla wszystkich pytań, filtrujemy
+     * wyniki, zostawiając tylko te, gdzie skuteczność jest równa lub niższa niż 60%.
+     * 5. `ORDER BY accuracy, RAND()` - Sortujemy wyniki tak, aby najpierw pokazać te o najniższej
+     * skuteczności. `RAND()` dodatkowo losuje kolejność pytań o tej samej skuteczności.
      *
      * @param int $userId ID zalogowanego użytkownika.
      * @param array<string> $subjects Tablica z nazwami kategorii.
@@ -102,6 +122,13 @@ class Question
     /**
      * Pobiera pytania, które były rozwiązywane przez użytkownika najdawniej.
      *
+     * Logika zapytania krok po kroku:
+     * 1. `FROM questions q INNER JOIN user_progress up ON ...` - Bierzemy tylko te pytania,
+     * na które użytkownik już kiedyś odpowiadał.
+     * 2. `ORDER BY up.last_attempt ASC` - To jest klucz! Sortujemy wyniki po dacie ostatniej
+     * odpowiedzi, od **najstarszej** do najnowszej (`ASC`). Dzięki temu na początku
+     * znajdą się pytania "zapomniane", rozwiązywane najdawniej.
+     *
      * @param int $userId ID zalogowanego użytkownika.
      * @param array<string> $subjects Tablica z nazwami kategorii.
      * @param int $limit Limit pytań do pobrania.
@@ -125,6 +152,13 @@ class Question
 
     /**
      * Pobiera pytania, na które użytkownik ostatnio odpowiedział błędnie.
+     *
+     * Logika zapytania krok po kroku:
+     * 1. `FROM questions q INNER JOIN user_progress up ON ...` - Bierzemy tylko te pytania,
+     * na które użytkownik już kiedyś odpowiadał.
+     * 2. `WHERE ... AND up.last_result = 0` - Zostawiamy tylko te rekordy, w których wynik
+     * ostatniej odpowiedzi był błędny (zakładając, że `0` oznacza błąd).
+     * 3. `ORDER BY RAND()` - Losujemy kolejność spośród znalezionych błędnych odpowiedzi.
      *
      * @param int $userId ID zalogowanego użytkownika.
      * @param array<string> $subjects Tablica z nazwami kategorii.

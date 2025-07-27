@@ -9,6 +9,9 @@ use PHPMailer\PHPMailer\Exception;
 /**
  * Klasa Mailer odpowiedzialna za wysyłanie wiadomości e-mail.
  * Wykorzystuje bibliotekę PHPMailer.
+ * 
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
  */
 class Mailer
 {

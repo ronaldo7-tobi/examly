@@ -35,9 +35,7 @@ class UserModel
     public function checkEmail(string $email): bool
     {
         $sql = "SELECT id FROM users WHERE email = ?";
-        $result = $this->db->fetch($sql, [$email]);
-        
-        return $result !== false;
+        return $this->db->fetch($sql, [$email]) !== false;
     }
 
     /**

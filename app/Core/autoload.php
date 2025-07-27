@@ -2,6 +2,9 @@
 /**
  * Rejestruje funkcję autoload, która automatycznie dołącza klasy z katalogów Controllers, Core, Models i Services.
  * 
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
+ * 
  * @return void
  */
 spl_autoload_register(function ($class): void{

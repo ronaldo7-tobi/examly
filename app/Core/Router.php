@@ -1,102 +1,110 @@
 <?php
+
 /**
  * Klasa Router obsługuje routing aplikacji.
+ * Mapuje przychodzące żądania URI na odpowiednie akcje w kontrolerach.
+ * 
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
  */
 class Router 
 {
     /**
-     * Obsługuje żądanie użytkownika i ładuje odpowiedni widok.
-     *
+     * Główna metoda routera, która analizuje URI i wywołuje odpowiedni kontroler.
      * @return void
      */
     public function handleRequest(): void
     {
         $basePath = '/examly/public/';
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $uri = str_replace($basePath, '', $uri); // usuń prefix
+        $uri = str_replace($basePath, '', $uri);
         $uri = trim($uri, '/');
 
-        // --- LOGIKA OBSŁUGI API ---
-        // Sprawdzamy, czy URI zaczyna się od "api/"
+        // --- Sekcja API ---
         if (strpos($uri, 'api/') === 0) {
-            // Usuwamy "api/" z początku, aby uzyskać nazwę akcji
-            $apiAction = substr($uri, 4); // 4 to długość "api/"
-            
-            // Tworzymy instancję ApiController
-            $apiController = new ApiController();
-
-            // Konwertujemy nazwę akcji z URL (np. get-question) na nazwę metody (getQuestion)
-            $methodName = lcfirst(str_replace('-', '', ucwords($apiAction, '-')));
-
-            if (method_exists($apiController, $methodName)) {
-                // Wywołujemy odpowiednią metodę w ApiController
-                $apiController->$methodName();
-            } else {
-                // Jeśli metoda nie istnieje, zwracamy błąd 404 w formacie JSON
-                header('Content-Type: application/json');
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'API endpoint not found.']);
-            }
-            // Ważne: kończymy wykonanie skryptu, aby nie przechodzić do starego switcha
-            return; 
+            $this->handleApiRequest(substr($uri, 4));
+            return;
         }
 
+        // --- Sekcja Stron WWW ---
+        $this->handleWebRequest($uri);
+    }
+
+    /**
+     * Obsługuje żądania skierowane do API.
+     * @param string $apiAction Akcja do wykonania.
+     */
+    private function handleApiRequest(string $apiAction): void
+    {
+        $apiController = new ApiController();
+        $methodName = lcfirst(str_replace('-', '', ucwords($apiAction, '-')));
+
+        if (method_exists($apiController, $methodName)) {
+            $apiController->$methodName();
+        } else {
+            header('Content-Type: application/json');
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'API endpoint not found.']);
+        }
+    }
+
+    /**
+     * Obsługuje żądania skierowane do stron WWW.
+     * @param string $uri Czysty URI bez basePath.
+     */
+    private function handleWebRequest(string $uri): void
+    {
         switch ($uri) {
             case '':
-                require_once __DIR__ . '/../../views/home.php';
+                (new HomeController())->show();
                 break;
 
             case 'login':
-                $logController = new LoginController();
-                $logController->handleRequest();
+                (new LoginController())->handleRequest();
                 break;
 
             case 'register':
-                $regController = new RegisterController();
-                $regController->handleRequest();
-                break;
-            
-            case 'verify':
-                require_once __DIR__ . '/../../public/verify.php';
+                (new RegisterController())->handleRequest();
                 break;
 
             case 'verify_email':
-                $regController = new RegisterController();
-                if (isset($_GET['resend']) && $_GET['resend'] === 'true') {
-                    $messages = $regController->sendVerificationEmail();
+                $controller = new RegisterController();
+                if (isset($_GET['send']) && $_GET['send'] === 'true') {
+                    $controller->handleSendVerificationEmail();
                 } else {
-                    $messages = [];
+                    $controller->showVerificationPage();
                 }
-                $regController->showVerificationPage($messages);
                 break;
 
             case 'logout':
-                require_once __DIR__ . '/../../public/logout.php';
+                (new UserController())->logout();
                 break;
             
             case 'inf03_one_question':
-                require_once __DIR__ . '/../../views/inf03_one_question.php';
+                (new QuizPageController())->showOneQuestionPage();
                 break;
             
             case 'inf03_personalized_test':
-                require_once __DIR__ . '/../../views/inf03_personalized_test.php';
+                (new QuizPageController())->showPersonalizedTestPage();
                 break;
             
             case 'inf03_test':
-                require_once __DIR__ . '/../../views/inf03_test.php';
+                (new QuizPageController())->showTestPage();
                 break;
 
             case 'inf03_course':
-                require_once __DIR__ . '/../../views/inf03_course.php';
+                (new QuizPageController())->showCoursePage();
                 break;
             
             case 'statistics':
-                require_once __DIR__ . '/../../views/statistics.php';
+                (new UserController())->showStatistics();
                 break;
 
             default:
                 http_response_code(404);
-                echo "Strona nie istnieje.";
+                // W przyszłości można stworzyć ErrorController
+                // (new ErrorController())->show404();
+                echo "Strona o adresie '$uri' nie istnieje.";
                 break;
         }
     }

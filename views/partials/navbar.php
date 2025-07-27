@@ -1,12 +1,3 @@
-<?php 
-// Ta część PHP pozostaje bez zmian, ale powinna być w kontrolerze, a nie w widoku.
-// Na razie zostawiamy ją tutaj dla kontekstu.
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-$isUserLoggedIn = isset($_SESSION['user']);
-?>
-
 <nav class="main-nav">
     <!-- Sekcja Logo -->
     <div class="main-nav__logo">

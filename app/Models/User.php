@@ -5,6 +5,9 @@
  * 
  * Przechowuje podstawowe informacje o użytkowniku pobrane z bazy danych,
  * takie jak imię, nazwisko, e-mail, status weryfikacji oraz rola użytkownika.
+ * 
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
  */
 class User
 {

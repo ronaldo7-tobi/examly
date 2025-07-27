@@ -1,125 +1,144 @@
 <?php
+
 /**
- * Klasa odpowiadająca za logikę widoku rejestracji.
+ * Kontroler Rejestracji i Weryfikacji.
+ *
+ * Zarządza całym przepływem rejestracji nowego użytkownika, od wyświetlenia
+ * formularza, przez jego walidację, aż po proces weryfikacji adresu e-mail.
+ *
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
  */
-class RegisterController
-{   
+class RegisterController extends BaseController
+{ 
     /**
-     * Instancja klasy AuthController.
-     * 
+     * Serwis uwierzytelniania, używany do logiki rejestracji.
      * @var AuthController
      */
     private AuthController $auth;
 
-    // Konstruktor, inicjalizuje instnację AuthController.
+    /**
+     * Konstruktor, który inicjalizuje serwis AuthController
+     * i uruchamia logikę nadrzędnego BaseController.
+     */
     public function __construct()
     {
+        parent::__construct();
         $this->auth = new AuthController();
     }
 
     /**
-     * Zarządza widokiem rejestracji.
-     * 
+     * Obsługuje stronę rejestracji (/register).
+     *
+     * Wyświetla formularz rejestracji. Dla żądań POST, przekazuje dane
+     * do serwisu AuthController w celu walidacji i rejestracji.
+     * W przypadku sukcesu przekierowuje na stronę weryfikacji e-mail.
+     * W razie błędów, ponownie renderuje formularz z komunikatami.
+     *
      * @return void
      */
     public function handleRequest(): void
     {
-        $errors = [];
-        $formData = [];
-
-        if (isset($_SESSION['user'])) {
+        if ($this->isUserLoggedIn) {
             header('Location: /');
             exit;
         }
+
+        $errors = [];
+        $formData = [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $formData = $_POST;
             $result = $this->auth->register($formData);
 
             if ($result['success']) {
-                header('Location: verify_email?resend=true');
+                // Przekieruj i dodaj parametr, aby zainicjować wysyłkę e-maila
+                header('Location: /verify_email?send=true');
                 exit;
             } else {
                 $errors = $result['errors'];
             }
         }
-        include __DIR__ . '/../../views/register.php';
+        
+        $this->renderView('register', [
+            'errors' => $errors,
+            'formData' => $formData
+        ]);
     }
 
     /**
-     * Wyświetla widok weryfikacji e-mail.
-     * 
-     * @param array $messages Tablica zawierająca wiadmości z metody sendVerificationEmail().
-     * 
+     * Wyświetla stronę z informacją o potrzebie weryfikacji e-mail (/verify_email).
+     *
+     * Strona ta pobiera i wyświetla jednorazowe komunikaty (flash messages)
+     * z sesji, informujące np. o statusie wysyłki e-maila.
+     *
      * @return void
      */
-    public function showVerificationPage(array $messages = []): void
+    public function showVerificationPage(): void
     {
-        if (isset($_SESSION['user'])) {
-            header('Location: /login');
-            exit;
-        }
-        require_once __DIR__ . '/../../views/verify_email.php';
+        // Pobierz komunikat z sesji, jeśli istnieje, a następnie go usuń.
+        $flashMessage = $_SESSION['flash_message'] ?? null;
+        unset($_SESSION['flash_message']);
+        
+        $this->renderView('verify_email', [
+            'flashMessage' => $flashMessage
+        ]);
     }
 
     /**
-     * Wysyła wiadomość e-mail z linkiem weryfikacyjnym do zweryfikowania konta użytkownika i zapisuje błędy
-     * i komunikaty w otrzymane trakcie procesu działania.
-     * 
-     * @return array Zwraca tablicę z komunikatem uzyskanym podczas działania metody.
+     * Obsługuje akcję wysłania (lub ponownego wysłania) e-maila weryfikacyjnego.
+     *
+     * Metoda zawiera logikę zabezpieczającą (np. limit czasowy ponownej wysyłki)
+     * i po wykonaniu akcji zawsze przekierowuje z powrotem na stronę weryfikacji,
+     * ustawiając w sesji odpowiedni komunikat (flash message).
+     *
+     * @return void
      */
-    public function sendVerificationEmail(): array
+    public function handleSendVerificationEmail(): void
     {
         if (!isset($_SESSION['verify_user_id'])) {
-            $_SESSION['flash_error'] = "Brak użytkownika do weryfikacji.";
+            $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Brak użytkownika do weryfikacji. Sesja mogła wygasnąć.'];
             header("Location: /login");
             exit;
         }
 
-        $userId = $_SESSION['verify_user_id'];
+        // Zabezpieczenie przed spamem: limit 60 sekund na ponowną wysyłkę.
+        if (isset($_SESSION['email_sent']) && time() - $_SESSION['email_sent'] < 60) {
+            $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Możesz wysłać kolejny e-mail dopiero po upływie minuty.'];
+            header('Location: /verify_email');
+            exit;
+        }
+
         $userModel = new UserModel();
-        $user = $userModel->getUserById($userId);
+        $user = $userModel->getUserById($_SESSION['verify_user_id']);
 
-        if (!$user) {
-            $_SESSION['flash_error'] = "Użytkownik nie znaleziony.";
+        // Jeśli użytkownik nie istnieje lub jest już zweryfikowany, zakończ proces.
+        if (!$user || $user->isVerified()) {
+            unset($_SESSION['verify_user_id']);
+            $_SESSION['flash_message'] = ['type' => 'info', 'text' => 'Twoje konto jest już aktywne lub wystąpił błąd. Możesz się zalogować.'];
             header("Location: /login");
             exit;
         }
 
-        if ($user->isVerified()) {
-            $_SESSION['flash_success'] = "Konto jest już zweryfikowane.";
-            header("Location: /login");
-            exit;
-        }
-
-        // Generowanie i wysyłka tylko co 60s.
-        if (isset($_GET['resend']) && $_GET['resend'] === 'true') {
-            if (!isset($_SESSION['email_sent']) || time() - $_SESSION['email_sent'] >= 60) {
-                // Logika wysyłki e-maila
-                $tokenService = new TokenService();
-                $token = $tokenService->generateToken($userId, 'email_verify');
-                $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
-                $body = "<p>Witaj {$user->getFullName()},</p>"
-                    . "<p>Kliknij poniższy link, aby zweryfikować swój adres e-mail:</p>"
-                    . "<p><a href='$verifyLink'>$verifyLink</a></p>";
-
-                $mailer = new Mailer();
-                if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
-                    $_SESSION['email_sent'] = time();
-                    // Zwracamy tablicę z kluczem 'success'
-                    return ['success' => "Wiadomość została wysłana na adres {$user->getEmail()}. Sprawdź skrzynkę odbiorczą."];
-                } else {
-                    // Zwracamy tablicę z kluczem 'error'
-                    return ['error' => "Wystąpił błąd podczas wysyłania e-maila."];
-                }
-            } else {
-                // Zwracamy tablicę z kluczem 'error', gdy użytkownik próbuje wysłać za wcześnie
-                return ['error' => "Możesz ponownie wysłać e-mail dopiero po upływie minuty."];
-            }
-        }
+        // Generowanie tokenu i wysyłka e-maila
+        $tokenService = new TokenService();
+        $token = $tokenService->generateToken($user->getId(), 'email_verify');
+        $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
         
-        // Zwracamy pustą tablicę, jeśli strona jest po prostu ładowana bez akcji
-        return []; 
+        $body = "<p>Witaj {$user->getFullName()},</p>"
+              . "<p>Kliknij poniższy link, aby zweryfikować swój adres e-mail:</p>"
+              . "<p><a href='$verifyLink'>$verifyLink</a></p>";
+
+        $mailer = new Mailer();
+        if ($mailer->send($user->getEmail(), "Weryfikacja adresu e-mail", $body)) {
+            $_SESSION['email_sent'] = time();
+            $_SESSION['flash_message'] = ['type' => 'success', 'text' => "Nowa wiadomość weryfikacyjna została wysłana na adres {$user->getEmail()}."];
+        } else {
+            $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Wystąpił błąd podczas wysyłania e-maila. Spróbuj ponownie.'];
+        }
+
+        // Zawsze przekieruj z powrotem na stronę weryfikacji, aby wyświetlić komunikat.
+        header('Location: /verify_email');
+        exit;
     }
 }
-?>

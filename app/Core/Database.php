@@ -1,8 +1,40 @@
 <?php
+
+/**
+ * Klasa Bazy Danych (Database Wrapper).
+ *
+ * Implementuje wzorzec projektowy Singleton, aby zapewnić istnienie tylko jednej
+ * instancji połączenia z bazą danych (PDO) w całym cyklu życia żądania.
+ *
+ * Stanowi centralny punkt dostępu do bazy danych dla całej aplikacji. Jej głównym
+ * zadaniem jest abstrakcja surowych zapytañ PDO i dostarczenie prostych,
+ * bezpiecznych metod (`fetchAll`, `fetch`, `execute`) dla modeli.
+ *
+ * Centralizuje obsługę błędów `PDOException`. W przypadku krytycznego błędu
+ * połączenia, działanie aplikacji jest przerywane. W przypadku błędów
+ * poszczególnych zapytań, błąd jest logowany, a metoda zwraca bezpieczną,
+ * przewidywalną wartość (pustą tablicę, false lub null).
+ *
+ * @version 1.0.0
+ * @author Tobiasz Szerszeń
+ */
 class Database {
+    /**
+     * Przechowuje jedyną instancję klasy (Singleton).
+     * @var self|null
+     */
     private static ?self $instance = null;
+    
+    /**
+     * Przechowuje obiekt połączenia PDO.
+     * @var PDO
+     */
     private PDO $pdo;
 
+    /**
+     * Prywatny konstruktor, aby zapobiec tworzeniu wielu instancji.
+     * Inicjalizuje połączenie z bazą danych.
+     */
     private function __construct() {
         $host = 'localhost';
         $dbname = 'examly';
@@ -14,15 +46,15 @@ class Database {
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            // Ten błąd jest krytyczny - aplikacja nie może działać bez bazy.
             error_log("KRYTYCZNY BŁĄD POŁĄCZENIA Z BAZĄ: " . $e->getMessage());
-            // Zakończ działanie i wyświetl ogólny komunikat
             die("Wystąpił błąd serwera. Prosimy spróbować później.");
         }
     }
 
     /**
-     * Zapewnia jedną instancję klasy Database (Singleton).
+     * Zapewnia dostęp do jedynej instancji klasy Database (Singleton).
+     *
+     * @return self
      */
     public static function getInstance(): self {
         if (self::$instance === null) {
@@ -91,10 +123,9 @@ class Database {
      */
     public function lastInsertId(): ?int
     {
-        // Ta metoda jest wyjątkiem - musi być wywołana na oryginalnym obiekcie PDO.
         try {
             $id = $this->pdo->lastInsertId();
-            return $id ? (int)$id : null;
+            return $id ? (int) $id : null;
         } catch (PDOException $e) {
             error_log("Błąd pobierania lastInsertId: " . $e->getMessage());
             return null;
