@@ -1,41 +1,3 @@
-<?php
-if (isset($_SESSION['user'])) {
-    header('Location: /');
-    exit;
-}
-
-$token = $_GET['token'] ?? null;
-
-$message = '';
-$status = '';
-
-if (!$token) {
-    $message = 'Brak tokenu weryfikacyjnego.';
-    $status = 'error';
-} else {
-    $tokenService = new TokenService();
-    $userModel = new UserModel();
-
-    $tokenRecord = $tokenService->getTokenRecord($token);
-
-    if (!$tokenRecord) {
-        $message = 'Nieprawidłowy lub wygasły token.';
-        $status = 'error';
-    } elseif (strtotime($tokenRecord['expires_at']) < time()) {
-        $message = 'Token wygasł.';
-        $status = 'error';
-    } else {
-        if ($userModel->verifyUser($tokenRecord['user_id'])) {
-            $tokenService->deleteTokensForUserByType($tokenRecord['user_id'], 'email_verify');
-            $message = 'Adres e-mail został pomyślnie zweryfikowany!';
-            $status = 'success';
-        } else {
-            $message = 'Napotkano problem.';
-            $status = 'error';
-        }
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -46,7 +8,7 @@ if (!$token) {
     <!-- Link do styli -->
     <link rel="stylesheet" href="../public/scss/main.css"> 
 </head>
-<body> <!-- Można dodać klasę dla ogólnych stylów stron systemowych -->
+<body>
     <main>
         <div class="info-card--centered-fullscreen">
             <div class="info-card">
