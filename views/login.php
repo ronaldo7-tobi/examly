@@ -39,7 +39,7 @@
                 <div class="alert alert--error" role="alert">
                     <ul class="alert__list">
                         <?php foreach ($errors as $error): ?>
-                            <li class="alert__item"><?= htmlspecialchars($error) ?></li>
+                            <li class="alert__item"><?= $error ?></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>

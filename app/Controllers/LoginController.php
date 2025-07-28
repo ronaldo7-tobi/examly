@@ -65,8 +65,15 @@ class LoginController extends BaseController
                 header('Location: /examly/public/');
                 exit;
             } else {
-            // 4. Reakcja na błąd
-                $errors = $result['errors'];
+                // 4. Reakcja na błąd
+                if (isset($result['error_type']) && $result['error_type'] === 'not_verified') {
+                    // Stwórz link, który uruchomi ponowne wysłanie e-maila
+                    $resendLink = '<a href="verify_email?send=true">Kliknij tutaj, aby wysłać go ponownie.</a>';
+                    $errors[] = 'Konto nie zostało jeszcze zweryfikowane. ' . $resendLink;
+                } else {
+                    // W przeciwnym razie, obsłuż standardowe błędy
+                    $errors = $result['errors'];
+                }
             }
         }
 

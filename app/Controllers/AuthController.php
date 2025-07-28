@@ -109,12 +109,15 @@ class AuthController
         $user = $this->userModel->login($formData);
 
         if ($user instanceof User) {
-            // Dodatkowy warunek: sprawdź, czy konto jest zweryfikowane
             if (!$user->isVerified()) {
-                return ['success' => false, 'errors' => ['Konto nie zostało jeszcze zweryfikowane. Sprawdź swoją skrzynkę e-mail.']];
+                // ===== POCZĄTEK ZMIAN =====
+                // Zapisz ID użytkownika do sesji, aby umożliwić ponowne wysłanie e-maila.
+                $_SESSION['verify_user_id'] = $user->getId();
+                // Zwróć specjalny typ błędu zamiast zwykłego tekstu.
+                return ['success' => false, 'error_type' => 'not_verified'];
+                // ===== KONIEC ZMIAN =====
             }
             
-            // Logowanie pomyślne: ustaw użytkownika w sesji
             $this->loggedUser = $user;
             $_SESSION['user'] = $this->loggedUser;
             
