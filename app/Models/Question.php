@@ -4,9 +4,11 @@
  * Model Pytania (Question).
  *
  * Klasa odpowiedzialna za definiowanie zapytań SQL dotyczących pytań.
- * Deleguje wykonanie zapytań i obsługę błędów do centralnej klasy Database.
+ * Operuje na numerycznych ID (kluczach obcych) w celu filtrowania i pobierania danych,
+ * co jest zgodne ze znormalizowaną strukturą bazy danych. Deleguje wykonanie
+ * zapytań i obsługę błędów do centralnej klasy Database.
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @author Tobiasz Szerszeń
  */
 class Question
@@ -27,23 +29,23 @@ class Question
     }
 
     /**
-     * Pobiera losowe pytania z określonych kategorii.
+     * Pobiera losowe pytania z określonych kategorii i typu egzaminu.
      *
-     * @param array<string> $subjects Tablica z nazwami kategorii.
+     * @param array<int> $subjectIds Tablica z numerycznymi ID kategorii.
      * @param int $limit Maksymalna liczba pytań do pobrania.
-     * @param string $examType Typ egzaminu (np. 'INF.03').
+     * @param int $examTypeId Numeryczne ID typu egzaminu.
      * @return array Tablica z danymi pytań.
      */
-    public function getQuestions(array $subjects, int $limit, string $examType): array
+    public function getQuestions(array $subjectIds, int $limit, int $examTypeId): array
     {
-        if (empty($subjects)) return [];
+        if (empty($subjectIds)) return [];
 
-        $placeholders = implode(',', array_fill(0, count($subjects), '?'));
+        $placeholders = implode(',', array_fill(0, count($subjectIds), '?'));
         $sql = "SELECT * FROM questions 
-                WHERE subject IN ($placeholders) AND exam_type = ? 
+                WHERE topic_id IN ($placeholders) AND exam_type_id = ? 
                 ORDER BY RAND() LIMIT " . (int)$limit;
         
-        $params = array_merge($subjects, [$examType]);
+        $params = array_merge($subjectIds, [$examTypeId]);
 
         return $this->db->fetchAll($sql, $params);
     }
@@ -51,31 +53,23 @@ class Question
     /**
      * Pobiera losowe pytania, na które użytkownik jeszcze nie odpowiadał ("Nieodkryte").
      *
-     * Logika zapytania krok po kroku:
-     * 1. `FROM questions q` - Bierzemy wszystkie pytania z tabeli `questions`.
-     * 2. `LEFT JOIN user_progress up ON ... AND up.user_id = ?` - Próbujemy do każdego pytania dołączyć wpis
-     * z postępów, ale **tylko dla aktualnie zalogowanego użytkownika**.
-     * 3. `WHERE q.subject IN (...)` - Filtrujemy tylko do wybranych przez użytkownika kategorii.
-     * 4. `AND up.question_id IS NULL` - To jest klucz! Zatrzymujemy tylko te wiersze, gdzie **nie udało się**
-     * znaleźć wpisu w `user_progress`. Oznacza to, że użytkownik nigdy nie odpowiadał na to pytanie.
-     *
      * @param int $userId ID zalogowanego użytkownika.
-     * @param array<string> $subjects Tablica z nazwami kategorii.
+     * @param array<int> $subjectIds Tablica z numerycznymi ID kategorii.
      * @param int $limit Limit pytań do pobrania.
-     * @param string $examType Typ egzaminu.
+     * @param int $examTypeId Numeryczne ID typu egzaminu.
      * @return array Tablica z "nieodkrytymi" pytaniami.
      */
-    public function getUndiscoveredQuestions(int $userId, array $subjects, int $limit, string $examType): array
+    public function getUndiscoveredQuestions(int $userId, array $subjectIds, int $limit, int $examTypeId): array
     {
-        if (empty($subjects)) return [];
+        if (empty($subjectIds)) return [];
 
-        $placeholders = implode(',', array_fill(0, count($subjects), '?'));
+        $placeholders = implode(',', array_fill(0, count($subjectIds), '?'));
         $sql = "SELECT q.* FROM questions q
                 LEFT JOIN user_progress up ON q.id = up.question_id AND up.user_id = ? 
-                WHERE q.subject IN ($placeholders) AND q.exam_type = ? AND up.question_id IS NULL
+                WHERE q.topic_id IN ($placeholders) AND q.exam_type_id = ? AND up.question_id IS NULL
                 ORDER BY RAND() LIMIT " . (int)$limit;
 
-        $params = array_merge([$userId], $subjects, [$examType]);
+        $params = array_merge([$userId], $subjectIds, [$examTypeId]);
 
         return $this->db->fetchAll($sql, $params);
     }
@@ -83,38 +77,26 @@ class Question
     /**
      * Pobiera pytania, z którymi użytkownik radzi sobie najsłabiej (skuteczność <= 60%).
      *
-     * Logika zapytania krok po kroku:
-     * 1. `FROM questions q INNER JOIN user_progress up ON ...` - Bierzemy tylko te pytania, na które
-     * użytkownik **już kiedyś odpowiadał** (INNER JOIN wymaga dopasowania w obu tabelach).
-     * 2. `SELECT q.*, (up.correct_attempts * 100.0 / (...)) as accuracy` - Dla każdego z tych pytań
-     * obliczamy na bieżąco procentową skuteczność odpowiedzi i nazywamy tę kolumnę `accuracy`.
-     * 3. `WHERE ... AND (up.correct_attempts + up.wrong_attempts) > 0` - Zabezpieczenie, aby
-     * uniknąć dzielenia przez zero, jeśli jakimś cudem w bazie byłyby same zera.
-     * 4. `HAVING accuracy <= 60` - Po obliczeniu skuteczności dla wszystkich pytań, filtrujemy
-     * wyniki, zostawiając tylko te, gdzie skuteczność jest równa lub niższa niż 60%.
-     * 5. `ORDER BY accuracy, RAND()` - Sortujemy wyniki tak, aby najpierw pokazać te o najniższej
-     * skuteczności. `RAND()` dodatkowo losuje kolejność pytań o tej samej skuteczności.
-     *
      * @param int $userId ID zalogowanego użytkownika.
-     * @param array<string> $subjects Tablica z nazwami kategorii.
+     * @param array<int> $subjectIds Tablica z numerycznymi ID kategorii.
      * @param int $limit Limit pytań do pobrania.
-     * @param string $examType Typ egzaminu.
+     * @param int $examTypeId Numeryczne ID typu egzaminu.
      * @return array Tablica z pytaniami o najniższej skuteczności.
      */
-    public function getLowerAccuracyQuestions(int $userId, array $subjects, int $limit, string $examType): array
+    public function getLowerAccuracyQuestions(int $userId, array $subjectIds, int $limit, int $examTypeId): array
     {
-        if (empty($subjects)) return [];
+        if (empty($subjectIds)) return [];
         
-        $placeholders = implode(',', array_fill(0, count($subjects), '?'));
+        $placeholders = implode(',', array_fill(0, count($subjectIds), '?'));
         $sql = "SELECT q.*, (up.correct_attempts * 100.0 / (up.correct_attempts + up.wrong_attempts)) as accuracy
                 FROM questions q
                 INNER JOIN user_progress up ON q.id = up.question_id AND up.user_id = ?
-                WHERE q.subject IN ($placeholders) AND q.exam_type = ?
+                WHERE q.topic_id IN ($placeholders) AND q.exam_type_id = ?
                 AND (up.correct_attempts + up.wrong_attempts) > 0
                 HAVING accuracy <= 60
                 ORDER BY accuracy, RAND() LIMIT " . (int)$limit;
 
-        $params = array_merge([$userId], $subjects, [$examType]);
+        $params = array_merge([$userId], $subjectIds, [$examTypeId]);
 
         return $this->db->fetchAll($sql, $params);
     }
@@ -122,30 +104,23 @@ class Question
     /**
      * Pobiera pytania, które były rozwiązywane przez użytkownika najdawniej.
      *
-     * Logika zapytania krok po kroku:
-     * 1. `FROM questions q INNER JOIN user_progress up ON ...` - Bierzemy tylko te pytania,
-     * na które użytkownik już kiedyś odpowiadał.
-     * 2. `ORDER BY up.last_attempt ASC` - To jest klucz! Sortujemy wyniki po dacie ostatniej
-     * odpowiedzi, od **najstarszej** do najnowszej (`ASC`). Dzięki temu na początku
-     * znajdą się pytania "zapomniane", rozwiązywane najdawniej.
-     *
      * @param int $userId ID zalogowanego użytkownika.
-     * @param array<string> $subjects Tablica z nazwami kategorii.
+     * @param array<int> $subjectIds Tablica z numerycznymi ID kategorii.
      * @param int $limit Limit pytań do pobrania.
-     * @param string $examType Typ egzaminu.
+     * @param int $examTypeId Numeryczne ID typu egzaminu.
      * @return array Tablica z najdawniej powtarzanymi pytaniami.
      */
-    public function getQuestionsRepeatedAtTheLatest(int $userId, array $subjects, int $limit, string $examType): array
+    public function getQuestionsRepeatedAtTheLatest(int $userId, array $subjectIds, int $limit, int $examTypeId): array
     {
-        if (empty($subjects)) return [];
+        if (empty($subjectIds)) return [];
         
-        $placeholders = implode(',', array_fill(0, count($subjects), '?'));
+        $placeholders = implode(',', array_fill(0, count($subjectIds), '?'));
         $sql = "SELECT q.* FROM questions q
                 INNER JOIN user_progress up ON q.id = up.question_id AND up.user_id = ?
-                WHERE q.subject IN ($placeholders) AND q.exam_type = ?
+                WHERE q.topic_id IN ($placeholders) AND q.exam_type_id = ?
                 ORDER BY up.last_attempt ASC LIMIT " . (int)$limit;
 
-        $params = array_merge([$userId], $subjects, [$examType]);
+        $params = array_merge([$userId], $subjectIds, [$examTypeId]);
 
         return $this->db->fetchAll($sql, $params);
     }
@@ -153,30 +128,23 @@ class Question
     /**
      * Pobiera pytania, na które użytkownik ostatnio odpowiedział błędnie.
      *
-     * Logika zapytania krok po kroku:
-     * 1. `FROM questions q INNER JOIN user_progress up ON ...` - Bierzemy tylko te pytania,
-     * na które użytkownik już kiedyś odpowiadał.
-     * 2. `WHERE ... AND up.last_result = 0` - Zostawiamy tylko te rekordy, w których wynik
-     * ostatniej odpowiedzi był błędny (zakładając, że `0` oznacza błąd).
-     * 3. `ORDER BY RAND()` - Losujemy kolejność spośród znalezionych błędnych odpowiedzi.
-     *
      * @param int $userId ID zalogowanego użytkownika.
-     * @param array<string> $subjects Tablica z nazwami kategorii.
+     * @param array<int> $subjectIds Tablica z numerycznymi ID kategorii.
      * @param int $limit Limit pytań do pobrania.
-     * @param string $examType Typ egzaminu.
+     * @param int $examTypeId Numeryczne ID typu egzaminu.
      * @return array Tablica z ostatnimi błędnie rozwiązanymi pytaniami.
      */
-    public function getLastMistakes(int $userId, array $subjects, int $limit, string $examType): array
+    public function getLastMistakes(int $userId, array $subjectIds, int $limit, int $examTypeId): array
     {
-        if (empty($subjects)) return [];
+        if (empty($subjectIds)) return [];
 
-        $placeholders = implode(',', array_fill(0, count($subjects), '?'));
+        $placeholders = implode(',', array_fill(0, count($subjectIds), '?'));
         $sql = "SELECT q.* FROM questions q
                 INNER JOIN user_progress up ON q.id = up.question_id AND up.user_id = ?
-                WHERE q.subject IN ($placeholders) AND q.exam_type = ? AND up.last_result = 0
+                WHERE q.topic_id IN ($placeholders) AND q.exam_type_id = ? AND up.last_result = 0
                 ORDER BY RAND() LIMIT " . (int)$limit;
 
-        $params = array_merge([$userId], $subjects, [$examType]);
+        $params = array_merge([$userId], $subjectIds, [$examTypeId]);
         
         return $this->db->fetchAll($sql, $params);
     }
@@ -191,5 +159,37 @@ class Question
     {
         $sql = "SELECT * FROM questions WHERE id = ?";
         return $this->db->fetch($sql, [$id]);
+    }
+
+    /**
+     * Pobiera ID typu egzaminu na podstawie jego kodu.
+     *
+     * Wyszukuje w tabeli `exam_types` wiersz pasujący do podanego kodu
+     * i zwraca jego numeryczne ID.
+     *
+     * @param string $code Kod egzaminu do wyszukania (np. 'INF.03').
+     * @return int|null Zwraca numeryczne ID egzaminu lub `null`, jeśli nie znaleziono.
+     */
+    public function getExamTypeIdByCode(string $code): ?int
+    {
+        $sql = "SELECT id FROM exam_types WHERE code = ? LIMIT 1";
+        $result = $this->db->fetch($sql, [$code]);
+        // Jeśli fetch() zwróci tablicę, pobierz z niej 'id'. 
+        // W przeciwnym razie (gdy zwróci false), operator ?? zwróci null.
+        return $result['id'] ?? null;
+    }
+
+    /**
+     * Pobiera unikalne ID wszystkich tematów powiązanych z danym typem egzaminu.
+     *
+     * @param int $examTypeId Numeryczne ID typu egzaminu.
+     * @return array<int> Tablica z unikalnymi ID tematów.
+     */
+    public function getTopicIdsByExamType(int $examTypeId): array
+    {
+        $sql = "SELECT DISTINCT topic_id FROM questions WHERE exam_type_id = ?";
+        $results = $this->db->fetchAll($sql, [$examTypeId]);
+        // Zwraca czystą, jednowymiarową tablicę samych ID, np. [1, 2, 3, 4, 5, 6]
+        return array_column($results, 'topic_id');
     }
 }

@@ -16,9 +16,10 @@ class QuizPageController extends BaseController
      * Wyświetla stronę quizu w trybie "jedno pytanie".
      * @return void
      */
-    public function showOneQuestionPage(): void
+    public function showOneQuestionPage()
     {
-        $this->renderView('inf03_one_question');
+        // Przekazujemy kod egzaminu do widoku pojedynczego pytania
+        $this->renderView('inf03_one_question', ['examCode' => 'INF.03']);
     }
 
     /**
@@ -30,13 +31,10 @@ class QuizPageController extends BaseController
         $this->renderView('inf03_personalized_test');
     }
 
-    /**
-     * Wyświetla stronę egzaminu próbnego.
-     * @return void
-     */
-    public function showTestPage(): void
+    public function showTestPage()
     {
-        $this->renderView('inf03_test');
+        // Przekazujemy kod egzaminu do widoku pełnego testu
+        $this->renderView('inf03_test', ['examCode' => 'INF.03']);
     }
 
     /**

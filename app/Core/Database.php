@@ -6,16 +6,7 @@
  * Implementuje wzorzec projektowy Singleton, aby zapewnić istnienie tylko jednej
  * instancji połączenia z bazą danych (PDO) w całym cyklu życia żądania.
  *
- * Stanowi centralny punkt dostępu do bazy danych dla całej aplikacji. Jej głównym
- * zadaniem jest abstrakcja surowych zapytañ PDO i dostarczenie prostych,
- * bezpiecznych metod (`fetchAll`, `fetch`, `execute`) dla modeli.
- *
- * Centralizuje obsługę błędów `PDOException`. W przypadku krytycznego błędu
- * połączenia, działanie aplikacji jest przerywane. W przypadku błędów
- * poszczególnych zapytań, błąd jest logowany, a metoda zwraca bezpieczną,
- * przewidywalną wartość (pustą tablicę, false lub null).
- *
- * @version 1.0.0
+ * @version 1.1.0
  * @author Tobiasz Szerszeń
  */
 class Database {
@@ -66,7 +57,7 @@ class Database {
     /**
      * Wykonuje zapytanie i zwraca wszystkie pasujące wiersze.
      *
-     * @param string $sql Zapytanie SQL z placeholderami (np. ?, :name).
+     * @param string $sql Zapytanie SQL z placeholderami.
      * @param array<mixed> $params Parametry do bindowania.
      * @return array Wyniki zapytania lub pusta tablica w przypadku błędu.
      */
@@ -129,6 +120,57 @@ class Database {
         } catch (PDOException $e) {
             error_log("Błąd pobierania lastInsertId: " . $e->getMessage());
             return null;
+        }
+    }
+    
+    /**
+     * Rozpoczyna transakcję.
+     *
+     * Wyłącza autocommit, pozwalając na wykonanie serii zapytań, które zostaną
+     * zatwierdzone (commit) lub wycofane (rollback) jako jedna atomowa operacja.
+     *
+     * @return bool True, jeśli transakcja została pomyślnie rozpoczęta, w przeciwnym razie false.
+     */
+    public function beginTransaction(): bool {
+        try {
+            return $this->pdo->beginTransaction();
+        } catch (PDOException $e) {
+            error_log("Błąd rozpoczynania transakcji: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Zatwierdza transakcję.
+     *
+     * Zapisuje na stałe w bazie danych wszystkie zmiany wykonane od momentu
+     * rozpoczęcia transakcji metodą `beginTransaction()`.
+     *
+     * @return bool True, jeśli transakcja została pomyślnie zatwierdzona, w przeciwnym razie false.
+     */
+    public function commit(): bool {
+        try {
+            return $this->pdo->commit();
+        } catch (PDOException $e) {
+            error_log("Błąd zatwierdzania transakcji (commit): " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Wycofuje transakcję.
+     *
+     * Anuluje wszystkie zmiany w bazie danych wykonane od momentu
+     * rozpoczęcia transakcji metodą `beginTransaction()`.
+     *
+     * @return bool True, jeśli transakcja została pomyślnie wycofana, w przeciwnym razie false.
+     */
+    public function rollBack(): bool {
+        try {
+            return $this->pdo->rollBack();
+        } catch (PDOException $e) {
+            error_log("Błąd wycofywania transakcji (rollback): " . $e->getMessage());
+            return false;
         }
     }
 }

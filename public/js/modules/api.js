@@ -1,7 +1,9 @@
 /**
  * @module api
- * @description Moduł do komunikacji z API, wykorzystujący scentralizowaną funkcję `apiClient`
- * do obsługi wszystkich zapytań. Zapewnia to spójność i łatwość w utrzymaniu.
+ * @description Moduł do komunikacji z API, wykorzystujący scentralizowaną funkcję `apiClient`.
+ * Wersja 1.1.0 wprowadza dynamiczne endpointy, które przyjmują kod egzaminu
+ * bezpośrednio w adresie URL, co zwiększa elastyczność i skalowalność.
+ * @version 1.1.0
  */
 
 /**
@@ -18,8 +20,8 @@ const API_BASE_URL = '/examly/public/api';
  * ujednoliconą obsługę błędów sieciowych i serwerowych.
  *
  * @private
- * @param {string} endpoint - Ścieżka endpointu API (np. '/get-question').
- * @param {object} [options={}] - Opcjonalny obiekt konfiguracji dla `fetch` (np. method, headers, body).
+ * @param {string} endpoint - Ścieżka endpointu API (np. '/question/INF.03').
+ * @param {object} [options={}] - Opcjonalny obiekt konfiguracji dla `fetch`.
  * @returns {Promise<{success: boolean, data?: object, error?: string}>} Obiekt z wynikiem operacji.
  */
 async function apiClient(endpoint, options = {}) {
@@ -43,39 +45,69 @@ async function apiClient(endpoint, options = {}) {
 }
 
 /**
- * Przygotowuje i wysyła zapytanie o nowe pytanie do API.
- * Wykorzystuje `apiClient` do faktycznego wykonania żądania.
+ * Przygotowuje i wysyła zapytanie o nowe pytanie do API dla konkretnego egzaminu.
  *
- * @param {string[]} subjects - Tablica z nazwami wybranych tematów.
+ * @param {string} examCode - Kod egzaminu (np. 'INF.03'), który będzie częścią URL.
+ * @param {string[]} subjects - Tablica z numerycznymi ID wybranych tematów.
  * @param {string|null} premiumOption - Wybrana opcja premium lub null.
- * @returns {Promise<{success: boolean, data?: object, error?: string}>} Obietnica, która rozwiązuje się do obiektu zwróconego przez `apiClient`.
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>} Obietnica z wynikiem zapytania.
  */
-export function fetchQuestion(subjects, premiumOption) {
+export function fetchQuestion(examCode, subjects, premiumOption) {
     const params = new URLSearchParams();
-    subjects.forEach(subject => params.append('subject[]', subject));
+    subjects.forEach(subjectId => params.append('subject[]', subjectId));
     if (premiumOption) {
         params.append('premium_option', premiumOption);
     }
     
-    // Delegujemy wykonanie żądania do scentralizowanej funkcji.
-    return apiClient(`/get-question?${params.toString()}`);
+    // Budujemy nowy, dynamiczny URL, np. /api/question/INF.03?subject[]=1
+    const endpoint = `/question/${examCode}?${params.toString()}`;
+    return apiClient(endpoint);
+}
+
+/**
+ * Przygotowuje i wysyła zapytanie o pełny test dla konkretnego egzaminu.
+ *
+ * @param {string} examCode - Kod egzaminu (np. 'INF.03').
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>} Obietnica z wynikiem zapytania.
+ */
+export function fetchFullTest(examCode) {
+    const endpoint = `/test/full/${examCode}`;
+    return apiClient(endpoint);
+}
+
+/**
+ * Zapisuje wynik ukończonego testu w bazie danych.
+ *
+ * @param {object} resultData - Obiekt z wynikami testu.
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export function saveTestResult(resultData) {
+    const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resultData)
+    };
+    
+    return apiClient('/save-test-result', options);
 }
 
 /**
  * Przygotowuje i wysyła odpowiedź użytkownika do sprawdzenia.
- * Wykorzystuje `apiClient` do faktycznego wykonania żądania.
+ * Ten endpoint jest uniwersalny i nie wymaga kodu egzaminu.
  *
  * @param {number|string} questionId - ID pytania.
  * @param {number|string} answerId - ID odpowiedzi użytkownika.
- * @returns {Promise<{success: boolean, data?: object, error?: string}>} Obietnica, która rozwiązuje się do obiektu zwróconego przez `apiClient`.
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>} Obietnica z wynikiem zapytania.
  */
 export function checkAnswer(questionId, answerId) {
     const options = {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `question_id=${questionId}&answer_id=${answerId}`
+        body: new URLSearchParams({
+            'question_id': questionId,
+            'answer_id': answerId
+        })
     };
     
-    // Delegujemy wykonanie żądania do scentralizowanej funkcji.
     return apiClient('/check-answer', options);
 }

@@ -51,7 +51,48 @@
 </head>
 <body>
     <?php include 'partials/navbar.php'; ?>
-    
+    <div class="container">
+        <main id="test-container" class="test-container" data-exam-code="<?= htmlspecialchars($examCode) ?>">
+            
+            <div id="loading-screen" class="test-loading">
+                <h2>Trwa przygotowywanie testu...</h2>
+                <p>Proszę czekać, losujemy 40 pytań z całej puli.</p>
+                <div class="spinner"></div>
+            </div>
+
+            <div id="test-view" class="hidden">
+                <header class="test-header">
+                    <h1 class="test-header__title">Test Całościowy - INF.03</h1>
+                    <div class="test-header__meta">
+                        <div id="timer" class="timer">60:00</div>
+                        <div id="question-counter" class="question-counter">Pytanie 1 / 40</div>
+                    </div>
+                </header>
+
+                <div id="questions-wrapper" class="questions-wrapper">
+                    </div>
+
+                <footer class="test-footer">
+                    <button id="finish-test-btn" class="btn btn--danger">Zakończ i sprawdź test</button>
+                </footer>
+            </div>
+
+            <div id="results-screen" class="results-container hidden">
+                <h1 class="results-container__title">Wyniki Testu</h1>
+                <div id="score-summary" class="score-summary">
+                    <p>Twój wynik: <strong id="score-percent">0%</strong></p>
+                    <p>Poprawne odpowiedzi: <strong id="correct-count">0</strong> / 40</p>
+                    <p>Czas ukończenia: <strong id="duration">00:00</strong></p>
+                </div>
+                <div id="results-details" class="results-details">
+                    </div>
+                <a href="/" class="btn btn--primary">Wróć na stronę główną</a>
+            </div>
+
+        </main>
+    </div>
+
+    <script type="module" src="/examly/public/js/test.js"></script>
     <?php include 'partials//footer.php'; ?>
 </body>
 </html>

@@ -44,10 +44,10 @@ export function renderQuestion(container, question, answers) {
     });
     
     let imageHTML = '';
-    if (question.image && question.image.trim() !== '') {
+    if (question.image_path && question.image_path.trim() !== '') {
         imageHTML = `
             <div class="quiz-card__image-container">
-                <img src="${IMAGE_BASE_PATH}${escapeHTML(question.image)}" alt="Ilustracja do pytania" class="quiz-card__image">
+                <img src="${IMAGE_BASE_PATH}${escapeHTML(question.image_path)}" alt="Ilustracja do pytania" class="quiz-card__image">
             </div>
         `;
     }

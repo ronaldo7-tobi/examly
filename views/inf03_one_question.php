@@ -52,7 +52,7 @@
 <body>
     <?php include 'partials/navbar.php'; ?>
     <!-- Formularz wyboru tematów -->
-    <div class="quiz-page-layout">
+    <div class="quiz-page-layout" id="quiz-single-question" data-exam-code="<?= htmlspecialchars($examCode) ?>">
         <aside class="quiz-page-layout__sidebar">
             <form id="topic-form" class="topic-selector">
                 <h2 class="topic-selector__legend">Wybierz, z jakiej części materiału chcesz otrzymać pytanie</h2>
@@ -65,27 +65,27 @@
                             <span>Cały materiał INF.03</span>
                         </label>
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="HTML" class="topic-checkbox">
+                            <input type="checkbox" name="subject[]" value="1" class="topic-checkbox">
                             <span>HTML</span>
                         </label>
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="CSS" class="topic-checkbox">
+                            <input type="checkbox" name="subject[]" value="2" class="topic-checkbox">
                             <span>CSS</span>
                         </label>
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="JS" class="topic-checkbox">
+                            <input type="checkbox" name="subject[]" value="3" class="topic-checkbox">
                             <span>JS</span>
                         </label>
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="PHP" class="topic-checkbox">
+                            <input type="checkbox" name="subject[]" value="4" class="topic-checkbox">
                             <span>PHP</span>
                         </label>
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="SQL" class="topic-checkbox">
+                            <input type="checkbox" name="subject[]" value="5" class="topic-checkbox">
                             <span>SQL</span>
                         </label>
                         <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="Teoria" class="topic-checkbox">
+                            <input type="checkbox" name="subject[]" value="6" class="topic-checkbox">
                             <span>Inne pytania teoretyczne</span>
                         </label>
                     </div>

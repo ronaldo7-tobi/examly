@@ -1,167 +1,112 @@
 /**
  * @module quiz
  * @description Główny skrypt sterujący logiką interaktywnego quizu "jedno pytanie".
- * Inicjalizuje klasę Quiz, która zarządza całym procesem.
+ * @version 1.3.0
  */
 
 import * as api from './modules/api.js';
 import * as ui from './modules/ui.js';
 
-/**
- * @class Quiz
- * @classdesc Zarządza stanem i logiką całego quizu w trybie "jedno pytanie".
- * Odpowiada za obsługę formularza, pobieranie pytań, sprawdzanie odpowiedzi i renderowanie UI.
- */
 class Quiz {
-    /**
-     * @param {string} topicFormId - ID elementu formularza wyboru tematów.
-     * @param {string} quizContainerId - ID kontenera, w którym będzie renderowany quiz.
-     */
-    constructor(topicFormId, quizContainerId) {
-        /**
-         * Element DOM formularza wyboru tematów.
-         * @type {HTMLFormElement}
-         * @private
-         */
-        this.topicForm = document.getElementById(topicFormId);
-
-        /**
-         * Główny kontener do renderowania pytań i odpowiedzi.
-         * @type {HTMLElement}
-         * @private
-         */
-        this.quizContainer = document.getElementById(quizContainerId);
-
-        /**
-         * Przechowuje aktualnie wybrane przez użytkownika kategorie tematyczne.
-         * @type {string[]}
-         * @private
-         */
-        this.currentSubjects = [];
-
-        /**
-         * Przechowuje wyjaśnienie do aktualnego pytania, aby móc je wyświetlić po odpowiedzi.
-         * @type {string|null}
-         * @private
-         */
+    constructor() {
+        this.pageContainer = document.getElementById('quiz-single-question');
+        this.topicForm = document.getElementById('topic-form');
+        this.quizContainer = document.getElementById('quiz-container');
+        this.examCode = this.pageContainer?.dataset.examCode || null;
         this.currentExplanation = null;
 
-        // Bindowanie metod, aby `this` wewnątrz nich zawsze wskazywało na instancję klasy.
-        this.handleTopicSubmit = this.handleTopicSubmit.bind(this);
-        this.handleAnswerClick = this.handleAnswerClick.bind(this);
-        this.startNewQuestion = this.startNewQuestion.bind(this);
+        if (this.topicForm && this.quizContainer && this.examCode) {
+            this.init();
+        } else {
+            console.error("Nie udało się zainicjalizować quizu. Brak kluczowych elementów DOM lub atrybutu data-exam-code.");
+        }
     }
 
-    /**
-     * Inicjalizuje quiz poprzez dodanie nasłuchiwaczy zdarzeń (event listeners).
-     * @public
-     * @returns {void}
-     */
     init() {
-        if (this.topicForm) {
-            this.topicForm.addEventListener('submit', this.handleTopicSubmit);
-        }
-        if (this.quizContainer) {
-            // Używamy delegacji zdarzeń, nasłuchując na całym kontenerze.
-            this.quizContainer.addEventListener('click', this.handleAnswerClick);
-        }
+        this.topicForm.addEventListener('submit', this.handleTopicSubmit.bind(this));
+        // Nasłuchujemy na całym kontenerze, aby łapać kliknięcia na odpowiedziach i przyciskach.
+        this.quizContainer.addEventListener('click', this.handleInteraction.bind(this));
     }
     
-    /**
-     * Obsługuje wysłanie formularza z tematami.
-     * Pobiera dane z formularza i rozpoczyna proces ładowania pierwszego pytania.
-     * @private
-     * @param {Event} event - Obiekt zdarzenia 'submit'.
-     * @returns {Promise<void>}
-     */
     async handleTopicSubmit(event) {
         event.preventDefault();
-        const formData = new FormData(this.topicForm);
-        this.currentSubjects = formData.getAll('subject[]');
-
-        const premiumCheckbox = this.topicForm.querySelector('.premium-checkbox:checked');
-        this.currentOption = premiumCheckbox ? premiumCheckbox.value : null;
-
-        if (this.currentSubjects.length === 0) {
-            ui.showError(this.quizContainer, 'Wybierz temat, aby rozpocząć naukę.');
-            return;
-        }
-
-        this.topicForm.style.pointerEvents = 'none'; // Blokujemy formularz na czas ładowania
         await this.startNewQuestion();
-        this.topicForm.style.pointerEvents = 'auto'; // Odblokowujemy po załadowaniu
     }
     
-    /**
-     * Pobiera nowe pytanie z API i zleca jego wyrenderowanie w kontenerze.
-     * Obsługuje obiekt wyniku z `api.fetchQuestion` bez użycia `try...catch`.
-     * @private
-     * @returns {Promise<void>}
-     */
     async startNewQuestion() {
         this.currentExplanation = null;
         
-        const result = await api.fetchQuestion(this.currentSubjects, this.currentOption);
+        const selectedSubjects = [...this.topicForm.querySelectorAll('input[name="subject[]"]:checked')].map(cb => cb.value);
+        const premiumOption = this.topicForm.querySelector('input[name="premium_option"]:checked')?.value || null;
+
+        if (selectedSubjects.length === 0) {
+            ui.showInfo(this.quizContainer, 'Wybierz przynajmniej jedną kategorię, aby rozpocząć naukę.');
+            return;
+        }
+        
+        const result = await api.fetchQuestion(this.examCode, selectedSubjects, premiumOption);
 
         if (result.success) {
             const data = result.data;
-            // Sprawdzamy, czy serwer nie poinformował nas o braku pytań
-            if (data.status && data.status === 'no_questions_left') {
+            if (data.status === 'no_questions_left') {
                 ui.showInfo(this.quizContainer, data.message);
-                this.topicForm.style.display = 'block';
             } else {
-                // Standardowa ścieżka - renderujemy pytanie
                 this.currentExplanation = data.question.explanation;
+                // Przekazujemy ID pytania do renderQuestion, aby utworzyć ukryte pole.
                 ui.renderQuestion(this.quizContainer, data.question, data.answers);
             }
         } else {
-            // Obsługa błędu zwróconego przez API
             ui.showError(this.quizContainer, result.error);
-            this.topicForm.style.display = 'block';
         }
     }
     
     /**
-     * Obsługuje kliknięcie w jedną z odpowiedzi.
-     * Identyfikuje wybraną odpowiedź, wysyła ją do sprawdzenia i aktualizuje UI z wynikiem.
-     * Obsługuje obiekt wyniku z `api.checkAnswer` bez użycia `try...catch`.
+     * Centralna metoda obsługująca kliknięcia wewnątrz kontenera quizu.
+     * Reaguje na kliknięcie w etykietę odpowiedzi lub w przyciski akcji.
      * @private
      * @param {Event} event - Obiekt zdarzenia 'click'.
-     * @returns {Promise<void>}
      */
-    async handleAnswerClick(event) {
+    handleInteraction(event) {
+        // --- NAJWAŻNIEJSZA ZMIANA JEST TUTAJ ---
         const clickedLabel = event.target.closest('.quiz-card__answer');
-        if (!clickedLabel) return; // Kliknięto poza odpowiedzią
         
-        const answersContainer = clickedLabel.closest('.quiz-card__answers');
-        if (answersContainer.style.pointerEvents === 'none') return; // Już odpowiedziano
+        // Sprawdzamy, czy kliknięto na odpowiedź i czy nie jest ona zablokowana
+        if (clickedLabel) {
+            const answersContainer = clickedLabel.closest('.quiz-card__answers');
+            if (answersContainer && answersContainer.dataset.answered === 'true') {
+                return; // Już odpowiedziano, ignorujemy kliknięcie.
+            }
+            this.checkSelectedAnswer(clickedLabel);
+            return; // Kończymy, aby uniknąć sprawdzania przycisków
+        }
+    }
 
-        answersContainer.style.pointerEvents = 'none';
+    /**
+     * Sprawdza wybraną przez użytkownika odpowiedź.
+     * @private
+     * @param {HTMLElement} clickedLabel - Etykieta odpowiedzi, która została kliknięta.
+     */
+    async checkSelectedAnswer(clickedLabel) {
+        const answersContainer = clickedLabel.closest('.quiz-card__answers');
+        answersContainer.dataset.answered = 'true'; // Ustawiamy flagę, że odpowiedziano
 
         const userAnswerId = clickedLabel.querySelector('input[type="radio"]').value;
-        const questionIdInput = document.getElementById('question_id_hidden');
-        if (!questionIdInput) return;
-        const questionId = questionIdInput.value;
+        const questionId = document.getElementById('question_id_hidden').value;
         
         const result = await api.checkAnswer(questionId, userAnswerId);
 
         if (result.success) {
             const data = result.data;
             ui.showAnswerFeedback(data.is_correct, data.correct_answer_id, userAnswerId);
-            ui.renderActionButtons(this.currentExplanation, this.startNewQuestion);
+            // Przekazujemy callback `this.startNewQuestion` do renderActionButtons
+            ui.renderActionButtons(this.currentExplanation, this.startNewQuestion.bind(this));
         } else {
-            alert(`Błąd sprawdzania odpowiedzi: ${result.error}`);
-            answersContainer.style.pointerEvents = 'auto'; // Odblokowujemy w razie błędu
+            alert(`Błąd: ${result.error}`);
+            delete answersContainer.dataset.answered; // Odblokowujemy w razie błędu
         }
     }
 }
 
-/**
- * Punkt wejściowy skryptu.
- * Po załadowaniu całej struktury DOM, tworzona jest nowa instancja klasy Quiz,
- * która następnie jest inicjalizowana.
- */
 document.addEventListener('DOMContentLoaded', () => {
-    const quiz = new Quiz('topic-form', 'quiz-container');
-    quiz.init();
+    new Quiz();
 });
