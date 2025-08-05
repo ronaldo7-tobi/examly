@@ -1,4 +1,4 @@
-import { fetchFullTest, saveTestResult } from './modules/api.js';
+import { fetchFullTest, saveTestResult, saveBulkProgress} from './modules/api.js';
 
 /**
  * @class Test
@@ -153,28 +153,38 @@ class Test {
         let correctAnswersCount = 0;
         let topicIdsInTest = new Set();
         const userAnswers = {};
+        const progressData = [];
 
         this.questionsData.forEach(qData => {
             topicIdsInTest.add(qData.question.topic_id);
             const questionId = qData.question.id;
             const correctAnswer = qData.answers.find(a => a.is_correct === 1);
             const selectedAnswerInput = this.questionsWrapper.querySelector(`input[name="question_${questionId}"]:checked`);
+            let isCorrect = false;
 
             if (selectedAnswerInput) {
                 const selectedAnswerId = parseInt(selectedAnswerInput.value, 10);
                 userAnswers[questionId] = selectedAnswerId;
                 if (correctAnswer && selectedAnswerId === correctAnswer.id) {
                     correctAnswersCount++;
+                    isCorrect = true;
                 }
             } else {
                 userAnswers[questionId] = null; // Użytkownik nie odpowiedział
             }
+
+            progressData.push({
+                questionId: questionId,
+                isCorrect: isCorrect
+            });
         });
 
-        const score = this.questionsData.length > 0 ? Math.round((correctAnswersCount / this.questionsData.length) * 100) : 0;
+        const score = this.questionsData.length > 0 ? (correctAnswersCount / this.questionsData.length) * 100 : 0;
 
         this.showResults(score, correctAnswersCount, userAnswers);
 
+        // Zapisz ogólny wynik testu i szczegółowy postęp.
+        // Używamy Promise.all, aby oba zapytania mogły lecieć równolegle.
         const resultData = {
             score_percent: score,
             correct_answers: correctAnswersCount,
@@ -182,7 +192,11 @@ class Test {
             duration_seconds: this.timeSpent,
             topic_ids: Array.from(topicIdsInTest)
         };
-        await saveTestResult(resultData);
+        
+        await Promise.all([
+            saveTestResult(resultData),
+            saveBulkProgress(progressData)
+        ]);
     }
 
     /**

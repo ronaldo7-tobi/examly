@@ -263,6 +263,45 @@ class ApiController {
     }
 
     /**
+     * Endpoint do masowego zapisywania postępu z testu.
+     * Działa tylko dla zalogowanych użytkowników.
+     *
+     * @api
+     * @method POST
+     * @path /api/save-progress-bulk
+     * @return void
+     */
+    public function saveProgressBulk()
+    {
+        $this->ensurePostRequest();
+
+        if (!isset($_SESSION['user'])) {
+            // Cicha odpowiedź - nie wysyłamy błędu, bo niezalogowani też mogą robić testy
+            $this->sendJsonResponse(['success' => true, 'message' => 'Użytkownik niezalogowany, postęp nie został zapisany.']);
+            return;
+        }
+
+        $progressData = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($progressData)) {
+            $this->sendJsonResponse(['success' => false, 'message' => 'Nieprawidłowe dane.'], 400);
+            return;
+        }
+
+        $userId = $_SESSION['user']->getId();
+
+        // Pętla, która zapisuje postęp dla każdego pytania
+        foreach ($progressData as $progressItem) {
+            if (isset($progressItem['questionId'], $progressItem['isCorrect'])) {
+                $questionId = (int)$progressItem['questionId'];
+                $result = $progressItem['isCorrect'] ? 1 : 0;
+                $this->userProgressModel->saveProgressForQuestion($userId, $questionId, $result);
+            }
+        }
+
+        $this->sendJsonResponse(['success' => true, 'message' => 'Postęp został zapisany.']);
+    }
+
+    /**
      * Sprawdza poprawność odpowiedzi użytkownika i zapisuje jego postęp.
      *
      * Weryfikuje, czy odpowiedź o podanym ID jest prawidłowa dla danego pytania.

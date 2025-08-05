@@ -90,6 +90,7 @@ class Router
         $this->addApiRoute('GET', 'test/full/{examCode}', 'ApiController@getFullTest');
         $this->addApiRoute('POST', 'check-answer', 'ApiController@checkAnswer');
         $this->addApiRoute('POST', 'save-test-result', 'ApiController@saveTestResult');
+        $this->addApiRoute('POST', 'save-progress-bulk', 'ApiController@saveProgressBulk');
 
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         $apiUri = trim($apiUri, '/');

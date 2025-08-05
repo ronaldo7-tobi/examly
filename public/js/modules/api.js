@@ -92,6 +92,20 @@ export function saveTestResult(resultData) {
 }
 
 /**
+ * Wysyła szczegółowe wyniki (każdą odpowiedź) w celu zapisania postępu użytkownika.
+ * @param {Array} progressData - Tablica obiektów z odpowiedziami, np. [{questionId, userAnswerId, isCorrect}]
+ * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+ */
+export function saveBulkProgress(progressData) {
+    const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(progressData)
+    };
+    return apiClient('/save-progress-bulk', options);
+}
+
+/**
  * Przygotowuje i wysyła odpowiedź użytkownika do sprawdzenia.
  * Ten endpoint jest uniwersalny i nie wymaga kodu egzaminu.
  *
