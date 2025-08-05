@@ -81,8 +81,6 @@ class ApiController {
         $isUserLoggedIn = session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user']);
         $userId = $isUserLoggedIn ? $_SESSION['user']->getId() : null;
         $limit = 1;
-
-        // ... reszta logiki pozostaje bez zmian, ponieważ $examTypeId jest już dynamiczne ...
         
         if ($specialFilter && !$isUserLoggedIn) {
             $this->sendJsonResponse(['success' => false, 'message' => "Opcje premium są dostępne tylko dla zalogowanych użytkowników."], 403);
@@ -208,7 +206,7 @@ class ApiController {
             'is_full_exam' => 1, // Zakładamy, że to zawsze pełny egzamin
             'correct_answers' => (int)$data['correct_answers'],
             'total_questions' => (int)$data['total_questions'],
-            'score_percent' => (int)$data['score_percent'],
+            'score_percent' => (float)$data['score_percent'],
             'duration_seconds' => (int)$data['duration_seconds']
         ];
         

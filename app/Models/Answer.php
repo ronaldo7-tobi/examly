@@ -36,7 +36,7 @@ class Answer
      */
     public function getAnswersToQuestion(int $questionId): array
     {
-        $sql = "SELECT id, content FROM answers WHERE question_id = ? ORDER BY RAND()";
+        $sql = "SELECT id, content, is_correct FROM answers WHERE question_id = ? ORDER BY RAND()";
         
         return $this->db->fetchAll($sql, [$questionId]);
     }

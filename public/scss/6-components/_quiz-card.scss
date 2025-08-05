@@ -111,6 +111,23 @@
     }
   }
 
+  // Element: Nagłówek karty z numerem pytania i przyciskiem
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--subtle-border);
+  }
+
+  // Element: Numer pytania w nagłówku
+  &__question-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted-text);
+  }
+
   // Element: prefiks odpowiedzi (A, B, C, D)
   &__answer-prefix {
     display: flex;
@@ -141,25 +158,37 @@
   
   // Element: panel z wyjaśnieniem
   &__explanation {
-    background-color: var(--field-bg);
-    color: var(--muted-text);
+    background-color: #f8fafc;
+    color: #334155;
     line-height: 1.6;
     border-radius: var(--border-radius-base, 8px);
+    border-left: 4px solid var(--accent);
     
-    // Animacja rozwijania
+    // Logika animacji - stan ukryty
     overflow: hidden;
     max-height: 0;
     opacity: 0;
-    padding: 0 1.25rem;
+    padding: 0 1.5rem;
     margin-top: 0;
-    transition: max-height 0.5s ease-in-out, opacity 0.3s ease, padding 0.5s ease, margin 0.5s ease;
+    transition: all 0.4s ease-in-out;
 
-    // Modyfikator: widoczny
+    p {
+      margin: 0;
+    }
+
+    // Logika animacji - stan widoczny (po dodaniu klasy przez JS)
     &--visible {
       max-height: 500px;
       opacity: 1;
       padding: 1.25rem;
       margin-top: 1.5rem;
     }
+  }
+
+  // Styl dla odpowiedzi, która została wybrana przez użytkownika
+  &__answer.selected {
+    border-color: var(--accent);
+    background-color: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 1px var(--accent);
   }
 }

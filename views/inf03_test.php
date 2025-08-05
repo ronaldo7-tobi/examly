@@ -69,8 +69,7 @@
                     </div>
                 </header>
 
-                <div id="questions-wrapper" class="questions-wrapper">
-                    </div>
+                <div id="questions-wrapper" class="questions-wrapper"></div>
 
                 <footer class="test-footer">
                     <button id="finish-test-btn" class="btn btn--danger">Zakończ i sprawdź test</button>
@@ -81,12 +80,13 @@
                 <h1 class="results-container__title">Wyniki Testu</h1>
                 <div id="score-summary" class="score-summary">
                     <p>Twój wynik: <strong id="score-percent">0%</strong></p>
-                    <p>Poprawne odpowiedzi: <strong id="correct-count">0</strong> / 40</p>
+                    <p>Poprawne odpowiedzi: <strong id="correct-count">0</strong></p>
                     <p>Czas ukończenia: <strong id="duration">00:00</strong></p>
                 </div>
-                <div id="results-details" class="results-details">
-                    </div>
-                <a href="/" class="btn btn--primary">Wróć na stronę główną</a>
+                <div id="results-details" class="results-details"></div>
+                <div class="results-container__actions">
+                    <a href="/examly/public/" class="btn btn--primary">Wróć na stronę główną</a>
+                </div>
             </div>
 
         </main>

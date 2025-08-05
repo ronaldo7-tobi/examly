@@ -1,0 +1,241 @@
+// Plik: public/scss/6-components/_test-page.scss
+
+.test-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0; // Resetujemy padding, bo dodamy go do poszczególnych sekcji
+}
+
+// Ekran ładowania
+.test-loading {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted-text);
+
+    .spinner {
+        margin: 2rem auto;
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border-left-color: var(--accent);
+        animation: spin 1s ease infinite;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// Główny widok testu
+#test-view {
+    padding: 2.5rem;
+    background-color: var(--bg);
+    border-radius: var(--border-radius-large, 12px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.test-header {
+    position: sticky;
+    top: 85px; // Zakładając, że nawigacja ma ok. 85px
+    background-color: var(--bg);
+    padding: 1.5rem 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--subtle-border);
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &__title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    &__meta {
+        display: flex;
+        gap: 1.5rem;
+        font-weight: 600;
+        color: var(--muted-text);
+        font-size: 1rem;
+    }
+}
+
+.questions-wrapper {
+    // Celowo puste, stylujemy bezpośrednio karty wewnątrz
+}
+
+.test-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--subtle-border);
+}
+
+// Ekran wyników
+.results-container {
+    padding: 2.5rem;
+    text-align: center;
+    background-color: var(--bg);
+    border-radius: var(--border-radius-large, 12px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+
+    &__title {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    // NOWE STYLE
+    &__actions {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--subtle-border);
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap; // Zapewnia responsywność na małych ekranach
+    }
+}
+
+.score-summary {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    font-size: 1.2rem;
+    
+    p {
+        margin: 0;
+        color: var(--muted-text);
+    }
+
+    strong {
+        display: block;
+        color: var(--text);
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+}
+
+.results-details {
+    .quiz-card {
+        margin: 0 auto 2.5rem auto;
+        padding: 2rem;
+        box-shadow: none;
+        border: 1px solid var(--subtle-border);
+    }
+    
+    // NOWA REGUŁA: Wyłącza interaktywność odpowiedzi na stronie wyników
+    .quiz-card__answer {
+        cursor: default; // Zmień kursor, by nie sugerował klikalności
+        
+        &:hover {
+            // Resetujemy style hovera do ich domyślnych wartości z karty,
+            // aby nic się nie zmieniało po najechaniu myszką.
+            // Te reguły nadpiszą globalny hover z _quiz-card.scss
+            &.correct {
+                border-color: #16a34a;
+                background-color: #f0fdf4;
+            }
+            &.incorrect {
+                border-color: #dc2626;
+                background-color: #fef2f2;
+            }
+            &.missed {
+                border-color: #2563eb;
+                background-color: #eff6ff;
+            }
+            &:not(.correct):not(.incorrect):not(.missed) {
+                background-color: var(--bg);
+                border-color: var(--border);
+            }
+        }
+    }
+}
+
+// Klasa pomocnicza
+.hidden {
+    display: none !important;
+}
+
+// Modyfikacje dla quiz-card wewnątrz testu
+.questions-wrapper, .results-details {
+    .quiz-card {
+        margin: 0 auto 2.5rem auto;
+        padding: 2rem;
+        box-shadow: none;
+        border: 1px solid var(--subtle-border);
+    }
+
+    .quiz-card__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--subtle-border);
+    }
+    
+    .quiz-card__question-number {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--muted-text);
+    }
+}
+
+// Style dla poprawnej i niepoprawnej odpowiedzi
+.quiz-card__answer.correct {
+    border-color: #16a34a;
+    background-color: #f0fdf4;
+}
+
+.quiz-card__answer.incorrect {
+    border-color: #dc2626;
+    background-color: #fef2f2;
+}
+
+// Styl dla przycisku wyjaśnienia w wynikach
+.btn--secondary.btn--small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    background-color: #64748b; // Ciemniejszy szary
+    
+    &:hover {
+        background-color: #475569; // Jeszcze ciemniejszy
+    }
+}
+
+// Odpowiedź POPRAWNA (zaznaczona przez usera lub pokazana)
+.quiz-card__answer.correct {
+  border-color: #16a34a; // Ciemnozielony
+  background-color: #f0fdf4; // Jasnozielony
+  
+  .quiz-card__answer-text {
+    color: #15803d; // Ciemniejszy zielony tekst dla czytelności
+    font-weight: 600;
+  }
+}
+
+// Odpowiedź BŁĘDNA (zaznaczona przez usera)
+.quiz-card__answer.incorrect {
+  border-color: #dc2626; // Czerwony
+  background-color: #fef2f2; // Jasnoczerwony
+
+  .quiz-card__answer-text {
+    color: #b91c1c; // Ciemniejszy czerwony tekst
+    font-weight: 600;
+  }
+}
+
+// Odpowiedź POMINIĘTA (poprawna, ale nie zaznaczona przez usera)
+.quiz-card__answer.missed {
+  border-color: #2563eb; // Niebieski
+  background-color: #eff6ff; // Jasnoniebieski
+
+  .quiz-card__answer-text {
+    color: #1d4ed8; // Ciemniejszy niebieski tekst
+    font-weight: 600;
+  }
+}

@@ -1,72 +1,76 @@
+// Plik: public/js/test.js (WERSJA Z POPRAWIONĄ LOGIKĄ WYNIKÓW)
+
 import { fetchFullTest, saveTestResult } from './modules/api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // === GŁÓWNY KONTENER I SPRAWDZENIE ===
+    // === SELEKTORY GŁÓWNYCH ELEMENTÓW ===
     const testContainer = document.getElementById('test-container');
     if (!testContainer) {
-        // Jeśli nie ma tego elementu, to nie jesteśmy na stronie testu.
         return; 
     }
-
-    // === SELEKTORY POZOSTAŁYCH ELEMENTÓW DOM ===
     const loadingScreen = document.getElementById('loading-screen');
     const testView = document.getElementById('test-view');
     const questionsWrapper = document.getElementById('questions-wrapper');
-    const timerElement = document.getElementById('timer');
-    const questionCounterElement = document.getElementById('question-counter');
-    const finishBtn = document.getElementById('finish-test-btn');
     const resultsScreen = document.getElementById('results-screen');
-    
-    // === ZMIENNE STANU ===
+    const finishBtn = document.getElementById('finish-test-btn');
+    const resultsDetailsContainer = document.getElementById('results-details');
+
+    // === ZMIENNE STANU APLIKACJI ===
     const examCode = testContainer.dataset.examCode;
-    let questionsData = []; // Przechowuje pytania i odpowiedzi z API
-    let timerInterval = null; // Przechowuje referencję do interwału timera
-    let timeSpent = 0;      // Liczba sekund, która upłynęła
+    let questionsData = [];
+    let timerInterval = null;
+    let timeSpent = 0;
+    let isTestInProgress = false;
 
     /**
-     * Główna funkcja inicjalizująca test.
+     * Funkcja obsługująca próbę zamknięcia lub odświeżenia strony.
+     * @param {Event} event - Obiekt zdarzenia beforeunload.
      */
+    function handleBeforeUnload(event) {
+        // Wyświetlaj ostrzeżenie tylko wtedy, gdy test jest aktywny.
+        if (isTestInProgress) {
+            event.preventDefault(); // Wymagane przez większość przeglądarek
+            event.returnValue = ''; // Wymagane przez niektóre starsze przeglądarki
+        }
+    }
+    // Dodajemy globalny nasłuchiwacz zdarzenia.
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // =================================================================
+    // 1. GŁÓWNA LOGIKA TESTU
+    // =================================================================
+
     async function initializeTest() {
         if (!examCode) {
-            showError('Błąd krytyczny: Brak zdefiniowanego kodu egzaminu (atrybut data-exam-code)!');
+            showError('Błąd krytyczny: Brak kodu egzaminu!');
             return;
         }
-
         const response = await fetchFullTest(examCode);
-
         if (response.success && response.data.questions) {
             questionsData = response.data.questions;
             renderAllQuestions(questionsData);
-
-            // Ukryj ładowanie i pokaż widok testu
             loadingScreen.classList.add('hidden');
             testView.classList.remove('hidden');
-            
-            startTimer(3600); // Rozpocznij odliczanie (60 minut)
+            startTimer(3600);
+            isTestInProgress = true;
         } else {
             showError(response.error || 'Nie udało się załadować pytań.');
         }
     }
 
-    /**
-     * Renderuje wszystkie pytania i odpowiedzi na stronie.
-     */
     function renderAllQuestions(questions) {
-        questionsWrapper.innerHTML = ''; // Wyczyść kontener na wszelki wypadek
+        questionsWrapper.innerHTML = '';
         questions.forEach((qData, index) => {
             const question = qData.question;
             const answers = qData.answers;
-
             let answersHtml = '';
             answers.forEach(answer => {
                 answersHtml += `
                     <label class="quiz-card__answer">
                         <input type="radio" name="question_${question.id}" value="${answer.id}">
                         <span class="quiz-card__answer-text">${answer.content}</span>
-                    </label>
-                `;
+                    </label>`;
             });
-
             const questionElement = document.createElement('section');
             questionElement.className = 'quiz-card';
             questionElement.id = `question-${question.id}`;
@@ -79,57 +83,48 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${question.image_path ? `<div class="quiz-card__image-container"><img src="/examly/public/images/questions/${question.image_path}" alt="Ilustracja do pytania" class="quiz-card__image"></div>` : ''}
                 </div>
                 <div class="quiz-card__answers">${answersHtml}</div>
-                <div class="quiz-card__explanation hidden"><p>${question.explanation || 'Brak wyjaśnienia dla tego pytania.'}</p></div>
+                <div class="quiz-card__actions">
+                    <div class="quiz-card__button-container"></div>
+                    <div class="quiz-card__explanation"></div>
+                </div>
             `;
             questionsWrapper.appendChild(questionElement);
         });
-        questionCounterElement.textContent = `Pytanie 1 / ${questions.length}`;
+        document.getElementById('question-counter').textContent = `Pytanie 1 / ${questions.length}`;
     }
 
-    /**
-     * Uruchamia licznik czasu.
-     */
-    function startTimer(duration) {
-        let timeLeft = duration;
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            timeSpent = duration - timeLeft;
-            const minutes = Math.floor(timeLeft / 60);
-            let seconds = timeLeft % 60;
-            seconds = seconds < 10 ? '0' + seconds : seconds; // Dodaj zero wiodące
-            timerElement.textContent = `${minutes}:${seconds}`;
-
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                finishTest(); // Automatycznie zakończ test, gdy czas się skończy
-            }
-        }, 1000);
-    }
-    
-    /**
-     * Zakańcza test, sprawdza odpowiedzi i wywołuje zapis wyniku.
-     */
     async function finishTest() {
+        isTestInProgress = false;
         clearInterval(timerInterval);
-
+        
         let correctAnswersCount = 0;
         let topicIdsInTest = new Set();
-        
+        const userAnswers = {}; // Mapa do przechowywania odpowiedzi: { questionId: answerId }
+
+        // KROK 1: Zbierz wszystkie odpowiedzi ZANIM zmienisz widok
         questionsData.forEach(qData => {
             topicIdsInTest.add(qData.question.topic_id);
             const questionId = qData.question.id;
             const correctAnswer = qData.answers.find(a => a.is_correct === 1);
             const selectedAnswerInput = questionsWrapper.querySelector(`input[name="question_${questionId}"]:checked`);
             
-            if (selectedAnswerInput && correctAnswer && selectedAnswerInput.value == correctAnswer.id) {
-                correctAnswersCount++;
+            if (selectedAnswerInput) {
+                const selectedAnswerId = parseInt(selectedAnswerInput.value, 10);
+                userAnswers[questionId] = selectedAnswerId;
+                if (correctAnswer && selectedAnswerId === correctAnswer.id) {
+                    correctAnswersCount++;
+                }
+            } else {
+                userAnswers[questionId] = null; // Zapisz null, jeśli nie ma odpowiedzi
             }
         });
         
-        const score = questionsData.length > 0 ? Math.round((correctAnswersCount / questionsData.length) * 100) : 0;
+        const score = questionsData.length > 0 ? (correctAnswersCount / questionsData.length) * 100 : 0;
         
-        showResults(score, correctAnswersCount);
+        // KROK 2: Przekaż zebrane odpowiedzi do funkcji wyświetlającej wyniki
+        showResults(score, correctAnswersCount, userAnswers);
 
+        // KROK 3: Zapisz wynik w tle
         const resultData = {
             score_percent: score,
             correct_answers: correctAnswersCount,
@@ -137,67 +132,136 @@ document.addEventListener('DOMContentLoaded', () => {
             duration_seconds: timeSpent,
             topic_ids: Array.from(topicIdsInTest)
         };
-
-        const saveResponse = await saveTestResult(resultData);
-        if (!saveResponse.success) {
-            console.warn('Nie udało się zapisać wyniku (być może nie jesteś zalogowany):', saveResponse.error);
-        }
+        await saveTestResult(resultData);
     }
 
-    /**
-     * Pokazuje ekran wyników i aktualizuje wygląd pytań.
-     */
-    function showResults(score, correctCount) {
+    function showResults(score, correctCount, userAnswers) {
         testView.classList.add('hidden');
         resultsScreen.classList.remove('hidden');
 
-        const durationMinutes = Math.floor(timeSpent / 60);
-        const durationSeconds = timeSpent % 60;
         document.getElementById('score-percent').textContent = `${score}%`;
         document.getElementById('correct-count').textContent = `${correctCount} / ${questionsData.length}`;
-        document.getElementById('duration').textContent = `${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+        const durationMinutes = Math.floor(timeSpent / 60);
+        const durationSeconds = timeSpent % 60;
+        document.getElementById('duration').textContent = `${String(durationMinutes).padStart(2, '0')}:${String(durationSeconds).padStart(2, '0')}`;
 
+        resultsDetailsContainer.innerHTML = questionsWrapper.innerHTML;
+        
+        resultsDetailsContainer.querySelectorAll('input[type="radio"]').forEach(input => {
+            input.disabled = true;
+        });
+        
         questionsData.forEach(qData => {
             const questionId = qData.question.id;
-            const questionCard = document.getElementById(`question-${questionId}`);
+            const questionCard = resultsDetailsContainer.querySelector(`#question-${questionId}`);
             if (!questionCard) return;
 
             const correctAnswer = qData.answers.find(a => a.is_correct === 1);
-            const selectedAnswerInput = questionCard.querySelector(`input[name="question_${questionId}"]:checked`);
+            const selectedAnswerId = userAnswers[questionId]; // Użyj mapy odpowiedzi
 
-            questionCard.querySelectorAll('.quiz-card__answer').forEach(label => {
-                const input = label.querySelector('input');
-                input.disabled = true; // Zablokuj wszystkie odpowiedzi
-                if (correctAnswer && input.value == correctAnswer.id) {
-                    label.classList.add('correct');
-                }
-                if (selectedAnswerInput && input.checked && selectedAnswerInput.value != correctAnswer?.id) {
-                    label.classList.add('incorrect');
-                }
-            });
+            // Upewnij się, że zaznaczenie jest widoczne po skopiowaniu HTML
+            if (selectedAnswerId !== null) {
+                const selectedInput = questionCard.querySelector(`input[value="${selectedAnswerId}"]`);
+                if (selectedInput) selectedInput.checked = true;
+            }
 
-            const header = questionCard.querySelector('.quiz-card__header');
-            if (header && !header.querySelector('.btn')) {
-                const explanationBtn = document.createElement('button');
-                explanationBtn.className = 'btn btn--info btn--small';
-                explanationBtn.textContent = 'Wyjaśnienie';
-                explanationBtn.onclick = () => questionCard.querySelector('.quiz-card__explanation').classList.toggle('hidden');
-                header.appendChild(explanationBtn);
+            // POPRAWIONA LOGIKA KOLOROWANIA
+            if (correctAnswer) {
+                const correctLabel = questionCard.querySelector(`input[value="${correctAnswer.id}"]`)?.closest('.quiz-card__answer');
+                
+                if (selectedAnswerId !== null) { // Jeśli użytkownik odpowiedział
+                    const selectedLabel = questionCard.querySelector(`input[value="${selectedAnswerId}"]`)?.closest('.quiz-card__answer');
+                    if (selectedAnswerId === correctAnswer.id) {
+                        selectedLabel?.classList.add('correct');
+                    } else {
+                        selectedLabel?.classList.add('incorrect');
+                        correctLabel?.classList.add('correct');
+                    }
+                } else { // Jeśli użytkownik pominął pytanie
+                    correctLabel?.classList.add('missed');
+                }
+            }
+
+            // Logika dodawania przycisku wyjaśnienia (bez zmian)
+            const explanation = qData.question.explanation;
+            if (explanation && explanation.trim() !== '') {
+                const buttonContainer = questionCard.querySelector('.quiz-card__button-container');
+                const explanationContainer = questionCard.querySelector('.quiz-card__explanation');
+                if (buttonContainer && explanationContainer) {
+                    explanationContainer.innerHTML = `<p>${explanation}</p>`;
+                    const explanationButton = document.createElement('button');
+                    explanationButton.type = 'button';
+                    explanationButton.textContent = 'Pokaż wyjaśnienie';
+                    explanationButton.className = 'btn btn--secondary btn--small';
+                    explanationButton.addEventListener('click', () => {
+                        explanationContainer.classList.toggle('quiz-card__explanation--visible');
+                        explanationButton.textContent = explanationContainer.classList.contains('quiz-card__explanation--visible') 
+                            ? 'Ukryj wyjaśnienie' : 'Pokaż wyjaśnienie';
+                    });
+                    buttonContainer.appendChild(explanationButton);
+                }
             }
         });
 
-        document.getElementById('results-details').innerHTML = questionsWrapper.innerHTML;
-        window.scrollTo(0, 0); // Przewiń na górę strony
+        resultsDetailsContainer.querySelectorAll('.quiz-card__answer.selected').forEach(label => {
+            label.classList.remove('selected');
+        });
+
+        // Znajdź kontener na przyciski akcji na ekranie wyników.
+        const actionsContainer = resultsScreen.querySelector('.results-container__actions');
+        
+        // Sprawdź, czy przycisk już nie istnieje, aby uniknąć duplikatów
+        if (actionsContainer && !actionsContainer.querySelector('#solve-again-btn')) {
+            // Stwórz przycisk "Rozwiąż ponownie"
+            const solveAgainButton = document.createElement('button');
+            solveAgainButton.id = 'solve-again-btn';
+            solveAgainButton.className = 'btn btn--secondary'; // Używamy innej klasy dla odróżnienia
+            solveAgainButton.textContent = 'Rozwiąż ponownie';
+
+            // Dodaj nasłuchiwanie na kliknięcie, które odświeży stronę
+            solveAgainButton.addEventListener('click', () => {
+                location.reload(); 
+            });
+
+            // Dodaj przycisk do kontenera
+            actionsContainer.appendChild(solveAgainButton);
+        }
+
+        window.scrollTo(0, 0);
+    }
+
+    // ... (reszta pliku: nasłuchiwacze i funkcje pomocnicze bez zmian)
+    
+    questionsWrapper.addEventListener('click', (event) => {
+        const answerLabel = event.target.closest('.quiz-card__answer');
+        if (!answerLabel) return;
+        const currentQuestionCard = answerLabel.closest('.quiz-card');
+        if (!currentQuestionCard) return;
+        currentQuestionCard.querySelectorAll('.quiz-card__answer').forEach(label => label.classList.remove('selected'));
+        answerLabel.classList.add('selected');
+    });
+
+    finishBtn.addEventListener('click', finishTest);
+
+    function startTimer(duration) {
+        let timeLeft = duration;
+        timerInterval = setInterval(() => {
+            timeSpent++;
+            timeLeft = duration - timeSpent;
+            if (timeLeft < 0) timeLeft = 0;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                finishTest();
+            }
+        }, 1000);
     }
     
-    /**
-     * Prosta funkcja do pokazywania błędów na ekranie ładowania.
-     */
     function showError(message) {
         loadingScreen.innerHTML = `<h2>Wystąpił błąd</h2><p>${message}</p>`;
     }
-    
-    // === NASŁUCHIWACZ I START ===
-    finishBtn.addEventListener('click', finishTest);
+
     initializeTest();
 });
