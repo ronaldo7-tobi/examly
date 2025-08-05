@@ -1,65 +1,111 @@
-// Plik: public/js/test.js (WERSJA Z POPRAWIONĄ LOGIKĄ WYNIKÓW)
-
 import { fetchFullTest, saveTestResult } from './modules/api.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // === SELEKTORY GŁÓWNYCH ELEMENTÓW ===
-    const testContainer = document.getElementById('test-container');
-    if (!testContainer) {
-        return; 
-    }
-    const loadingScreen = document.getElementById('loading-screen');
-    const testView = document.getElementById('test-view');
-    const questionsWrapper = document.getElementById('questions-wrapper');
-    const resultsScreen = document.getElementById('results-screen');
-    const finishBtn = document.getElementById('finish-test-btn');
-    const resultsDetailsContainer = document.getElementById('results-details');
-
-    // === ZMIENNE STANU APLIKACJI ===
-    const examCode = testContainer.dataset.examCode;
-    let questionsData = [];
-    let timerInterval = null;
-    let timeSpent = 0;
-    let isTestInProgress = false;
-
+/**
+ * @class Test
+ * @description Kompleksowo zarządza logiką pełnego testu egzaminacyjnego.
+ * Odpowiada za pobieranie pytań, renderowanie interfejsu,
+ * obsługę interakcji użytkownika, mierzenie czasu oraz
+ * finalizację testu i zapisywanie wyników.
+ * @property {HTMLElement} testContainer - Główny kontener komponentu testu.
+ * @property {HTMLElement} loadingScreen - Ekran ładowania wyświetlany podczas pobierania danych.
+ * @property {HTMLElement} testView - Kontener widoku aktywnego testu.
+ * @property {HTMLElement} questionsWrapper - Kontener, w którym renderowane są wszystkie pytania.
+ * @property {HTMLElement} resultsScreen - Ekran wyników wyświetlany po zakończeniu testu.
+ * @property {HTMLElement} finishBtn - Przycisk do ręcznego zakończenia testu.
+ * @property {HTMLElement} resultsDetailsContainer - Kontener na szczegółowe, pokolorowane wyniki.
+ * @property {string} examCode - Kod egzaminu (np. "INF.03") pobrany z atrybutu data.
+ * @property {Array<Object>} questionsData - Tablica przechowująca wszystkie dane pytań i odpowiedzi.
+ * @property {?number} timerInterval - ID interwału zegara, używane do jego zatrzymania. Null, gdy nieaktywny.
+ * @property {number} timeSpent - Czas spędzony na teście w sekundach.
+ * @property {boolean} isTestInProgress - Flaga wskazująca, czy test jest w trakcie.
+ */
+class Test {
     /**
-     * Funkcja obsługująca próbę zamknięcia lub odświeżenia strony.
-     * @param {Event} event - Obiekt zdarzenia beforeunload.
+     * Konstruktor klasy Test.
+     * Wyszukuje i przypisuje wszystkie niezbędne elementy DOM do właściwości klasy,
+     * inicjalizuje stan początkowy (np. pobiera kod egzaminu)
+     * i uruchamia całą logikę poprzez wywołanie metody `init()`.
+     * Przerywa działanie, jeśli nie znajdzie głównego kontenera.
      */
-    function handleBeforeUnload(event) {
-        // Wyświetlaj ostrzeżenie tylko wtedy, gdy test jest aktywny.
-        if (isTestInProgress) {
-            event.preventDefault(); // Wymagane przez większość przeglądarek
-            event.returnValue = ''; // Wymagane przez niektóre starsze przeglądarki
-        }
-    }
-    // Dodajemy globalny nasłuchiwacz zdarzenia.
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // =================================================================
-    // 1. GŁÓWNA LOGIKA TESTU
-    // =================================================================
-
-    async function initializeTest() {
-        if (!examCode) {
-            showError('Błąd krytyczny: Brak kodu egzaminu!');
+    constructor() {
+        this.testContainer = document.getElementById('test-container');
+        if (!this.testContainer) {
+            console.error("Nie znaleziono kontenera testu. Inicjalizacja przerwana.");
             return;
         }
-        const response = await fetchFullTest(examCode);
+
+        // === PRZECHOWYWANIE ELEMENTÓW DOM JAKO WŁAŚCIWOŚCI KLASY ===
+        this.loadingScreen = document.getElementById('loading-screen');
+        this.testView = document.getElementById('test-view');
+        this.questionsWrapper = document.getElementById('questions-wrapper');
+        this.resultsScreen = document.getElementById('results-screen');
+        this.finishBtn = document.getElementById('finish-test-btn');
+        this.resultsDetailsContainer = document.getElementById('results-details');
+
+        // === STAN APLIKACJI JAKO WŁAŚCIWOŚCI KLASY ===
+        this.examCode = this.testContainer.dataset.examCode;
+        this.questionsData = [];
+        this.timerInterval = null;
+        this.timeSpent = 0;
+        this.isTestInProgress = false;
+
+        this.init();
+    }
+
+    /**
+     * Inicjalizuje nasłuchiwacze zdarzeń.
+     * Metoda "wiąże" wszystkie niezbędne event listenery do odpowiednich
+     * elementów i akcji (np. kliknięcie, próba zamknięcia strony).
+     * Po ustawieniu nasłuchiwaczy, rozpoczyna proces ładowania testu.
+     * @private
+     */
+    init() {
+        window.addEventListener('beforeunload', this.handleBeforeUnload.bind(this));
+        this.finishBtn.addEventListener('click', this.finishTest.bind(this));
+        this.questionsWrapper.addEventListener('click', this.handleAnswerSelection.bind(this));
+
+        this.initializeTest();
+    }
+
+    // =================================================================
+    // 1. METODY GŁÓWNEJ LOGIKI TESTU
+    // =================================================================
+
+    /**
+     * Rozpoczyna proces inicjalizacji testu.
+     * Asynchronicznie pobiera dane pełnego testu z API. W przypadku sukcesu,
+     * renderuje pytania, ukrywa ekran ładowania, wyświetla widok testu
+     * i uruchamia licznik czasu. W przypadku błędu, wyświetla stosowny komunikat.
+     * @async
+     * @private
+     */
+    async initializeTest() {
+        if (!this.examCode) {
+            this.showError('Błąd krytyczny: Brak kodu egzaminu!');
+            return;
+        }
+        const response = await fetchFullTest(this.examCode);
         if (response.success && response.data.questions) {
-            questionsData = response.data.questions;
-            renderAllQuestions(questionsData);
-            loadingScreen.classList.add('hidden');
-            testView.classList.remove('hidden');
-            startTimer(3600);
-            isTestInProgress = true;
+            this.questionsData = response.data.questions;
+            this.renderAllQuestions(this.questionsData);
+            this.loadingScreen.classList.add('hidden');
+            this.testView.classList.remove('hidden');
+            this.startTimer(3600); // Czas na egzamin: 60 minut = 3600 sekund
+            this.isTestInProgress = true;
         } else {
-            showError(response.error || 'Nie udało się załadować pytań.');
+            this.showError(response.error || 'Nie udało się załadować pytań.');
         }
     }
 
-    function renderAllQuestions(questions) {
-        questionsWrapper.innerHTML = '';
+    /**
+     * Renderuje wszystkie pytania i odpowiedzi na stronie.
+     * Czyści kontener pytań, a następnie iteruje po danych, tworząc
+     * dynamicznie kod HTML dla każdej karty pytania i wstawia go do DOM.
+     * @param {Array<Object>} questions - Tablica obiektów zawierających dane pytania i odpowiedzi.
+     * @private
+     */
+    renderAllQuestions(questions) {
+        this.questionsWrapper.innerHTML = '';
         questions.forEach((qData, index) => {
             const question = qData.question;
             const answers = qData.answers;
@@ -88,26 +134,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="quiz-card__explanation"></div>
                 </div>
             `;
-            questionsWrapper.appendChild(questionElement);
+            this.questionsWrapper.appendChild(questionElement);
         });
         document.getElementById('question-counter').textContent = `Pytanie 1 / ${questions.length}`;
     }
 
-    async function finishTest() {
-        isTestInProgress = false;
-        clearInterval(timerInterval);
-        
+    /**
+     * Finalizuje test.
+     * Zatrzymuje zegar, zbiera odpowiedzi udzielone przez użytkownika, oblicza wynik,
+     * a następnie wywołuje metodę `showResults` do wyświetlenia podsumowania.
+     * Na końcu asynchronicznie wysyła dane o wyniku do API.
+     * @async
+     */
+    async finishTest() {
+        this.isTestInProgress = false;
+        clearInterval(this.timerInterval);
+
         let correctAnswersCount = 0;
         let topicIdsInTest = new Set();
-        const userAnswers = {}; // Mapa do przechowywania odpowiedzi: { questionId: answerId }
+        const userAnswers = {};
 
-        // KROK 1: Zbierz wszystkie odpowiedzi ZANIM zmienisz widok
-        questionsData.forEach(qData => {
+        this.questionsData.forEach(qData => {
             topicIdsInTest.add(qData.question.topic_id);
             const questionId = qData.question.id;
             const correctAnswer = qData.answers.find(a => a.is_correct === 1);
-            const selectedAnswerInput = questionsWrapper.querySelector(`input[name="question_${questionId}"]:checked`);
-            
+            const selectedAnswerInput = this.questionsWrapper.querySelector(`input[name="question_${questionId}"]:checked`);
+
             if (selectedAnswerInput) {
                 const selectedAnswerId = parseInt(selectedAnswerInput.value, 10);
                 userAnswers[questionId] = selectedAnswerId;
@@ -115,74 +167,78 @@ document.addEventListener('DOMContentLoaded', () => {
                     correctAnswersCount++;
                 }
             } else {
-                userAnswers[questionId] = null; // Zapisz null, jeśli nie ma odpowiedzi
+                userAnswers[questionId] = null; // Użytkownik nie odpowiedział
             }
         });
-        
-        const score = questionsData.length > 0 ? (correctAnswersCount / questionsData.length) * 100 : 0;
-        
-        // KROK 2: Przekaż zebrane odpowiedzi do funkcji wyświetlającej wyniki
-        showResults(score, correctAnswersCount, userAnswers);
 
-        // KROK 3: Zapisz wynik w tle
+        const score = this.questionsData.length > 0 ? Math.round((correctAnswersCount / this.questionsData.length) * 100) : 0;
+
+        this.showResults(score, correctAnswersCount, userAnswers);
+
         const resultData = {
             score_percent: score,
             correct_answers: correctAnswersCount,
-            total_questions: questionsData.length,
-            duration_seconds: timeSpent,
+            total_questions: this.questionsData.length,
+            duration_seconds: this.timeSpent,
             topic_ids: Array.from(topicIdsInTest)
         };
         await saveTestResult(resultData);
     }
 
-    function showResults(score, correctCount, userAnswers) {
-        testView.classList.add('hidden');
-        resultsScreen.classList.remove('hidden');
+    /**
+     * Wyświetla ekran wyników po zakończeniu testu.
+     * Ukrywa widok testu i pokazuje ekran podsumowania. Wypełnia go danymi
+     * (procent, liczba punktów, czas), a następnie koloruje wszystkie odpowiedzi
+     * na poprawne/błędne i dynamicznie dodaje przyciski do pokazania wyjaśnień.
+     * @param {number} score - Wynik testu w procentach.
+     * @param {number} correctCount - Całkowita liczba poprawnych odpowiedzi.
+     * @param {Object<string, number|null>} userAnswers - Obiekt mapujący ID pytania na ID odpowiedzi użytkownika.
+     * @private
+     */
+    showResults(score, correctCount, userAnswers) {
+        this.testView.classList.add('hidden');
+        this.resultsScreen.classList.remove('hidden');
 
+        // Wypełnianie podsumowania
         document.getElementById('score-percent').textContent = `${score}%`;
-        document.getElementById('correct-count').textContent = `${correctCount} / ${questionsData.length}`;
-        const durationMinutes = Math.floor(timeSpent / 60);
-        const durationSeconds = timeSpent % 60;
+        document.getElementById('correct-count').textContent = `${correctCount} / ${this.questionsData.length}`;
+        const durationMinutes = Math.floor(this.timeSpent / 60);
+        const durationSeconds = this.timeSpent % 60;
         document.getElementById('duration').textContent = `${String(durationMinutes).padStart(2, '0')}:${String(durationSeconds).padStart(2, '0')}`;
 
-        resultsDetailsContainer.innerHTML = questionsWrapper.innerHTML;
-        
-        resultsDetailsContainer.querySelectorAll('input[type="radio"]').forEach(input => {
-            input.disabled = true;
-        });
-        
-        questionsData.forEach(qData => {
+        // Kopiowanie i kolorowanie odpowiedzi
+        this.resultsDetailsContainer.innerHTML = this.questionsWrapper.innerHTML;
+        this.resultsDetailsContainer.querySelectorAll('input[type="radio"]').forEach(input => input.disabled = true);
+
+        this.questionsData.forEach(qData => {
             const questionId = qData.question.id;
-            const questionCard = resultsDetailsContainer.querySelector(`#question-${questionId}`);
+            const questionCard = this.resultsDetailsContainer.querySelector(`#question-${questionId}`);
             if (!questionCard) return;
 
             const correctAnswer = qData.answers.find(a => a.is_correct === 1);
-            const selectedAnswerId = userAnswers[questionId]; // Użyj mapy odpowiedzi
+            const selectedAnswerId = userAnswers[questionId];
 
-            // Upewnij się, że zaznaczenie jest widoczne po skopiowaniu HTML
             if (selectedAnswerId !== null) {
                 const selectedInput = questionCard.querySelector(`input[value="${selectedAnswerId}"]`);
                 if (selectedInput) selectedInput.checked = true;
             }
 
-            // POPRAWIONA LOGIKA KOLOROWANIA
             if (correctAnswer) {
                 const correctLabel = questionCard.querySelector(`input[value="${correctAnswer.id}"]`)?.closest('.quiz-card__answer');
-                
-                if (selectedAnswerId !== null) { // Jeśli użytkownik odpowiedział
+                if (selectedAnswerId !== null) {
                     const selectedLabel = questionCard.querySelector(`input[value="${selectedAnswerId}"]`)?.closest('.quiz-card__answer');
                     if (selectedAnswerId === correctAnswer.id) {
                         selectedLabel?.classList.add('correct');
                     } else {
                         selectedLabel?.classList.add('incorrect');
-                        correctLabel?.classList.add('correct');
+                        correctLabel?.classList.add('correct'); // Pokaż poprawną odpowiedź
                     }
-                } else { // Jeśli użytkownik pominął pytanie
-                    correctLabel?.classList.add('missed');
+                } else {
+                    correctLabel?.classList.add('missed'); // Oznacz poprawną, gdy nie udzielono odpowiedzi
                 }
             }
-
-            // Logika dodawania przycisku wyjaśnienia (bez zmian)
+            
+            // Dodawanie przycisków "Pokaż wyjaśnienie"
             const explanation = qData.question.explanation;
             if (explanation && explanation.trim() !== '') {
                 const buttonContainer = questionCard.querySelector('.quiz-card__button-container');
@@ -203,65 +259,101 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        resultsDetailsContainer.querySelectorAll('.quiz-card__answer.selected').forEach(label => {
+        // Czyszczenie zaznaczenia 'selected' z oryginalnego widoku
+        this.resultsDetailsContainer.querySelectorAll('.quiz-card__answer.selected').forEach(label => {
             label.classList.remove('selected');
         });
-
-        // Znajdź kontener na przyciski akcji na ekranie wyników.
-        const actionsContainer = resultsScreen.querySelector('.results-container__actions');
         
-        // Sprawdź, czy przycisk już nie istnieje, aby uniknąć duplikatów
+        // Dodawanie przycisku "Rozwiąż ponownie"
+        const actionsContainer = this.resultsScreen.querySelector('.results-container__actions');
         if (actionsContainer && !actionsContainer.querySelector('#solve-again-btn')) {
-            // Stwórz przycisk "Rozwiąż ponownie"
             const solveAgainButton = document.createElement('button');
             solveAgainButton.id = 'solve-again-btn';
-            solveAgainButton.className = 'btn btn--secondary'; // Używamy innej klasy dla odróżnienia
+            solveAgainButton.className = 'btn btn--secondary';
             solveAgainButton.textContent = 'Rozwiąż ponownie';
-
-            // Dodaj nasłuchiwanie na kliknięcie, które odświeży stronę
-            solveAgainButton.addEventListener('click', () => {
-                location.reload(); 
-            });
-
-            // Dodaj przycisk do kontenera
+            solveAgainButton.addEventListener('click', () => location.reload());
             actionsContainer.appendChild(solveAgainButton);
         }
 
-        window.scrollTo(0, 0);
+        window.scrollTo(0, 0); // Przewiń na górę strony wyników
     }
 
-    // ... (reszta pliku: nasłuchiwacze i funkcje pomocnicze bez zmian)
-    
-    questionsWrapper.addEventListener('click', (event) => {
+    // =================================================================
+    // 2. METODY POMOCNICZE I OBSŁUGI ZDARZEŃ
+    // =================================================================
+
+    /**
+     * Obsługuje zdarzenie 'beforeunload'.
+     * Jeśli test jest w toku, wyświetla natywne okno przeglądarki z ostrzeżeniem,
+     * aby zapobiec przypadkowemu opuszczeniu strony i utracie postępu.
+     * @param {Event} event - Obiekt zdarzenia przekazywany przez przeglądarkę.
+     * @private
+     */
+    handleBeforeUnload(event) {
+        if (this.isTestInProgress) {
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    }
+
+    /**
+     * Obsługuje kliknięcie na odpowiedź podczas testu.
+     * Dodaje klasę 'selected' do klikniętej odpowiedzi dla wizualnego feedbacku,
+     * usuwając ją jednocześnie z innych odpowiedzi w ramach tego samego pytania.
+     * @param {Event} event - Obiekt zdarzenia 'click'.
+     * @private
+     */
+    handleAnswerSelection(event) {
         const answerLabel = event.target.closest('.quiz-card__answer');
         if (!answerLabel) return;
         const currentQuestionCard = answerLabel.closest('.quiz-card');
         if (!currentQuestionCard) return;
+
         currentQuestionCard.querySelectorAll('.quiz-card__answer').forEach(label => label.classList.remove('selected'));
         answerLabel.classList.add('selected');
-    });
+    }
 
-    finishBtn.addEventListener('click', finishTest);
-
-    function startTimer(duration) {
+    /**
+     * Uruchamia i zarządza licznikiem czasu.
+     * Co sekundę aktualizuje wyświetlany czas. Jeśli czas dobiegnie końca,
+     * zatrzymuje licznik i automatycznie kończy test.
+     * @param {number} duration - Początkowy czas testu w sekundach.
+     * @private
+     */
+    startTimer(duration) {
         let timeLeft = duration;
-        timerInterval = setInterval(() => {
-            timeSpent++;
-            timeLeft = duration - timeSpent;
+        this.timerInterval = setInterval(() => {
+            this.timeSpent++;
+            timeLeft = duration - this.timeSpent;
             if (timeLeft < 0) timeLeft = 0;
+            
             const minutes = Math.floor(timeLeft / 60);
             const seconds = timeLeft % 60;
             document.getElementById('timer').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
             if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                finishTest();
+                clearInterval(this.timerInterval);
+                this.finishTest();
             }
         }, 1000);
     }
     
-    function showError(message) {
-        loadingScreen.innerHTML = `<h2>Wystąpił błąd</h2><p>${message}</p>`;
+    /**
+     * Wyświetla prosty komunikat o błędzie na ekranie ładowania.
+     * Używana, gdy nie uda się pobrać danych testu.
+     * @param {string} message - Treść błędu do wyświetlenia.
+     * @private
+     */
+    showError(message) {
+        this.loadingScreen.innerHTML = `<h2>Wystąpił błąd</h2><p>${message}</p>`;
     }
+}
 
-    initializeTest();
+/**
+ * Punkt wejściowy skryptu.
+ * Po całkowitym załadowaniu i sparsowaniu drzewa DOM, tworzy nową
+ * instancję klasy Test, co rozpoczyna działanie całego mechanizmu.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    new Test();
 });

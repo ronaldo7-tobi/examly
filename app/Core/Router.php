@@ -1,24 +1,36 @@
 <?php
 
 /**
- * Klasa Router obsługuje routing aplikacji.
- * Mapuje przychodzące żądania URI na odpowiednie akcje w kontrolerach.
- * Wersja 1.1.0 wprowadza obsługę dynamicznych parametrów w ścieżkach API
- * (np. /api/question/{examCode}) oraz routing oparty na metodzie HTTP.
- * * @version 1.1.0
+ * Klasa Router - centralny punkt aplikacji kierujący ruchem (Front Controller).
+ *
+ * Odpowiada za analizę przychodzącego adresu URI i mapowanie go na odpowiednią
+ * akcję w kontrolerze. Posiada dwa oddzielne mechanizmy routingu:
+ * 1. Dynamiczny, oparty na wyrażeniach regularnych, dla ścieżek API (np. /api/question/{id}).
+ * 2. Statyczny, oparty na instrukcji switch, dla stron widoków (np. /login).
+ *
+ * @version 1.2.0
  * @author Tobiasz Szerszeń
  */
-class Router 
+class Router
 {
     /**
-     * Przechowuje zdefiniowane ścieżki API.
-     * @var array
+     * Tablica przechowująca zarejestrowane, dynamiczne ścieżki API.
+     *
+     * Każdy element to tablica asocjacyjna o strukturze:
+     * `['method' => 'GET', 'path' => '#^regex$#', 'handler' => 'Controller@method']`
+     *
+     * @var array<int, array<string, string>>
      */
     private array $apiRoutes = [];
 
     /**
-     * Główna metoda routera, która analizuje URI i wywołuje odpowiedni kontroler.
-     * @return void
+     * Główna, publiczna metoda routera, która przetwarza żądanie.
+     *
+     * Analizuje URI, usuwa z niego bazową ścieżkę projektu, a następnie
+     * deleguje obsługę do odpowiedniej metody w zależności od tego,
+     * czy żądanie jest skierowane do API, czy do strony WWW.
+     *
+     * @return void Metoda nie zwraca wartości; jej efektem jest wywołanie akcji kontrolera, która generuje odpowiedź.
      */
     public function handleRequest(): void
     {
@@ -27,26 +39,31 @@ class Router
         $uri = str_replace($basePath, '', $uri);
         $uri = trim($uri, '/');
 
-        // --- Sekcja API ---
+        // Sprawdzamy, czy URI zaczyna się od 'api/' i delegujemy do odpowiedniej metody.
         if (strpos($uri, 'api/') === 0) {
             $this->handleApiRequest(substr($uri, 4));
             return;
         }
 
-        // --- Sekcja Stron WWW ---
         $this->handleWebRequest($uri);
     }
 
     /**
-     * Rejestruje nową, dynamiczną ścieżkę API.
-     * @param string $method Metoda HTTP (np. 'GET', 'POST').
-     * @param string $path Ścieżka z opcjonalnymi parametrami (np. 'question/{examCode}').
+     * Rejestruje nową, dynamiczną ścieżkę API i konwertuje ją na wyrażenie regularne.
+     *
+     * Metoda ta jest sercem dynamicznego routingu. Zamienia proste symbole
+     * zastępcze, jak `{examCode}`, na nazwane grupy przechwytujące w wyrażeniu
+     * regularnym (np. `(?P<examCode>[a-zA-Z0-9_.-]+)`), co pozwala na
+     * łatwe wyodrębnienie parametrów z adresu URI.
+     *
+     * @param string $method  Metoda HTTP (np. 'GET', 'POST').
+     * @param string $path    Ścieżka z opcjonalnymi parametrami (np. 'question/{examCode}').
      * @param string $handler Nazwa kontrolera i metody oddzielona znakiem '@' (np. 'ApiController@getQuestion').
+     * @return void
      */
     private function addApiRoute(string $method, string $path, string $handler): void
     {
-        // Konwertuje ścieżkę typu /question/{examCode} na wyrażenie regularne (RegEx),
-        // które potrafi "złapać" wartość parametru.
+        // Konwersja ścieżki na wyrażenie regularne (RegEx) z nazwaną grupą przechwytującą.
         $pathRegex = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[a-zA-Z0-9_.-]+)', $path);
         $this->apiRoutes[] = [
             'method' => $method,
@@ -56,50 +73,61 @@ class Router
     }
 
     /**
-     * Obsługuje żądania skierowane do API, dopasowując je do zdefiniowanych, dynamicznych ścieżek.
-     * @param string $apiUri Akcja do wykonania (np. 'question/INF.03').
+     * Przetwarza żądania skierowane do API.
+     *
+     * Najpierw rejestruje wszystkie dostępne endpointy API. Następnie iteruje po nich,
+     * szukając pierwszej ścieżki, która pasuje zarówno do metody HTTP, jak i do wzorca
+     * URI żądania. Po znalezieniu dopasowania, tworzy instancję kontrolera i wywołuje
+     * jego metodę, przekazując jej parametry wyodrębnione z adresu URL.
+     *
+     * @param string $apiUri Fragment adresu URI następujący po prefiksie 'api/'.
+     * @return void
      */
     private function handleApiRequest(string $apiUri): void
     {
-        // Rejestrujemy wszystkie ścieżki API w jednym, centralnym miejscu.
-        // Dzięki temu łatwo zarządzać endpointami.
+        // Centralne miejsce rejestracji wszystkich ścieżek API.
         $this->addApiRoute('GET', 'question/{examCode}', 'ApiController@getQuestion');
         $this->addApiRoute('GET', 'test/full/{examCode}', 'ApiController@getFullTest');
         $this->addApiRoute('POST', 'check-answer', 'ApiController@checkAnswer');
         $this->addApiRoute('POST', 'save-test-result', 'ApiController@saveTestResult');
-        // W przyszłości tutaj dodasz nowe ścieżki API.
 
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         $apiUri = trim($apiUri, '/');
 
         foreach ($this->apiRoutes as $route) {
-            // Sprawdzamy, czy metoda HTTP żądania zgadza się ze zdefiniowaną...
-            // ...i czy adres URI pasuje do wzorca wyrażenia regularnego.
+            // Krok 1: Sprawdź, czy metoda HTTP się zgadza.
+            // Krok 2: Sprawdź, czy URI pasuje do wzorca RegEx.
             if ($route['method'] === $requestMethod && preg_match($route['path'], $apiUri, $matches)) {
                 
-                // Dzielimy handler 'Kontroler@metoda' na dwie części.
+                // Dzielimy 'Kontroler@metoda' na dwie części.
                 [$controllerName, $methodName] = explode('@', $route['handler']);
                 
                 $controller = new $controllerName();
                 
-                // Zbieramy parametry "złapane" z adresu URL (np. ['examCode' => 'INF.03']).
+                // Zbieramy nazwane parametry "złapane" z adresu URL (np. ['examCode' => 'INF.03']).
                 $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
                 
-                // Wywołujemy metodę kontrolera, przekazując jej parametry z URL.
+                // Wywołujemy metodę kontrolera, przekazując jej parametry.
                 $controller->$methodName($params);
-                return; // Kończymy działanie, gdy znajdziemy pasującą ścieżkę.
+                return; // Kończymy, gdy znajdziemy pasującą ścieżkę.
             }
         }
 
-        // Jeśli pętla się zakończy i nie znajdzie dopasowania, zwracamy błąd 404.
-        header('Content-Type: application/json');
+        // Jeśli żadna ścieżka nie pasowała, zwróć błąd 404 w formacie JSON.
+        header('Content-Type: application/json; charset=utf-8');
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'API endpoint not found.']);
     }
 
     /**
-     * Obsługuje żądania skierowane do stron WWW.
-     * @param string $uri Czysty URI bez basePath.
+     * Przetwarza żądania skierowane do statycznych stron WWW.
+     *
+     * Używa prostej instrukcji `switch` do mapowania dokładnych adresów URI
+     * na konkretne akcje w kontrolerach, które są odpowiedzialne za
+     * renderowanie widoków HTML.
+     *
+     * @param string $uri "Czysty" URI, bez ścieżki bazowej i ukośników na krańcach.
+     * @return void
      */
     private function handleWebRequest(string $uri): void
     {
@@ -107,15 +135,12 @@ class Router
             case '':
                 (new HomeController())->show();
                 break;
-
             case 'login':
                 (new LoginController())->handleRequest();
                 break;
-
             case 'register':
                 (new RegisterController())->handleRequest();
                 break;
-
             case 'verify_email':
                 $controller = new RegisterController();
                 if (isset($_GET['send']) && $_GET['send'] === 'true') {
@@ -124,38 +149,30 @@ class Router
                     $controller->showVerificationPage();
                 }
                 break;
-
             case 'verify':
                 (new VerificationController())->handle();
                 break;
-
             case 'logout':
                 (new UserController())->logout();
                 break;
-            
             case 'inf03_one_question':
                 (new QuizPageController())->showOneQuestionPage();
                 break;
-            
             case 'inf03_personalized_test':
                 (new QuizPageController())->showPersonalizedTestPage();
                 break;
-            
             case 'inf03_test':
                 (new QuizPageController())->showTestPage();
                 break;
-
             case 'inf03_course':
                 (new QuizPageController())->showCoursePage();
                 break;
-            
             case 'statistics':
                 (new UserController())->showStatistics();
                 break;
-
             default:
                 http_response_code(404);
-                // W przyszłości można stworzyć ErrorController
+                // W przyszłości można tu wywołać dedykowany ErrorController
                 // (new ErrorController())->show404();
                 echo "Strona o adresie '$uri' nie istnieje.";
                 break;
