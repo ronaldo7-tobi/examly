@@ -92,7 +92,7 @@
         </main>
     </div>
 
-    <script type="module" src="/examly/public/js/test.js"></script>
+    <script type="module" src="/examly/public/js/features/test/index.js"></script>
     <?php include 'partials//footer.php'; ?>
 </body>
 </html>

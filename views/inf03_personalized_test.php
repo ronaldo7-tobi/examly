@@ -132,9 +132,9 @@
         </main>
     </div>
 
-    <script type="module" src="/examly/public/js/slider-enhancer.js"></script>
-    <script type="module" src="/examly/public/js/personalized-test.js"></script>
-    <script type="module" src="/examly/public/js/topic-form-enhancer.js"></script>
+    <script type="module" src="/examly/public/js/components/slider-enhancer.js"></script>
+    <script type="module" src="/examly/public/js/features/personalized-test/index.js"></script>
+    <script type="module" src="/examly/public/js/components/topic-form-enhancer.js"></script>
     <?php include 'partials/footer.php'; ?>
 </body>
 </html>

@@ -6,8 +6,8 @@
  * @version 1.5.0
  */
 
-import api from './modules/api.js';
-import ui from './modules/ui.js';
+import api from '../../modules/api.js';
+import ui from './ui.js';
 
 /**
  * @class Quiz

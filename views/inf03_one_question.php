@@ -122,8 +122,8 @@
             </div>
         </main>
     </div>
-    <script type="module" src="/examly/public/js/topic-form-enhancer.js"></script>
-    <script type="module" src="/examly/public/js/quiz.js"></script>
+    <script type="module" src="/examly/public/js/components/topic-form-enhancer.js"></script>
+    <script type="module" src="/examly/public/js/features/one-question/index.js"></script>
     <?php include 'partials//footer.php'; ?>
 </body>
 </html>

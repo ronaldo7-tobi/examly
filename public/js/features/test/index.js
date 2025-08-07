@@ -5,8 +5,8 @@
  * a następnie przekazanie kontroli nad przebiegiem testu do generycznego modułu `TestRunner`.
  */
 
-import api from './modules/api.js'; 
-import { TestRunner } from './modules/TestRunner.js';
+import api from '../../modules/api.js'; 
+import { TestRunner } from '../../modules/TestRunner.js';
 
 /**
  * @class Test

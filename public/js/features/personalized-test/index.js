@@ -10,8 +10,8 @@
  * 4. Przekazanie kontroli do generycznej klasy `TestRunner`, która zarządza przebiegiem testu.
  */
 
-import api from './modules/api.js';
-import { TestRunner } from './modules/TestRunner.js';
+import api from '../../modules/api.js';
+import { TestRunner } from '../../modules/TestRunner.js';
 
 /**
  * @class PersonalizedTest

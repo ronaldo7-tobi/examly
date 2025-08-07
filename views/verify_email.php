@@ -67,6 +67,6 @@
 
     <?php include 'partials/footer.php'; ?>
 
-    <script type="module" src="/examly/public/js/verification-countdown.js"></script>
+    <script type="module" src="/examly/public/js/features/verification/index.js"></script>
 </body>
 </html>
