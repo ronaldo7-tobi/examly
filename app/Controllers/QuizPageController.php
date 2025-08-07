@@ -39,7 +39,7 @@ class QuizPageController extends BaseController
      */
     public function showPersonalizedTestPage(): void
     {
-        $this->renderView('inf03_personalized_test');
+        $this->renderView('inf03_personalized_test', ['examCode' => 'INF.03']);
     }
 
     /**

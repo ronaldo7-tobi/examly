@@ -87,6 +87,7 @@ class Router
     {
         // Centralne miejsce rejestracji wszystkich ścieżek API.
         $this->addApiRoute('GET', 'question/{examCode}', 'ApiController@getQuestion');
+        $this->addApiRoute('GET', 'test/personalized/{examCode}', 'ApiController@getPersonalizedTest');
         $this->addApiRoute('GET', 'test/full/{examCode}', 'ApiController@getFullTest');
         $this->addApiRoute('POST', 'check-answer', 'ApiController@checkAnswer');
         $this->addApiRoute('POST', 'save-test-result', 'ApiController@saveTestResult');

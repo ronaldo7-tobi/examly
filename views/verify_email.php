@@ -1,12 +1,3 @@
-<?php
-// Ta część PHP pozostaje bez zmian
-$messages = $messages ?? [];  
-$remaining = 0;
-if (isset($_SESSION['email_sent'])) {
-    $elapsed = time() - $_SESSION['email_sent'];
-    $remaining = max(0, 60 - $elapsed);
-}
-?>
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -31,22 +22,18 @@ if (isset($_SESSION['email_sent'])) {
 <body>
     <?php include 'partials/navbar.php'; ?>
 
-<main>
+    <main>
         <div class="info-card--centered-fullscreen"> 
             <div class="info-card">
                 <div class="info-card__icon info-card__icon--info">
                     <i class="fas fa-envelope-open-text"></i>
                 </div>
-                    
                 <h1 class="info-card__title">Sprawdź swoją skrzynkę e-mail</h1>
-                    
                 <p class="info-card__message">
                     Aby zakończyć rejestrację, kliknij w link aktywacyjny, który wysłaliśmy na Twój adres e-mail.
                 </p>
 
-                <?php
-                if (isset($flashMessage) && is_array($flashMessage)):
-                ?>
+                <?php if (isset($flashMessage) && is_array($flashMessage)): ?>
                     <div class="alert alert--<?= htmlspecialchars($flashMessage['type']) ?>" role="alert">
                         <?= htmlspecialchars($flashMessage['text']) ?>
                     </div>
@@ -59,6 +46,7 @@ if (isset($_SESSION['email_sent'])) {
                             type="submit"
                             id="resendButton" 
                             class="btn btn--primary btn--full-width"
+                            data-remaining="<?= $remaining ?>"
                             <?= ($remaining > 0) ? 'disabled' : '' ?>
                         >
                             <?php if ($remaining > 0): ?>
@@ -79,39 +67,6 @@ if (isset($_SESSION['email_sent'])) {
 
     <?php include 'partials/footer.php'; ?>
 
-    <script>
-        // Ta część JavaScript pozostaje bez zmian
-        let countdown = <?= $remaining ?>;
-        const button = document.getElementById('resendButton');
-        const countdownSpan = document.getElementById('countdown');
-
-        if (countdown > 0) {
-            // W przypadku błędu przy parsowaniu, upewnijmy się, że countdownSpan istnieje
-            if (countdownSpan) {
-                countdownSpan.textContent = countdown;
-            }
-            const timer = setInterval(() => {
-                countdown--;
-                if (countdownSpan) {
-                    countdownSpan.textContent = countdown;
-                }
-                if (countdown <= 0) {
-                    clearInterval(timer);
-                    button.disabled = false;
-                    // Aktualizujemy innerHTML, aby usunąć span z odliczaniem
-                    button.innerHTML = 'Wyślij ponownie e-mail';
-                }
-            }, 1000);
-        }
-
-        button.addEventListener('click', (e) => {
-            // Zapobiegamy wysłaniu formularza, jeśli chcemy to zrobić przez JS
-            e.preventDefault(); 
-            
-            button.disabled = true;
-            button.textContent = 'Wysyłanie...';
-            window.location.href = '/verify_email?send=true';
-        });
-    </script>
+    <script type="module" src="/examly/public/js/verification-countdown.js"></script>
 </body>
 </html>

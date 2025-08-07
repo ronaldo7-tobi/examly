@@ -69,8 +69,8 @@ class RegisterController extends BaseController
     /**
      * Wyświetla stronę z informacją o potrzebie weryfikacji e-mail (/verify_email).
      *
-     * Strona ta pobiera i wyświetla jednorazowe komunikaty (flash messages)
-     * z sesji, informujące np. o statusie wysyłki e-maila.
+     * Oblicza pozostały czas do ponownego wysłania e-maila i przekazuje go do widoku.
+     * Pobiera również jednorazowe komunikaty (flash messages) z sesji.
      *
      * @return void
      */
@@ -83,20 +83,27 @@ class RegisterController extends BaseController
 
             // Jeśli użytkownik istnieje i jest zweryfikowany, przenieś go na stronę logowania.
             if ($user && $user->isVerified()) {
-                unset($_SESSION['verify_user_id']); // Wyczyść sesję
-                unset($_SESSION['email_sent']);
-
+                unset($_SESSION['verify_user_id'], $_SESSION['email_sent']);
                 $_SESSION['flash_message'] = ['type' => 'info', 'text' => 'Twoje konto jest już aktywne. Możesz się zalogować.'];
                 header("Location: /login");
                 exit;
             }
         }
         
+        // Obliczamy pozostały czas w kontrolerze, a nie w widoku.
+        $remaining = 0;
+        if (isset($_SESSION['email_sent'])) {
+            $elapsed = time() - $_SESSION['email_sent'];
+            $remaining = max(0, 60 - $elapsed);
+        }
+
         $flashMessage = $_SESSION['flash_message'] ?? null;
         unset($_SESSION['flash_message']);
         
+        // Przekazujemy wszystkie potrzebne dane do widoku
         $this->renderView('verify_email', [
-            'flashMessage' => $flashMessage
+            'flashMessage' => $flashMessage,
+            'remaining' => $remaining // Przekazujemy obliczoną wartość
         ]);
     }
 

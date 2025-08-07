@@ -122,13 +122,6 @@
             </div>
         </main>
     </div>
-
-    <script>
-        // Przekazujemy stan zalogowania do globalnego obiektu, aby skrypty miały do niego dostęp
-        window.examlyAppState = {
-            isUserLoggedIn: <?= isset($_SESSION['user']) ? 'true' : 'false' ?>
-        };
-    </script>
     <script type="module" src="/examly/public/js/topic-form-enhancer.js"></script>
     <script type="module" src="/examly/public/js/quiz.js"></script>
     <?php include 'partials//footer.php'; ?>

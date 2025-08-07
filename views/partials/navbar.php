@@ -90,3 +90,10 @@
         <?php endif; ?>
     </ul>
 </nav>
+
+<script>
+    // Globalny stan aplikacji, dostępny dla wszystkich modułów JavaScript na każdej stronie.
+    window.examlyAppState = {
+        isUserLoggedIn: <?= (isset($_SESSION['user']) && $_SESSION['user'] instanceof User) ? 'true' : 'false' ?>
+    };
+</script>

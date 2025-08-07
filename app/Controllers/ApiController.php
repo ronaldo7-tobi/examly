@@ -144,6 +144,91 @@ class ApiController {
     }
 
     /**
+     * Endpoint do pobierania spersonalizowanego testu.
+     *
+     * @api
+     * @method GET
+     * @path /api/test/personalized/{examCode}
+     * @param array<string, string> $params Parametry z URL.
+     * @return void Wysyła odpowiedź JSON z zadaną liczbą pytań.
+     */
+    public function getPersonalizedTest(array $params)
+    {
+        $this->ensureGetRequest();
+        
+        $examCode = $params['examCode'] ?? null;
+        if (!$examCode) {
+            $this->sendJsonResponse(['success' => false, 'message' => 'Nie podano kodu egzaminu.'], 400);
+            return;
+        }
+
+        $subjectIds = $_GET['subject'] ?? [];
+        if (empty($subjectIds)) {
+            $this->sendJsonResponse(['success' => false, 'message' => 'Wybierz przynajmniej jedną kategorię materiału.'], 400);
+            return;
+        }
+
+        $limit = isset($_GET['question_count']) ? (int)$_GET['question_count'] : 20;
+        // Zabezpieczenie, aby nikt nie próbował pobrać np. 1000 pytań na raz
+        if ($limit < 10) $limit = 10;
+        if ($limit > 40) $limit = 40;
+
+        $examTypeId = $this->questionModel->getExamTypeIdByCode($examCode);
+        if (!$examTypeId) {
+            $this->sendJsonResponse(['success' => false, 'message' => 'Egzamin o podanym kodzie nie istnieje.'], 404);
+            return;
+        }
+
+        $subjectIds = array_map('intval', $subjectIds);
+        $specialFilter = $_GET['premium_option'] ?? null;
+        $isUserLoggedIn = session_status() === PHP_SESSION_ACTIVE && isset($_SESSION['user']);
+        $userId = $isUserLoggedIn ? $_SESSION['user']->getId() : null;
+
+        if ($specialFilter && !$isUserLoggedIn) {
+            $this->sendJsonResponse(['success' => false, 'message' => "Opcje premium są dostępne tylko dla zalogowanych użytkowników."], 403);
+            return;
+        }
+
+        $questions = [];
+        // Logika wyboru pytań jest bardzo podobna do tej z getQuestion, ale z dynamicznym limitem
+        if ($specialFilter && $isUserLoggedIn) {
+            switch ($specialFilter) {
+                case 'toDiscover':
+                    $questions = $this->questionModel->getUndiscoveredQuestions($userId, $subjectIds, $limit, $examTypeId);
+                    break;
+                case 'toImprove':
+                    $questions = $this->questionModel->getLowerAccuracyQuestions($userId, $subjectIds, $limit, $examTypeId);
+                    break;
+                case 'toRemind':
+                    $questions = $this->questionModel->getQuestionsRepeatedAtTheLatest($userId, $subjectIds, $limit, $examTypeId);
+                    break;
+                case 'lastMistakes':
+                    $questions = $this->questionModel->getLastMistakes($userId, $subjectIds, $limit, $examTypeId);
+                    break;
+                default:
+                    $questions = $this->questionModel->getQuestions($subjectIds, $limit, $examTypeId);
+                    break;
+            }
+        } else {
+            $questions = $this->questionModel->getQuestions($subjectIds, $limit, $examTypeId);
+        }
+        
+        // Sprawdzenie, czy znaleziono wystarczającą liczbę pytań
+        if (count($questions) < $limit) {
+             $this->sendJsonResponse(['success' => false, 'message' => 'W bazie nie ma wystarczającej liczby pytań dla wybranych kryteriów. Spróbuj wybrać więcej kategorii lub mniejszą liczbę pytań.'], 404);
+            return;
+        }
+
+        $questionsData = [];
+        foreach ($questions as $question) {
+            $answers = $this->answerModel->getAnswersToQuestion($question['id']);
+            $questionsData[] = ['question' => $question, 'answers' => $answers];
+        }
+
+        $this->sendJsonResponse(['success' => true, 'questions' => $questionsData]);
+    }
+
+    /**
      * Pobiera pełny arkusz egzaminacyjny (40 pytań) dla danego egzaminu.
      *
      * Endpoint losuje 40 pytań z całej puli dostępnej dla określonego
@@ -217,7 +302,8 @@ class ApiController {
      * "correct_answers": int,
      * "total_questions": int,
      * "duration_seconds": int,
-     * "topic_ids": array<int>
+     * "topic_ids": array<int>,
+     * "is_full_exam": bool
      * }
      *
      * @return void Wysyła odpowiedź JSON z komunikatem o sukcesie lub porażce.
@@ -241,9 +327,11 @@ class ApiController {
         
         // Krok 3: Przygotowanie danych do zapisu.
         $userId = $_SESSION['user']->getId();
+        $isFullExam = isset($data['is_full_exam']) && $data['is_full_exam'] ? 1 : 0;
+
         $examData = [
             'user_id' => $userId,
-            'is_full_exam' => 1,
+            'is_full_exam' => $isFullExam,
             'correct_answers' => (int)$data['correct_answers'],
             'total_questions' => (int)$data['total_questions'],
             'score_percent' => (float)$data['score_percent'],
