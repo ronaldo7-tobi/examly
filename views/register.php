@@ -16,7 +16,7 @@
     <!-- Link do ikonek -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-<body>
+<body class="auth-page-background">
     <?php include 'partials/navbar.php'; ?>
 
     <main>
@@ -39,32 +39,34 @@
             <div class="form-card__group">
                 <label for="first_name" class="form-card__label">Imię</label>
                 <input type="text" id="first_name" name="first_name" class="form-card__input" 
-                       value="<?= htmlspecialchars($formData['first_name'] ?? '') ?>" required>
+                       value="<?= htmlspecialchars($formData['first_name'] ?? '') ?>" placeholder="Jan" required>
             </div>
             
             <div class="form-card__group">
                 <label for="last_name" class="form-card__label">Nazwisko</label>
                 <input type="text" id="last_name" name="last_name" class="form-card__input" 
-                       value="<?= htmlspecialchars($formData['last_name'] ?? '') ?>" required>
+                       value="<?= htmlspecialchars($formData['last_name'] ?? '') ?>" placeholder="Kowalski" required>
             </div>
 
             <div class="form-card__group">
                 <label for="email" class="form-card__label">Adres e-mail</label>
                 <input type="email" id="email" name="email" class="form-card__input" 
-                       value="<?= htmlspecialchars($formData['email'] ?? '') ?>" required>
+                       value="<?= htmlspecialchars($formData['email'] ?? '') ?>" placeholder="jankowalski@example.com" required>
             </div>
           
             <div class="form-card__group">
                 <label for="password" class="form-card__label">Hasło</label>
-                <input type="password" id="password" name="password" class="form-card__input" required>
+                <input type="password" id="password" name="password" class="form-card__input" placeholder="Wpisz swoje hasło" required>
             </div>
           
             <div class="form-card__group">
                 <label for="confirm_password" class="form-card__label">Potwierdź hasło</label>
-                <input type="password" id="confirm_password" name="confirm_password" class="form-card__input" required>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-card__input" placeholder="Powtórz swoje hasło" required>
             </div>
-
-            <button type="submit" class="btn btn--primary btn--full-width">Zarejestruj się</button>
+            
+            <div class="form-card__action-container">
+                <button type="submit" class="btn btn--primary btn--full-width">Zarejestruj się</button>
+            </div>
 
             <div class="form-card__footer">
                 <p>Masz już konto? <a href="login">Zaloguj się</a></p>

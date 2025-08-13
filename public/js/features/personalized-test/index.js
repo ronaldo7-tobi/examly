@@ -10,8 +10,9 @@
  * 4. Przekazanie kontroli do generycznej klasy `TestRunner`, która zarządza przebiegiem testu.
  */
 
-import api from '../../modules/api.js';
+import api from '../../modules/ApiClient.js';
 import { TestRunner } from '../../modules/TestRunner.js';
+import Toast from '../../components/Toast.js';
 
 /**
  * @class PersonalizedTest
@@ -78,14 +79,15 @@ class PersonalizedTest {
 
         // Krok 3: Walidacja.
         if (selectedSubjects.length === 0) {
-            alert('Wybierz przynajmniej jedną kategorię tematyczną.');
+            Toast.show('Wybierz przynajmniej jedną kategorię tematyczną.', 'info');
             return;
         }
 
         // Krok 4: Logika określająca, czy test jest pełną symulacją egzaminu.
         const allTopicCheckboxes = [...this.form.querySelectorAll('.topic-checkbox')];
         const areAllTopicsSelected = allTopicCheckboxes.every(cb => cb.checked);
-        const isConsideredFullExam = areAllTopicsSelected && parseInt(questionCount, 10) === 40;
+        // Test jest "pełny" tylko, gdy wszystkie tematy są zaznaczone, jest 40 pytań I NIE wybrano opcji premium.
+        const isConsideredFullExam = areAllTopicsSelected && parseInt(questionCount, 10) === 40 && !premiumOption;
 
         // Krok 5: Przygotowanie interfejsu - ukrycie formularza i wstawienie szablonu testu.
         this.sidebar.classList.add('hidden');
@@ -106,28 +108,44 @@ class PersonalizedTest {
         const loadingScreen = document.getElementById('loading-screen');
         const testView = document.getElementById('test-view');
 
-        // Krok 6: Wywołanie API w celu pobrania pytań.
+        // Wywołanie API w celu pobrania pytań.
         const response = await api.fetchPersonalizedTest(this.examCode, selectedSubjects, premiumOption, questionCount);
 
-        // Krok 7: Przetworzenie odpowiedzi z API.
-        if (response.success && response.data.questions) {
-            loadingScreen.classList.add('hidden');
-            testView.classList.remove('hidden');
+        // Krok 7: Przetworzenie odpowiedzi z API - POPRAWIONA LOGIKA.
+        if (response.success) {
+            // Jeśli odpowiedź jest sukcesem, sprawdzamy, co dostaliśmy w środku.
+            const data = response.data;
 
-            // Krok 8: Inicjalizacja i uruchomienie `TestRunner` z pobranymi danymi.
-            // Od tego momentu `TestRunner` przejmuje pełną kontrolę nad logiką testu.
-            const testRunner = new TestRunner({
-                testView: testView,
-                questionsWrapper: document.getElementById('questions-wrapper'),
-                resultsScreen: document.getElementById('results-screen'),
-                finishBtn: document.getElementById('finish-test-btn'),
-                resultsDetailsContainer: document.getElementById('results-details'),
-                isFullExam: isConsideredFullExam
-            });
-            testRunner.run(response.data.questions);
+            if (data.status === 'no_questions_left') {
+                // PRZYPADEK 1: Sukces, ale brak pytań.
+                Toast.show(data.message, 'info');
+                // Przywracamy widoczność formularza.
+                this.sidebar.classList.remove('hidden');
+                this.quizContainer.innerHTML = '<p class="quiz-placeholder">Wybierz kategorie i liczbę pytań, aby rozpocząć spersonalizowany test.</p>';
+
+            } else if (data.questions) {
+                // PRZYPADEK 2: Prawdziwy sukces - mamy pytania.
+                loadingScreen.classList.add('hidden');
+                testView.classList.remove('hidden');
+
+                // Uruchamiamy TestRunner.
+                const testRunner = new TestRunner({
+                    testView: testView,
+                    questionsWrapper: document.getElementById('questions-wrapper'),
+                    resultsScreen: document.getElementById('results-screen'),
+                    finishBtn: document.getElementById('finish-test-btn'),
+                    resultsDetailsContainer: document.getElementById('results-details'),
+                    isFullExam: isConsideredFullExam
+                });
+                testRunner.run(data.questions);
+            }
         } else {
-            // W przypadku błędu, wyświetlenie komunikatu.
-            this.quizContainer.innerHTML = `<p class="alert alert--error">${response.error || 'Nie udało się załadować pytań.'}</p>`;
+            // PRZYPADEK 3: Prawdziwy błąd API.
+            Toast.show(response.error || 'Nie udało się załadować pytań.', 'error');
+            
+            // Przywracamy widoczność formularza.
+            this.sidebar.classList.remove('hidden');
+            this.quizContainer.innerHTML = '<p class="quiz-placeholder">Wybierz kategorie i liczbę pytań, aby rozpocząć spersonalizowany test.</p>';
         }
     }
 }

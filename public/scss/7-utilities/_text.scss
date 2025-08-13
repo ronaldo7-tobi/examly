@@ -1,0 +1,15 @@
+.text-gradient {
+  // Ustawiamy tło jako gradient
+  background-image: linear-gradient(to right, var(--accent), #8b5cf6);
+  // "Przycinamy" tło do kształtu tekstu
+  -webkit-background-clip: text;
+  background-clip: text;
+  // Ustawiamy kolor tekstu na przezroczysty, aby tło było widoczne
+  color: transparent;
+}
+
+.sparkling {
+  font-size: 17px;
+  display: inline-block; // Zapewnia poprawne działanie transformacji
+  animation: sparkle 1.5s infinite ease-in-out;
+}

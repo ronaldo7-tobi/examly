@@ -3,11 +3,12 @@
 // Komponent .quiz-card, który zawiera pytanie, odpowiedzi i akcje
 .quiz-card {
   max-width: 800px;
-  margin: 3rem auto;
+  margin: 0 auto;
   background: var(--bg);
   border-radius: var(--border-radius-large, 12px);
-  padding: 2rem 2.5rem;
+  padding: 0 2.5rem 2rem 1rem;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+  animation: fadeInSlideUp 0.5s ease-out forwards;
 
   // Element: kontener na obrazek
   &__image-container {
@@ -40,6 +41,19 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+
+    // --- OSTATECZNA POPRAWKA ---
+    // Gdy na pytanie udzielono odpowiedzi...
+    &[data-answered="true"] .quiz-card__answer {
+      cursor: default; // 1. Zmień kursor na wszystkich odpowiedziach.
+
+      &:hover {
+        // 2. Całkowicie wyłącz wszystkie efekty hover.
+        transform: none;
+        box-shadow: none;
+        border-color: inherit;
+      }
+    }
   }
 
   // Element: pojedyncza odpowiedź (label)
@@ -52,18 +66,18 @@
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     position: relative;
-    overflow: hidden;
 
-    // Ukrywamy domyślne radio
     input[type="radio"] {
       display: none;
     }
 
+    // Działa tylko wtedy, gdy na pytanie NIE odpowiedziano
     &:hover {
       border-color: var(--accent);
-      background-color: var(--primary-color-light, #f0e6ff); // Używamy zmiennej lub fallbacku
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); 
+      transform: translateY(-2px);
     }
-
+    
     // Modyfikator: poprawna odpowiedź
     &--correct {
       border-color: var(--success-color, #28a745);
@@ -93,21 +107,45 @@
     // Ikony ✔ i ✖ dla feedbacku
     &--correct::after,
     &--incorrect::after {
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
         display: flex;
         align-items: center;
         justify-content: center;
         position: absolute;
         right: 1.25rem;
         font-size: 1.5rem;
-        font-weight: bold;
     }
     &--correct::after {
-        content: '✔';
+        content: '\f00c';
         color: var(--success-color, #28a745);
     }
     &--incorrect::after {
-        content: '✖';
+        content: '\f00d';
         color: var(--error-color, #dc3545);
+    }
+  }
+
+  // Globalne zmiany po udzieleniu odpowiedzi
+  &__answers[data-answered="true"] {
+    // Wszystkie odpowiedzi stają się nieklikalne
+    .quiz-card__answer {
+      cursor: default;
+
+      // Neutralne odpowiedzi tracą jakikolwiek hover
+      &:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--border);
+      }
+
+      // Poprawna i błędna zachowują tylko uniesienie
+      &--correct:hover {
+        border-color: var(--success-color, #28a745);
+      }
+      &--incorrect:hover {
+        border-color: var(--error-color, #dc3545);
+      }
     }
   }
 

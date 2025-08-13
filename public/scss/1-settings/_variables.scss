@@ -41,6 +41,10 @@
   // Kolory specyficzne dla komponentów
   --footer-bg: #f9fafb;     // Tło stopki
   --footer-icon: #6b7280;   // Kolor ikon w stopce
+
+  --bg-overlay: rgba(255, 255, 255, 0.9); // Półprzezroczysta nakładka na tło
+  --card-bg: rgba(255, 255, 255, 0.6);    // Półprzezroczyste tło dla "boxów"
+  --card-border: rgba(0, 0, 0, 0.05);      // Delikatna ramka dla "boxów"
 }
 
 /**

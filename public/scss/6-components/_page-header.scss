@@ -1,0 +1,57 @@
+// Plik: scss/6-components/_page-header.scss
+
+.page-header {
+  padding: 4rem 1.5rem; // Zwiększamy padding dla lepszego efektu
+  background-color: var(--field-bg);
+  text-align: center;
+  border-bottom: 1px solid var(--subtle-border);
+  position: relative;
+  overflow: hidden;
+
+  // Dwie "kulki" gradientu dla dynamicznego tła
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    // ZMIANA: Dodajemy drugi gradient
+    background-image: 
+      radial-gradient(circle at 20% -40%, rgba(59, 130, 246, 0.15), transparent 35%),
+      radial-gradient(circle at 80% 120%, rgba(139, 92, 246, 0.15), transparent 40%);
+    
+    .dark & {
+      background-image: 
+        radial-gradient(circle at 20% -40%, rgba(59, 130, 246, 0.1), transparent 40%),
+        radial-gradient(circle at 80% 120%, rgba(139, 92, 246, 0.1), transparent 50%);
+    }
+  }
+
+  // Kontener na treść
+  &__content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  &__title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin: 0 0 1.5rem 0;
+    color: var(--text);
+    // Dodajemy odstępy między literami dla lepszego wyglądu
+    letter-spacing: -1px;
+  }
+
+  &__text {
+    font-size: 1.1rem;
+    color: var(--muted-text);
+    line-height: 1.7;
+    margin: 0;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

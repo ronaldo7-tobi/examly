@@ -147,26 +147,6 @@ class UIHandler {
         nextButton.addEventListener('click', onNextClick); // Przypisanie callbacku
         buttonContainer.appendChild(nextButton);
     }
-
-    /**
-     * Wyświetla komunikat o błędzie w podanym kontenerze.
-     * @param {HTMLElement} container - Element DOM, w którym ma być wyświetlony błąd.
-     * @param {string} message - Treść komunikatu.
-     * @returns {void}
-     */
-    showError(container, message) {
-        container.innerHTML = `<p class="alert alert--error">Błąd: ${this._escapeHTML(message)}</p>`;
-    }
-
-    /**
-     * Wyświetla komunikat informacyjny w podanym kontenerze.
-     * @param {HTMLElement} container - Element DOM, w którym ma być wyświetlona informacja.
-     * @param {string} message - Treść komunikatu.
-     * @returns {void}
-     */
-    showInfo(container, message) {
-        container.innerHTML = `<div class="alert alert--info">${this._escapeHTML(message)}</div>`;
-    }
 }
 
 /**

@@ -23,7 +23,7 @@
 // Globalne mixiny i funkcje.
 // Nic nie powinno generować tutaj kodu CSS.
 // =============================================================================
-// @import '2-tools/mixins';
+@import '2-tools/animations';
 
 
 // =============================================================================
@@ -65,10 +65,20 @@
 @import '6-components/quiz-page-layout';
 @import '6-components/test-page';
 @import '6-components/slider';
-
+@import '6-components/hero-section';
+@import '6-components/features-grid';
+@import '6-components/exam-card';
+@import '6-components/topic-card';
+@import '6-components/topics-section';
+@import '6-components/exam-info';
+@import '6-components/page-header';
+@import '6-components/toast';
 
 // =============================================================================
 // 7. NARZĘDZIA POMOCNICZE (UTILITIES)
 // Klasy pomocnicze nadpisujące inne style, np. .text-center, .margin-top-large.
 // =============================================================================
 // @import '7-utilities/spacing';
+@import '7-utilities/home';
+@import '7-utilities/auth-page';
+@import '7-utilities/text';

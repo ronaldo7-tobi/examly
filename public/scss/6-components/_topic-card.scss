@@ -1,0 +1,42 @@
+// Plik: scss/6-components/_topic-card.scss
+
+.topics-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.topic-card {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--field-bg);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  text-decoration: none;
+  color: var(--muted-text);
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  &--disabled {
+    cursor: not-allowed;
+    filter: grayscale(80%); // Wyszarzenie
+    opacity: 0.7;
+
+    &:hover {
+        // Nadpisujemy efekt hover, aby nic się nie działo
+        transform: none;
+        background-color: var(--field-bg);
+        border-color: var(--border);
+        color: var(--muted-text);
+    }
+  }
+}

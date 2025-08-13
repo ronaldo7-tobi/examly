@@ -1,0 +1,86 @@
+// Plik: scss/6-components/_features-grid.scss
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background-color: var(--card-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); // Dla przeglądarki Safari
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-large, 12px);
+  padding: 2rem;
+  transition: all 0.4s ease-in-out;
+  overflow: hidden; // Kluczowe dla animacji rozwijania
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  &__icon {
+    font-size: 1.75rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: 1.3rem;
+    margin: 0;
+    font-weight: 700;
+  }
+
+  &__text {
+    color: var(--muted-text);
+    line-height: 1.6;
+    margin: 0;
+  }
+  
+  // Kontener na rozwijany opis
+  &__details {
+    // Stan domyślny (zwinięty)
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.4s ease-in-out;
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 0.95rem;
+
+    p {
+        margin: 0;
+    }
+  }
+
+  // Stan aktywny (rozwinięty) po najechaniu
+  &:hover &__details {
+    max-height: 240px; // Wystarczająco duża wartość, aby pomieścić tekst
+    opacity: 1;
+    margin-top: 1rem; // Dodajemy odstęp, gdy tekst się pojawi
+  }
+
+  &__list {
+    text-align: left;
+    padding-left: 1.5rem; // Wcięcie dla listy
+    margin-top: 1rem;
+    color: var(--muted-text);
+    font-size: 0.95rem;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+}

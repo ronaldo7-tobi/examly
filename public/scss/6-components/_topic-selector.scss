@@ -1,71 +1,72 @@
 // Plik: scss/6-components/_topic-selector.scss
 
-// Komponent do wyboru tematów w formie klikalnych tagów
 .topic-selector {
   max-width: 800px;
-  margin: 3rem auto;
+  margin: 1rem auto;
   text-align: center;
 
-  // Element: kontener na tagi (zastępuje fieldset)
   &__options {
-    border: none;
-    padding: 0;
+    border: none; 
+    padding: 0; 
     margin: 0 0 2rem 0;
-    display: flex;
-    flex-wrap: wrap;
+    display: flex; 
+    flex-wrap: wrap; 
     justify-content: center;
     gap: 15px;
   }
 
-  // Element: tytuł/legenda
   &__legend {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 2rem;
-    width: 100%;
+    font-size: 1.5rem; font-weight: 600; color: var(--text);
+    margin-bottom: 2rem; width: 100%;
   }
 
   &__fieldset {
     border: 1px solid var(--subtle-border);
     border-radius: var(--border-radius-large, 12px);
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    text-align: left; // Wyrównanie dla legendy
+    padding: 1.5rem; margin-bottom: 2rem;
+    font-weight: 600; text-align: center;
   }
 
-  &__sub-legend {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--muted-text);
-    padding: 0 0.5rem;
-    margin-left: 1rem;
+  &__sub-legend--premium::after {
+    content: '✨'; margin-left: 0.5rem; display: inline-block;
+    animation: sparkle 1.5s infinite ease-in-out;
   }
 
-  // Element: pojedynczy tag/opcja
   &__label {
-    // Ukrywamy domyślny checkbox
     input[type="checkbox"] {
       display: none;
     }
 
-    // Widoczna część "pigułki"
     span {
-      display: inline-block;
+      display: inline-flex; // Kluczowe dla wyrównania i animacji
+      align-items: center;
       padding: 10px 20px;
       border: 2px solid var(--border);
       border-radius: 50px;
       font-weight: 500;
       color: var(--muted-text);
       cursor: pointer;
-      transition: all 0.2s ease-in-out;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
     
-    &[style*="not-allowed"] {
-        cursor: not-allowed;
+    // Ikona - jest zawsze, ale domyślnie niewidoczna i bez szerokości
+    span::before {
+      content: '✔';
+      font-weight: bold;
+      font-size: 1.1em;
+      // Stan początkowy animacji
+      opacity: 0;
+      width: 0; // Nie zajmuje miejsca
+      transform: scale(0.8);
+      // Płynne przejście dla pojawienia się
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
-    // Efekt hover
+    &[style*="not-allowed"] {
+      cursor: not-allowed;
+    }
+
     &:hover span {
       border-color: var(--accent);
       color: var(--accent);
@@ -73,7 +74,8 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
     
-    // Zaznaczony tag
+    // --- ZINTEGROWANE STYLE DLA ZAZNACZONYCH OPCJI ---
+    // 1. Zaznaczony tag STANDARDOWY
     input[type="checkbox"]:checked + span {
       background-color: var(--accent);
       border-color: var(--accent);
@@ -81,10 +83,32 @@
       font-weight: 600;
       box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
 
-      // Ikona "ptaszka"
+      // Płynnie pokazujemy "ptaszka", który "rozpycha" tekst
       &::before {
-        content: '✔ ';
-        font-weight: bold;
+        opacity: 1;
+        width: 1ch; // Nadajemy mu szerokość jednego znaku
+        margin-right: 0.5rem; // Dodajemy odstęp
+        margin-bottom: 0.2rem;
+        transform: scale(1);
+      }
+    }
+    
+    // 2. Modyfikator dla opcji premium (stan nieaktywny)
+    &.premium-option span {
+      opacity: 0.8; 
+    }
+
+    // 3. Zaznaczony tag PREMIUM (nadpisuje standardowy)
+    &.premium-option input[type="checkbox"]:checked + span {
+      opacity: 1; 
+      background-image: linear-gradient(45deg, var(--accent), #8b5cf6);
+      box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+      border-color: transparent;
+
+      // Zmieniamy "ptaszka" na gwiazdkę
+      &::before {
+        content: '✨';
+        margin-right: 1.2rem;
       }
     }
   }

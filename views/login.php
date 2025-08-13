@@ -47,15 +47,18 @@
 
             <div class="form-card__group">
                 <label for="email" class="form-card__label">Adres e-mail</label>
-                <input type="email" id="email" name="email" class="form-card__input" value="<?= htmlspecialchars($formData['email'] ?? '') ?>" required>
+                <input type="email" id="email" name="email" class="form-card__input" value="<?= htmlspecialchars($formData['email'] ?? '') ?>" 
+                       placeholder="jankowalski@example.com" required>
             </div>
         
             <div class="form-card__group">
                 <label for="password" class="form-card__label">Hasło</label>
-                <input type="password" id="password" name="password" class="form-card__input" required>
+                <input type="password" id="password" name="password" class="form-card__input" placeholder="Twoje hasło" required>
             </div>
-
-            <button type="submit" class="btn btn--primary btn--full-width">Zaloguj się</button>
+            
+            <div class="form-card__action-container">
+                <button type="submit" class="btn btn--primary btn--full-width">Zaloguj się</button>
+            </div>
 
             <div class="form-card__footer">
                 <p>Nie masz konta? <a href="register">Stwórz je teraz</a></p>

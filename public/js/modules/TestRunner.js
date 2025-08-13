@@ -7,7 +7,7 @@
  * i kompleksowe zapisywanie wyników w API.
  */
 
-import api from './api.js'; 
+import api from './ApiClient.js'; 
 
 /**
  * @class TestRunner
@@ -154,9 +154,24 @@ export class TestRunner {
             }
             progressData.push({ questionId: questionId, isCorrect: isCorrect });
         });
+
+        let score;
+        const baseScore = this.questionsData.length > 0 ? (correctAnswersCount / this.questionsData.length) * 100 : 0;
+
+        if (this.isFullExam) {
+            // Dla pełnego egzaminu nie zaokrąglamy wyniku
+            score = baseScore;
+        } else {
+            // Dla testu spersonalizowanego zaokrąglamy do najbliższej liczby całkowitej
+            score = Math.round(baseScore);
+        }
         
-        const score = this.questionsData.length > 0 ? (correctAnswersCount / this.questionsData.length) * 100 : 0;
         this.showResults(score, correctAnswersCount, userAnswers);
+
+        // Sprawdzamy status zalogowania PRZED wysłaniem zapytania do API.
+        if (!window.examlyAppState || !window.examlyAppState.isUserLoggedIn) {
+            return;
+        }
 
         const resultData = {
             score_percent: score,

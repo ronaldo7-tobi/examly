@@ -1,3 +1,4 @@
+<div id="toast-container" class="toast-container"></div>
 <footer class="footer">
     <div class="footer__content">
         <!-- Sekcja: Nawigacja po stronie -->

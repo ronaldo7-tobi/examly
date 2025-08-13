@@ -1,0 +1,14 @@
+
+// Klasa dodawana do <body> na stronach logowania i rejestracji
+.auth-page-background {
+  // Subtelny, promienisty gradient dodający głębi
+  background-color: var(--field-bg);
+  background-image: radial-gradient(circle at top, #f3f4f6 0%, var(--bg) 80%);
+  min-height: 100vh;
+}
+
+// Nadpisanie dla motywu ciemnego
+.dark.auth-page-background {
+  background-color: #1a1c1e;
+  background-image: radial-gradient(circle at top, #2a2d30 0%, var(--bg) 80%);
+}

@@ -1,0 +1,31 @@
+// Ogólna klasa dla tytułów sekcji
+.section-title {
+  text-align: center;
+  font-size: 2.25rem;
+  margin-bottom: 3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+// Style, które będą aktywne tylko na stronie głównej
+body.home-page-background {
+  // --- STYLE TŁA ---
+  background-image:
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)),
+    url('/examly/public/images/background.png'); // <-- Pamiętaj o poprawnej nazwie pliku!
+  
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+// Zmniejszone odstępy między sekcjami
+.home-page section {
+  padding: 4rem 1.5rem;
+}
+
+// Style sekcji - definiują tylko ich tło i padding
+.features-section, .exams-section, .topics-section {
+  padding: 1rem 1.5rem;
+}

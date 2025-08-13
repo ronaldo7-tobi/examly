@@ -215,7 +215,7 @@ class ApiController {
         
         // Sprawdzenie, czy znaleziono wystarczającą liczbę pytań
         if (count($questions) < $limit) {
-             $this->sendJsonResponse(['success' => false, 'message' => 'W bazie nie ma wystarczającej liczby pytań dla wybranych kryteriów. Spróbuj wybrać więcej kategorii lub mniejszą liczbę pytań.'], 404);
+            $this->sendJsonResponse(['success' => true, 'status' => 'no_questions_left', 'message' => 'Gratulacje! Brak dostępnych pytań dla wybranych kryteriów.']);
             return;
         }
 

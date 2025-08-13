@@ -9,10 +9,16 @@
  * czcionkę dla całej aplikacji.
  */
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
+  margin: 0;
   font-family: 'Manrope', sans-serif;
   background-color: var(--bg);
   color: var(--text);
+  background-color: var(--bg);
 
   // Poprawia renderowanie czcionek na różnych systemach
   -webkit-font-smoothing: antialiased;

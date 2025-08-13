@@ -51,12 +51,24 @@
 </head>
 <body>
     <?php include 'partials/navbar.php'; ?>
-    <!-- Formularz wyboru tematów -->
+
+    <header class="page-header">
+        <div class="page-header__content">
+            <h1 class="page-header__title"><span class="text-gradient">EE.09 / INF.03</span> - Jedno pytanie</h1>
+            <p class="page-header__text">
+                Nie masz czasu na pełny test? Spoko! Ten tryb jest idealny, żeby w kilka minut wbić do głowy coś nowego. Wybierz dział, wylosuj pytanie prosto z oficjalnych egzaminów i sprawdź, czy dasz radę.
+            </p>
+            <p class="page-header__text">
+                <strong class="text-gradient">Pro Tip:</strong> Zapisuj na boku każde nowe hasło lub trudniejsze zagadnienie. Regularne, krótkie sesje potrafią zdziałać cuda!
+            </p>
+        </div>
+    </header>
+
     <div class="quiz-page-layout" id="quiz-single-question" data-exam-code="<?= htmlspecialchars($examCode) ?>">
+        
+        <!-- Formularz wyboru tematów -->
         <aside class="quiz-page-layout__sidebar">
             <form id="topic-form" class="topic-selector">
-                <h2 class="topic-selector__legend">Wybierz, z jakiej części materiału chcesz otrzymać pytanie</h2>
-
                 <fieldset class="topic-selector__fieldset">
                     <legend class="topic-selector__sub-legend">Główne kategorie</legend>
                     <div class="topic-selector__options">
@@ -92,21 +104,21 @@
                 </fieldset>
 
                 <fieldset class="topic-selector__fieldset">
-                    <legend class="topic-selector__sub-legend">Inteligentna nauka</legend>
+                    <legend class="topic-selector__sub-legend topic-selector__sub-legend--premium">Inteligentna nauka</legend>
                     <div class="topic-selector__options">
-                        <label class="topic-selector__label">
+                        <label class="topic-selector__label premium-option">
                             <input type="checkbox" name="premium_option" value="toDiscover" class="premium-checkbox">
                             <span>Nieodkryte pytania</span>
                         </label>
-                        <label class="topic-selector__label">
+                        <label class="topic-selector__label premium-option">
                             <input type="checkbox" name="premium_option" value="toImprove" class="premium-checkbox">
                             <span>Pytania, które gorzej Ci idą</span>
                         </label>
-                        <label class="topic-selector__label">
+                        <label class="topic-selector__label premium-option">
                             <input type="checkbox" name="premium_option" value="toRemind" class="premium-checkbox">
                             <span>Pytania najdawniej powtórzone</span>
                         </label>
-                        <label class="topic-selector__label">
+                        <label class="topic-selector__label premium-option">
                             <input type="checkbox" name="premium_option" value="lastMistakes" class="premium-checkbox">
                             <span>Ostatnio błędne</span>
                         </label>

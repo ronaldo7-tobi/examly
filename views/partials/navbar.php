@@ -10,7 +10,7 @@
     <ul class="main-nav__links">
         <!-- Pozycja z Dropdown: INF.03 -->
         <li class="main-nav__item dropdown">
-            <a href="#inf03" class="main-nav__link">
+            <a href="/examly/public/#exams-section" class="main-nav__link">
                 <i class="main-nav__icon fas fa-laptop-code"></i>
                 <span>INF.03</span>
             </a>
@@ -51,13 +51,13 @@
         <?php if (!$isUserLoggedIn): ?>
             <!-- Linki dla niezalogowanego użytkownika -->
             <li class="main-nav__item">
-                <a href="register" class="main-nav__link">
+                <a href="register" class="nav-button nav-button--register">
                     <i class="main-nav__icon fas fa-user-plus"></i>
                     <span>Zarejestruj się</span>
                 </a>
             </li>
             <li class="main-nav__item">
-                <a href="login" class="main-nav__link">
+                <a href="login" class="nav-button nav-button--login">
                     <i class="main-nav__icon fas fa-sign-in-alt"></i>
                     <span>Zaloguj się</span>
                 </a>

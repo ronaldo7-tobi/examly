@@ -1,0 +1,67 @@
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr; // Domyślnie jedna kolumna
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+
+  // Dwie kolumny na większych ekranach
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.info-block {
+  background-color: var(--bg);
+  padding: 2rem;
+  border-radius: var(--border-radius-large, 12px);
+  border: 1px solid var(--subtle-border);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  }
+
+  &__question {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    color: var(--text);
+  }
+
+  &__answer {
+    color: var(--muted-text);
+    line-height: 1.7;
+    margin: 0;
+
+    // Kluczowe informacje wyróżniamy kolorem akcentowym
+    strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+  }
+}
+
+.info-block__list {
+    list-style: none; // Usuwamy domyślne kropki
+    padding: 0;
+    margin-top: 1rem; // Odstęp od tekstu powyżej
+
+    li {
+        position: relative;
+        padding-left: 1.75rem; // Robimy miejsce na ikonę
+        margin-bottom: 0.5rem;
+
+        // Dodajemy "ptaszek" jako ikonę punktu listy
+        &::before {
+            content: '✔';
+            position: absolute;
+            left: 0;
+            top: -1px;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+    }
+}

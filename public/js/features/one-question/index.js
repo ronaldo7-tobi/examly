@@ -6,8 +6,9 @@
  * @version 1.5.0
  */
 
-import api from '../../modules/api.js';
-import ui from './ui.js';
+import api from '../../modules/ApiClient.js';
+import ui from './UiHandler.js';
+import Toast from '../../components/Toast.js';
 
 /**
  * @class Quiz
@@ -80,8 +81,9 @@ class Quiz {
         const selectedSubjects = [...this.topicForm.querySelectorAll('input[name="subject[]"]:checked')].map(cb => cb.value);
         const premiumOption = this.topicForm.querySelector('input[name="premium_option"]:checked')?.value || null;
 
+        // Jeśli brak zaznaczonych tematów, poinformuj.
         if (selectedSubjects.length === 0) {
-            ui.showInfo(this.quizContainer, 'Wybierz przynajmniej jedną kategorię, aby rozpocząć naukę.');
+            Toast.show('Wybierz przynajmniej jedną kategorię, aby rozpocząć naukę.', 'info');
             return;
         }
 
@@ -91,16 +93,16 @@ class Quiz {
         if (result.success) {
             const data = result.data;
             if (data.status === 'no_questions_left') {
-                // Delegowanie renderowania informacji do modułu `ui`.
-                ui.showInfo(this.quizContainer, data.message);
+                // Delegowanie renderowania błędu do komponentu `Toast`.
+                Toast.show(data.message, 'info');
             } else {
                 this.currentExplanation = data.question.explanation;
                 // Delegowanie renderowania pytania do modułu `ui`.
                 ui.renderQuestion(this.quizContainer, data.question, data.answers);
             }
         } else {
-            // Delegowanie renderowania błędu do modułu `ui`.
-            ui.showError(this.quizContainer, result.error);
+            // Delegowanie renderowania błędu do komponentu `Toast`.
+            Toast.show(result.error, 'error');
         }
     }
 
@@ -153,7 +155,7 @@ class Quiz {
             // aby moduł UI mógł wywołać logikę kontrolera po kliknięciu przycisku.
             ui.renderActionButtons(this.currentExplanation, this.startNewQuestion.bind(this));
         } else {
-            alert(`Błąd: ${result.error}`);
+            Toast.show('Wystąpił nieoczekiwany błąd.', 'error');
             // W razie błędu API, odblokuj możliwość ponownego odpowiedzenia.
             delete answersContainer.dataset.answered;
         }
