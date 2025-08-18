@@ -33,7 +33,7 @@ class PersonalizedTest {
      * i wiąże niezbędne nasłuchiwacze zdarzeń poprzez wywołanie `init()`.
      */
     constructor() {
-        this.pageContainer = document.getElementById('quiz-personalized-test');
+        this.pageContainer = document.getElementById('personalized-test-page');
         if (!this.pageContainer) {
             console.error("Błąd krytyczny: Nie znaleziono kontenera strony #quiz-personalized-test.");
             return;
@@ -41,7 +41,7 @@ class PersonalizedTest {
 
         this.form = document.getElementById('topic-form');
         this.quizContainer = document.getElementById('quiz-container');
-        this.sidebar = document.querySelector('.quiz-page-layout__sidebar');
+        this.configurator = document.querySelector('.test-configurator');
         this.examCode = this.pageContainer.dataset.examCode;
 
         this.init();
@@ -90,19 +90,22 @@ class PersonalizedTest {
         const isConsideredFullExam = areAllTopicsSelected && parseInt(questionCount, 10) === 40 && !premiumOption;
 
         // Krok 5: Przygotowanie interfejsu - ukrycie formularza i wstawienie szablonu testu.
-        this.sidebar.classList.add('hidden');
+        this.configurator.classList.add('hidden');
+        document.querySelector('.page-header').classList.add('hidden');
         this.quizContainer.innerHTML = `
-            <div id="loading-screen" class="test-loading"><h2>Trwa przygotowywanie Twojego testu...</h2><div class="spinner"></div></div>
-            <div id="test-view" class="hidden">
-                <header class="test-header"><h1 class="test-header__title">Test Spersonalizowany</h1><div class="test-header__meta"><div id="timer">00:00</div><div id="question-counter">Pytanie 1 / ${questionCount}</div></div></header>
-                <div id="questions-wrapper" class="questions-wrapper"></div>
-                <footer class="test-footer"><button id="finish-test-btn" class="btn btn--danger">Zakończ i sprawdź test</button></footer>
-            </div>
-            <div id="results-screen" class="results-container hidden">
-                <h1 class="results-container__title">Wyniki Testu</h1>
-                <div id="score-summary" class="score-summary"><p>Twój wynik: <strong id="score-percent">0%</strong></p><p>Poprawne odpowiedzi: <strong id="correct-count">0</strong></p><p>Czas ukończenia: <strong id="duration">00:00</strong></p></div>
-                <div id="results-details" class="results-details"></div>
-                <div class="results-container__actions"><a href="/examly/public/" class="btn btn--primary">Wróć na stronę główną</a></div>
+            <div class="test-container">
+                <div id="loading-screen" class="test-loading"><h2>Trwa przygotowywanie Twojego testu...</h2><div class="spinner"></div></div>
+                <div id="test-view" class="hidden">
+                    <header class="test-header"><h1 class="test-header__title">Test Spersonalizowany</h1><div class="test-header__meta"><div id="timer">00:00</div><div id="question-counter">Pytanie 1 / ${questionCount}</div></div></header>
+                    <div id="questions-wrapper" class="questions-wrapper"></div>
+                    <footer class="test-footer"><button id="finish-test-btn" class="btn btn--danger">Zakończ i sprawdź test</button></footer>
+                </div>
+                <div id="results-screen" class="results-container hidden">
+                    <h1 class="results-container__title">Wyniki Testu</h1>
+                    <div id="score-summary" class="score-summary"><p>Twój wynik: <strong id="score-percent">0%</strong></p><p>Poprawne odpowiedzi: <strong id="correct-count">0</strong></p><p>Czas ukończenia: <strong id="duration">00:00</strong></p></div>
+                    <div id="results-details" class="results-details"></div>
+                    <div class="results-container__actions"><a href="/examly/public/" class="btn btn--primary">Wróć na stronę główną</a></div>
+                </div>
             </div>`;
         
         const loadingScreen = document.getElementById('loading-screen');
@@ -119,9 +122,7 @@ class PersonalizedTest {
             if (data.status === 'no_questions_left') {
                 // PRZYPADEK 1: Sukces, ale brak pytań.
                 Toast.show(data.message, 'info');
-                // Przywracamy widoczność formularza.
-                this.sidebar.classList.remove('hidden');
-                this.quizContainer.innerHTML = '<p class="quiz-placeholder">Wybierz kategorie i liczbę pytań, aby rozpocząć spersonalizowany test.</p>';
+
 
             } else if (data.questions) {
                 // PRZYPADEK 2: Prawdziwy sukces - mamy pytania.
@@ -143,9 +144,9 @@ class PersonalizedTest {
             // PRZYPADEK 3: Prawdziwy błąd API.
             Toast.show(response.error || 'Nie udało się załadować pytań.', 'error');
             
-            // Przywracamy widoczność formularza.
-            this.sidebar.classList.remove('hidden');
-            this.quizContainer.innerHTML = '<p class="quiz-placeholder">Wybierz kategorie i liczbę pytań, aby rozpocząć spersonalizowany test.</p>';
+            this.configurator.classList.remove('hidden'); // Pokaż z powrotem
+            document.querySelector('.page-header').classList.remove('hidden'); // Pokaż też header
+            this.quizContainer.innerHTML = ''; // Wyczyść kontener testu
         }
     }
 }

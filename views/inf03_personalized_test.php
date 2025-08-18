@@ -51,85 +51,64 @@
 <body>
     <?php include 'partials/navbar.php'; ?>
     
-    <div class="quiz-page-layout" id="quiz-personalized-test" data-exam-code="<?= htmlspecialchars($examCode) ?>">
-        <aside class="quiz-page-layout__sidebar">
-            <form id="topic-form" class="topic-selector">
-                <h2 class="topic-selector__legend">Skonfiguruj swój spersonalizowany test</h2>
+    <header class="page-header">
+        <div class="page-header__content">
+            <h1 class="page-header__title"><span class="text-gradient">EE.09 / INF.03</span> - Spersonalizowany test</h1>
+            <p class="page-header__text">
+                Stwórz test idealnie dopasowany do Twoich potrzeb. Wybierz interesujące Cię tematy, ustaw liczbę pytań i skup się na tym, co jest dla Ciebie najważniejsze. To idealne narzędzie do regularnych powtórek.
+            </p>
+            <p class="page-header__text">
+                <strong class="text-gradient">Pro Tip:</strong> Zaloguj się, aby odblokować inteligentne tryby nauki, takie jak powtórka najtrudniejszych pytań czy odkrywanie nowego materiału. To najszybsza droga do mistrzostwa!
+            </p>
+        </div>
+    </header>
 
-                <fieldset class="topic-selector__fieldset">
-                    <legend class="topic-selector__sub-legend">Liczba pytań</legend>
-                    <div class="slider-container">
-                        <label for="question-count" class="slider-container__label">
-                            Wybierz liczbę pytań: <output id="question-count-value">25</output>
-                        </label>
-                        <input type="range" id="question-count" name="question_count" min="10" max="40" value="25" class="slider-container__input">
-                    </div>
-                </fieldset>
+    <div class="container" id="personalized-test-page" data-exam-code="<?= htmlspecialchars($examCode) ?>">
+        
+        <div class="test-configurator">
+            <form id="topic-form">
+                <div class="test-configurator__content">
+                    <fieldset class="topic-selector__fieldset">
+                        <legend class="topic-selector__sub-legend">Liczba pytań</legend>
+                        <div class="slider-container">
+                            <label for="question-count" class="slider-container__label">
+                                Wybierz liczbę pytań: <output id="question-count-value">25</output>
+                            </label>
+                            <input type="range" id="question-count" name="question_count" min="10" max="40" value="25" class="slider-container__input">
+                        </div>
+                    </fieldset>
 
-                <fieldset class="topic-selector__fieldset">
-                    <legend class="topic-selector__sub-legend">Główne kategorie</legend>
-                    <div class="topic-selector__options">
-                        <label class="topic-selector__label">
-                            <input type="checkbox" value="inf03" id="select-all-inf03">
-                            <span>Cały materiał INF.03</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="1" class="topic-checkbox">
-                            <span>HTML</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="2" class="topic-checkbox">
-                            <span>CSS</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="3" class="topic-checkbox">
-                            <span>JS</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="4" class="topic-checkbox">
-                            <span>PHP</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="5" class="topic-checkbox">
-                            <span>SQL</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="subject[]" value="6" class="topic-checkbox">
-                            <span>Inne pytania teoretyczne</span>
-                        </label>
-                    </div>
-                </fieldset>
+                    <fieldset class="topic-selector__fieldset">
+                        <legend class="topic-selector__sub-legend">Główne kategorie</legend>
+                        <div class="topic-selector__options">
+                            <label class="topic-selector__label"><input type="checkbox" value="inf03" id="select-all-inf03"><span>Cały materiał INF.03</span></label>
+                            <label class="topic-selector__label"><input type="checkbox" name="subject[]" value="1" class="topic-checkbox"><span>HTML</span></label>
+                            <label class="topic-selector__label"><input type="checkbox" name="subject[]" value="2" class="topic-checkbox"><span>CSS</span></label>
+                            <label class="topic-selector__label"><input type="checkbox" name="subject[]" value="3" class="topic-checkbox"><span>JS</span></label>
+                            <label class="topic-selector__label"><input type="checkbox" name="subject[]" value="4" class="topic-checkbox"><span>PHP</span></label>
+                            <label class="topic-selector__label"><input type="checkbox" name="subject[]" value="5" class="topic-checkbox"><span>SQL</span></label>
+                            <label class="topic-selector__label"><input type="checkbox" name="subject[]" value="6" class="topic-checkbox"><span>Inne pytania teoretyczne</span></label>
+                        </div>
+                    </fieldset>
 
-                <fieldset class="topic-selector__fieldset">
-                    <legend class="topic-selector__sub-legend">Inteligentna nauka</legend>
-                    <div class="topic-selector__options">
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="premium_option" value="toDiscover" class="premium-checkbox">
-                            <span>Nieodkryte pytania</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="premium_option" value="toImprove" class="premium-checkbox">
-                            <span>Pytania, które gorzej Ci idą</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="premium_option" value="toRemind" class="premium-checkbox">
-                            <span>Pytania najdawniej powtórzone</span>
-                        </label>
-                        <label class="topic-selector__label">
-                            <input type="checkbox" name="premium_option" value="lastMistakes" class="premium-checkbox">
-                            <span>Ostatnio błędne</span>
-                        </label>
-                    </div>
-                </fieldset>
-                
-                <button type="submit" class="btn btn--primary">Rozpocznij Test!</button>
+                    <fieldset class="topic-selector__fieldset">
+                        <legend class="topic-selector__sub-legend topic-selector__sub-legend--premium">Inteligentna nauka</legend>
+                        <div class="topic-selector__options">
+                            <label class="topic-selector__label premium-option"><input type="checkbox" name="premium_option" value="toDiscover" class="premium-checkbox"><span>Nieodkryte pytania</span></label>
+                            <label class="topic-selector__label premium-option"><input type="checkbox" name="premium_option" value="toImprove" class="premium-checkbox"><span>Pytania, które gorzej Ci idą</span></label>
+                            <label class="topic-selector__label premium-option"><input type="checkbox" name="premium_option" value="toRemind" class="premium-checkbox"><span>Pytania najdawniej powtórzone</span></label>
+                            <label class="topic-selector__label premium-option"><input type="checkbox" name="premium_option" value="lastMistakes" class="premium-checkbox"><span>Ostatnio błędne</span></label>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="test-configurator__actions">
+                    <button type="submit" class="btn btn--primary btn--large">Rozpocznij Test!</button>
+                </div>
             </form>
-        </aside>
-        <main class="quiz-page-layout__main-content">
-            <div id="quiz-container" style="margin-top: 20px;">
-                <p class="quiz-placeholder">Wybierz kategorie i liczbę pytań, aby rozpocząć spersonalizowany test.</p>
-            </div>
-        </main>
+        </div>
+
+        <main id="quiz-container"></main>
+
     </div>
 
     <script type="module" src="/examly/public/js/components/slider-enhancer.js"></script>

@@ -23,11 +23,6 @@
     }
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
 // Główny widok testu
 #test-view {
     padding: 2.5rem;
@@ -192,15 +187,14 @@
     background-color: #fef2f2;
 }
 
-// Styl dla przycisku wyjaśnienia w wynikach
+// ULEPSZONY Styl dla przycisku wyjaśnienia w wynikach
 .btn--secondary.btn--small {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    background-color: #64748b; // Ciemniejszy szary
-    
-    &:hover {
-        background-color: #475569; // Jeszcze ciemniejszy
-    }
+    padding: 0.5rem 1rem;      // Lekko dopasowany padding dla lepszej prezencji
+    font-size: 0.9rem;         // Czytelniejsza czcionka
+    font-weight: 500;          // Mniej dominująca grubość
+    // Celowo nie nadpisujemy tutaj tła. Dzięki temu przycisk zachowa
+    // domyślny, przezroczysty styl z .btn--secondary i będzie poprawnie
+    // reagował na najechanie myszką, zgodnie z definicją w _button.scss.
 }
 
 // Odpowiedź POPRAWNA (zaznaczona przez usera lub pokazana)
