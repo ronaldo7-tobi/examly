@@ -6,6 +6,10 @@
     padding: 0; // Resetujemy padding, bo dodamy go do poszczególnych sekcji
 }
 
+.test-container--active {
+  min-height: 100vh; // Ustawia minimalną wysokość na 60% wysokości ekranu. Możesz dostosować tę wartość.
+}
+
 // Ekran ładowania
 .test-loading {
     text-align: center;
@@ -33,9 +37,9 @@
 
 .test-header {
     position: sticky;
-    top: 85px; // Zakładając, że nawigacja ma ok. 85px
+    top: 10%;
     background-color: var(--bg);
-    padding: 1.5rem 0;
+    padding: 1.5rem ;
     margin-bottom: 2rem;
     border-bottom: 1px solid var(--subtle-border);
     z-index: 10;
@@ -88,26 +92,98 @@
         gap: 1rem;
         flex-wrap: wrap; // Zapewnia responsywność na małych ekranach
     }
+
+    &__stats-info {
+      width: 100%; // Zajmuje całą szerokość
+      text-align: center;
+      margin-bottom: 1.5rem; // Odstęp od przycisków
+      font-size: 1rem;
+      color: var(--muted-text);
+      line-height: 1.6;
+
+      a {
+          color: var(--accent);
+          font-weight: 600;
+          text-decoration: none;
+          &:hover {
+              text-decoration: underline;
+          }
+      }
+  }
 }
 
 .score-summary {
-    display: flex;
-    justify-content: center;
-    gap: 3rem;
-    margin-bottom: 3rem;
-    font-size: 1.2rem;
-    
-    p {
-        margin: 0;
-        color: var(--muted-text);
-    }
+  display: grid;
+  grid-template-columns: 1.5fr 1fr; // Dzieli przestrzeń na koło i statystyki
+  align-items: center;
+  gap: 3rem;
+  max-width: 600px;
+  margin: 0 auto 3.5rem auto;
+  text-align: left;
+}
 
-    strong {
-        display: block;
-        color: var(--text);
-        font-size: 1.8rem;
-        font-weight: 700;
-    }
+.score-circle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  // --score to zmienna CSS, którą ustawimy z JS, przechowuje wynik 0-100
+  background: conic-gradient(
+    var(--accent) calc(var(--score) * 1%), 
+    var(--field-bg) 0
+  );
+  justify-self: center; // Wycentruj koło w komórce siatki
+
+  // Wewnętrzne kółko, które tworzy efekt "obręczy"
+  &::before {
+    content: '';
+    position: absolute;
+    width: 85%;
+    height: 85%;
+    background: var(--bg);
+    border-radius: 50%;
+  }
+}
+
+.score-circle__percent {
+  position: relative;
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.score-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  &__icon {
+    font-size: 1.5rem;
+    color: var(--muted-text);
+    width: 30px;
+    text-align: center;
+  }
+
+  &__label {
+    font-size: 1rem;
+    color: var(--muted-text);
+    margin: 0;
+  }
+
+  &__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+  }
 }
 
 .results-details {

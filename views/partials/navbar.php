@@ -39,7 +39,7 @@
                 <i class="main-nav__icon fas fa-graduation-cap"></i>
                 <span>Kursy</span>
             </a>
-            <ul class="dropdown__menu">
+            <ul class="dropdown__menu dropdown__menu--right">
                 <li class="dropdown__item">
                     <a href="inf03_course" class="dropdown__link">
                         <i class="dropdown__icon fas fa-chalkboard-teacher"></i> Kurs INF.03
@@ -67,9 +67,9 @@
             <li class="main-nav__item dropdown">
                 <a href="/statistics" class="main-nav__link" aria-label="Profil użytkownika">
                     <!-- Możesz tu użyć avatara użytkownika z sesji -->
-                    <img src="../../public/images/user.png" alt="Avatar użytkownika" class="main-nav__user-avatar">
+                    <img src="/examly/public/images/user.png" alt="Avatar użytkownika" class="main-nav__user-avatar">
                 </a>
-                <ul class="dropdown__menu">
+                <ul class="dropdown__menu dropdown__menu--right">
                     <li class="dropdown__item">
                         <a href="statistics" class="dropdown__link">
                             <i class="dropdown__icon fas fa-chart-bar"></i> Statystyki

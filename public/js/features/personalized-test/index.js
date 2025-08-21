@@ -1,13 +1,9 @@
 /**
  * @module personalized-test
- * @version 1.1.0
+ * @version 2.1.0
  * @description
- * Ten moduł zarządza procesem generowania i uruchamiania spersonalizowanego
- * testu. Jego głównym zadaniem jest:
- * 1. Obsługa formularza konfiguracji testu (wybór tematów, liczby pytań).
- * 2. Komunikacja z API w celu pobrania zdefiniowanego zestawu pytań.
- * 3. Dynamiczne przygotowanie interfejsu testu.
- * 4. Przekazanie kontroli do generycznej klasy `TestRunner`, która zarządza przebiegiem testu.
+ * Ten moduł zarządza interaktywnym, krokowym procesem konfiguracji
+ * i uruchamiania spersonalizowanego testu.
  */
 
 import api from '../../modules/ApiClient.js';
@@ -17,88 +13,130 @@ import Toast from '../../components/Toast.js';
 /**
  * @class PersonalizedTest
  * @classdesc Główna klasa orkiestrująca działanie strony spersonalizowanego testu.
- * Działa jako "konfigurator", zbierając ustawienia od użytkownika, a następnie
- * inicjalizuje i przekazuje kontrolę do `TestRunner`.
- *
- * @property {HTMLElement} pageContainer - Główny kontener strony, przechowujący m.in. atrybut data-exam-code.
- * @property {HTMLFormElement} form - Formularz HTML służący do konfiguracji testu.
- * @property {HTMLElement} quizContainer - Kontener, w którym dynamicznie renderowany jest interfejs testu.
- * @property {HTMLElement} sidebar - Boczny panel z formularzem, ukrywany po rozpoczęciu testu.
- * @property {string} examCode - Kod egzaminu (np. "INF.03") pobrany z atrybutu data.
  */
 class PersonalizedTest {
-    /**
-     * @constructs PersonalizedTest
-     * @description Wyszukuje kluczowe elementy DOM, pobiera dane konfiguracyjne (np. kod egzaminu)
-     * i wiąże niezbędne nasłuchiwacze zdarzeń poprzez wywołanie `init()`.
-     */
     constructor() {
         this.pageContainer = document.getElementById('personalized-test-page');
-        if (!this.pageContainer) {
-            console.error("Błąd krytyczny: Nie znaleziono kontenera strony #quiz-personalized-test.");
-            return;
-        }
+        if (!this.pageContainer) return;
 
         this.form = document.getElementById('topic-form');
         this.quizContainer = document.getElementById('quiz-container');
         this.configurator = document.querySelector('.test-configurator');
         this.examCode = this.pageContainer.dataset.examCode;
+        
+        this.steps = this.configurator.querySelectorAll('.config-step');
+        this.currentStep = 1;
 
         this.init();
     }
 
     /**
      * @method init
-     * @description Inicjalizuje nasłuchiwacz zdarzenia 'submit' na formularzu konfiguracyjnym.
+     * @description Inicjalizuje nasłuchiwacze zdarzeń.
      * @private
      */
     init() {
         if (this.form) {
             this.form.addEventListener('submit', this.startTest.bind(this));
+            this.configurator.addEventListener('click', this.handleNavigation.bind(this));
         }
     }
     
     /**
-     * @method startTest
-     * @description Główna metoda orkiestrująca, uruchamiana po wysłaniu formularza.
-     * Jej zadaniem jest: zebrać dane z formularza, przygotować interfejs,
-     * pobrać dane testu z API, a na końcu zainicjalizować i uruchomić `TestRunner`,
-     * przekazując mu pobrane dane i kontrolę nad dalszym przebiegiem testu.
-     * @param {Event} event - Obiekt zdarzenia 'submit' z formularza.
+     * Obsługuje nawigację między krokami.
+     * @param {Event} event 
+     * @private
+     */
+    handleNavigation(event) {
+        const action = event.target.dataset.action;
+        if (!action) return;
+
+        if (action === 'next') {
+            if (this.validateStep(this.currentStep)) {
+                this.changeStep(this.currentStep + 1);
+            }
+        } else if (action === 'prev') {
+            this.changeStep(this.currentStep - 1);
+        }
+    }
+
+    /**
+     * Waliduje bieżący krok przed przejściem do następnego.
+     * @param {number} step - Numer kroku do walidacji.
+     * @returns {boolean}
+     * @private
+     */
+    validateStep(step) {
+        if (step === 1) {
+            const selectedSubjects = this.form.querySelectorAll('input[name="subject[]"]:checked');
+            if (selectedSubjects.length === 0) {
+                Toast.show('Wybierz przynajmniej jedną kategorię tematyczną.', 'info');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Zmienia widoczny krok w formularzu.
+     * @param {number} targetStep - Numer kroku do wyświetlenia.
+     * @private
+     */
+    changeStep(targetStep) {
+        const currentStepElement = this.configurator.querySelector(`[data-step="${this.currentStep}"]`);
+        const targetStepElement = this.configurator.querySelector(`[data-step="${targetStep}"]`);
+        
+        if (!targetStepElement) return;
+
+        if (currentStepElement) {
+            currentStepElement.style.display = 'none';
+        }
+        
+        targetStepElement.style.display = 'block';
+        this.currentStep = targetStep;
+    }
+    
+    /**
+     * Przywraca widok konfiguratora do stanu początkowego.
+     * @private
+     */
+    resetToConfigurator() {
+        this.configurator.classList.remove('hidden');
+        document.querySelector('.page-header').classList.remove('hidden');
+        this.quizContainer.innerHTML = '';
+        
+        // 1. Zdejmij klasę z minimalną wysokością.
+        this.quizContainer.classList.remove('test-container--active');
+    }
+
+    /**
+     * Uruchamiana po kliknięciu "Rozpocznij Test!".
+     * @param {Event} event
      * @private
      * @async
      */
     async startTest(event) {
-        // Krok 1: Zapobieganie domyślnemu odświeżeniu strony.
         event.preventDefault();
 
-        // Krok 2: Zbieranie opcji skonfigurowanych przez użytkownika.
         const selectedSubjects = [...this.form.querySelectorAll('input[name="subject[]"]:checked')].map(cb => cb.value);
         const premiumOption = this.form.querySelector('input[name="premium_option"]:checked')?.value || null;
         const questionCount = this.form.querySelector('#question-count').value;
-
-        // Krok 3: Walidacja.
-        if (selectedSubjects.length === 0) {
-            Toast.show('Wybierz przynajmniej jedną kategorię tematyczną.', 'info');
-            return;
-        }
-
-        // Krok 4: Logika określająca, czy test jest pełną symulacją egzaminu.
-        const allTopicCheckboxes = [...this.form.querySelectorAll('.topic-checkbox')];
-        const areAllTopicsSelected = allTopicCheckboxes.every(cb => cb.checked);
-        // Test jest "pełny" tylko, gdy wszystkie tematy są zaznaczone, jest 40 pytań I NIE wybrano opcji premium.
+        const areAllTopicsSelected = [...this.form.querySelectorAll('.topic-checkbox')].every(cb => cb.checked);
         const isConsideredFullExam = areAllTopicsSelected && parseInt(questionCount, 10) === 40 && !premiumOption;
-
-        // Krok 5: Przygotowanie interfejsu - ukrycie formularza i wstawienie szablonu testu.
+        
         this.configurator.classList.add('hidden');
-        document.querySelector('.page-header').classList.add('hidden');
+        
+        // 2. Nadaj kontenerowi klasę, która utrzyma jego minimalną wysokość i zapobiegnie "skokowi" stopki.
+        this.quizContainer.classList.add('test-container--active');
+
+        // 3. Wstrzyknij HTML z domyślnie ukrytym spinnerem.
         this.quizContainer.innerHTML = `
             <div class="test-container">
-                <div id="loading-screen" class="test-loading"><h2>Trwa przygotowywanie Twojego testu...</h2><div class="spinner"></div></div>
+                <div id="loading-screen" class="test-loading hidden"><h2>Trwa przygotowywanie Twojego testu...</h2><div class="spinner"></div></div>
                 <div id="test-view" class="hidden">
-                    <header class="test-header"><h1 class="test-header__title">Test Spersonalizowany</h1><div class="test-header__meta"><div id="timer">00:00</div><div id="question-counter">Pytanie 1 / ${questionCount}</div></div></header>
+                    <header class="test-header"><h1 class="test-header__title">Test Spersonalizowany - <span class="text-gradient">INF.03</span></h1><div class="test-header__meta"><div id="timer">00:00</div></div></header>
                     <div id="questions-wrapper" class="questions-wrapper"></div>
-                    <footer class="test-footer"><button id="finish-test-btn" class="btn btn--danger">Zakończ i sprawdź test</button></footer>
+                    <footer class="test-footer"><button id="finish-test-btn" class="btn btn--primary">Zakończ i sprawdź test</button></footer>
                 </div>
                 <div id="results-screen" class="results-container hidden">
                     <h1 class="results-container__title">Wyniki Testu</h1>
@@ -111,51 +149,39 @@ class PersonalizedTest {
         const loadingScreen = document.getElementById('loading-screen');
         const testView = document.getElementById('test-view');
 
-        // Wywołanie API w celu pobrania pytań.
+        let spinnerTimeout = setTimeout(() => {
+            loadingScreen.classList.remove('hidden');
+        }, 400);
+
         const response = await api.fetchPersonalizedTest(this.examCode, selectedSubjects, premiumOption, questionCount);
 
-        // Krok 7: Przetworzenie odpowiedzi z API - POPRAWIONA LOGIKA.
-        if (response.success) {
-            // Jeśli odpowiedź jest sukcesem, sprawdzamy, co dostaliśmy w środku.
-            const data = response.data;
+        clearTimeout(spinnerTimeout);
 
-            if (data.status === 'no_questions_left') {
-                // PRZYPADEK 1: Sukces, ale brak pytań.
-                Toast.show(data.message, 'info');
-
-
-            } else if (data.questions) {
-                // PRZYPADEK 2: Prawdziwy sukces - mamy pytania.
-                loadingScreen.classList.add('hidden');
-                testView.classList.remove('hidden');
-
-                // Uruchamiamy TestRunner.
-                const testRunner = new TestRunner({
-                    testView: testView,
+        if (response.success && response.data.questions && response.data.questions.length > 0) {
+            loadingScreen.classList.add('hidden');
+            testView.classList.remove('hidden');
+            
+            const testRunner = new TestRunner({
+                testView: testView,
                     questionsWrapper: document.getElementById('questions-wrapper'),
                     resultsScreen: document.getElementById('results-screen'),
                     finishBtn: document.getElementById('finish-test-btn'),
                     resultsDetailsContainer: document.getElementById('results-details'),
                     isFullExam: isConsideredFullExam
-                });
-                testRunner.run(data.questions);
-            }
+            });
+            testRunner.run(response.data.questions);
         } else {
-            // PRZYPADEK 3: Prawdziwy błąd API.
-            Toast.show(response.error || 'Nie udało się załadować pytań.', 'error');
-            
-            this.configurator.classList.remove('hidden'); // Pokaż z powrotem
-            document.querySelector('.page-header').classList.remove('hidden'); // Pokaż też header
-            this.quizContainer.innerHTML = ''; // Wyczyść kontener testu
+            if (response.data && response.data.status === 'no_questions_left') {
+                Toast.show(response.data.message, 'info');
+            } else {
+                Toast.show(response.error || 'Nie udało się załadować pytań.', 'error');
+            }
+            // Resetujemy widok (w tej funkcji odblokujemy przycisk).
+            this.resetToConfigurator();
         }
     }
 }
 
-/**
- * @event DOMContentLoaded
- * @description Punkt wejściowy skryptu. Po załadowaniu struktury DOM,
- * tworzy instancję klasy `PersonalizedTest`, aby aktywować całą logikę strony.
- */
 document.addEventListener('DOMContentLoaded', () => {
     new PersonalizedTest();
 });

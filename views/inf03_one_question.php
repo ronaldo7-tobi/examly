@@ -134,8 +134,10 @@
             </div>
         </main>
     </div>
+
+    <?php include 'partials//footer.php'; ?>
+
     <script type="module" src="/examly/public/js/components/topic-form-enhancer.js"></script>
     <script type="module" src="/examly/public/js/features/one-question/index.js"></script>
-    <?php include 'partials//footer.php'; ?>
 </body>
 </html>

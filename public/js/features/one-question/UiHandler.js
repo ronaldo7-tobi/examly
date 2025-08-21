@@ -7,6 +7,8 @@
  * gotową do użycia instancję `UIHandler` (wzorzec Singleton).
  */
 
+import { escapeHTML } from '../../utils/sanitize.js';
+
 /**
  * @class UIHandler
  * @classdesc Zestaw metod do renderowania komponentów UI, takich jak karty pytań,
@@ -20,19 +22,6 @@ class UIHandler {
      */
     constructor() {
         this.IMAGE_BASE_PATH = '/examly/public/images/questions/';
-    }
-
-    /**
-     * Zabezpiecza ciąg znaków przed interpretacją jako HTML (zapobieganie XSS).
-     * @param {string} str - Ciąg znaków do "uescape'owania".
-     * @returns {string} Bezpieczny do wstawienia w HTML ciąg znaków.
-     * @private
-     */
-    _escapeHTML(str) {
-        if (typeof str !== 'string') return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
     }
 
     /**
@@ -50,18 +39,18 @@ class UIHandler {
                 <label class="quiz-card__answer">
                     <input type="radio" name="answer" value="${answer.id}">
                     <span class="quiz-card__answer-prefix">${letter}</span>
-                    <span class="quiz-card__answer-text">${this._escapeHTML(answer.content)}</span>
+                    <span class="quiz-card__answer-text">${escapeHTML(answer.content)}</span>
                 </label>`;
         });
         
         const imageHTML = (question.image_path && question.image_path.trim() !== '') ? `
             <div class="quiz-card__image-container">
-                <img src="${this.IMAGE_BASE_PATH}${this._escapeHTML(question.image_path)}" alt="Ilustracja do pytania" class="quiz-card__image">
+                <img src="${this.IMAGE_BASE_PATH}${escapeHTML(question.image_path)}" alt="Ilustracja do pytania" class="quiz-card__image">
             </div>` : '';
 
         container.innerHTML = `
             <section class="quiz-card">
-                <p class="quiz-card__question-text">${this._escapeHTML(question.content)}</p>
+                <p class="quiz-card__question-text">${escapeHTML(question.content)}</p>
                 ${imageHTML}
                 <div class="quiz-card__answers">${answersHTML}</div>
                 <div class="quiz-card__actions">
@@ -122,7 +111,7 @@ class UIHandler {
 
         // Renderowanie przycisku wyjaśnienia (jeśli jest dostępne)
         if (explanation && explanation.trim() !== '') {
-            explanationContainer.innerHTML = `<p>${this._escapeHTML(explanation)}</p>`;
+            explanationContainer.innerHTML = `<p>${escapeHTML(explanation)}</p>`;
             const explanationButton = document.createElement('button');
             explanationButton.type = 'button';
             explanationButton.textContent = 'Pokaż wyjaśnienie';

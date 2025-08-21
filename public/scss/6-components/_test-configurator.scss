@@ -1,31 +1,58 @@
 // Plik: scss/6-components/_test-configurator.scss
+// Wersja 2.0 - Konfigurator krokowy
 
 .test-configurator {
-  max-width: 1100px;
+  max-width: 800px;
   margin: 2rem auto 3rem auto;
   padding: 2.5rem;
   background-color: var(--bg);
   border: 1px solid var(--subtle-border);
   border-radius: var(--border-radius-large, 12px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+}
 
-  &__content {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    justify-content: center;
-    margin-bottom: 2rem;
+.config-step {
+  border: none;
+  padding: 0;
+  margin: 0;
 
-    // Każdy fieldset (grupa opcji) będzie elastycznym elementem
-    .topic-selector__fieldset {
-      flex: 1 1 320px; // Pozwoli im się ładnie układać obok siebie
-      margin-bottom: 0; // Resetujemy domyślny margines
-    }
+  // Domyślnie wszystkie kroki są ukryte, JS będzie zarządzał ich widocznością
+  &[style*="display: none;"] {
+      display: none;
   }
+}
 
-  &__actions {
-    text-align: center;
-    padding-top: 2rem;
-    border-top: 1px solid var(--subtle-border);
-  }
+.config-step__title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--subtle-border);
+  width: 100%;
+}
+
+.config-step__number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: white;
+  font-size: 1.2rem;
+  flex-shrink: 0; // Zapobiega kurczeniu się kółka
+}
+
+.config-step__actions {
+  display: flex;
+  justify-content: flex-end; // Wyrównuje przyciski do prawej
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--subtle-border);
 }

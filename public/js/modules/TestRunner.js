@@ -7,7 +7,8 @@
  * i kompleksowe zapisywanie wyników w API.
  */
 
-import api from './ApiClient.js'; 
+import api from './ApiClient.js';
+import { escapeHTML } from '../utils/sanitize.js';
 
 /**
  * @class TestRunner
@@ -84,12 +85,17 @@ export class TestRunner {
         questions.forEach((qData, index) => {
             const question = qData.question;
             const answers = qData.answers;
-            let answersHtml = '';
-            answers.forEach(answer => {
-                answersHtml += `
+            let answersHTML = '';
+            answers.forEach((answer, index) => {
+                const letter = String.fromCharCode(65 + index);
+                const isCode = /[;(){}<>]/.test(answer.content);
+                const contentHTML = isCode ? `<code class="code">${escapeHTML(answer.content)}</code>` : escapeHTML(answer.content);
+
+                answersHTML += `
                     <label class="quiz-card__answer">
                         <input type="radio" name="question_${question.id}" value="${answer.id}">
-                        <span class="quiz-card__answer-text">${answer.content}</span>
+                        <span class="quiz-card__answer-prefix">${letter}</span>
+                        <span class="quiz-card__answer-text">${contentHTML}</span>
                     </label>`;
             });
             const questionElement = document.createElement('section');
@@ -103,7 +109,7 @@ export class TestRunner {
                     <p class="quiz-card__question-text">${question.content}</p>
                     ${question.image_path ? `<div class="quiz-card__image-container"><img src="/examly/public/images/questions/${question.image_path}" alt="Ilustracja do pytania" class="quiz-card__image"></div>` : ''}
                 </div>
-                <div class="quiz-card__answers">${answersHtml}</div>
+                <div class="quiz-card__answers">${answersHTML}</div>
                 <div class="quiz-card__actions">
                     <div class="quiz-card__button-container"></div>
                     <div class="quiz-card__explanation"></div>
@@ -190,22 +196,75 @@ export class TestRunner {
     }
 
     /**
-     * Wyświetla ekran wyników po zakończeniu testu.
+     * Wyświetla nowy, ulepszony ekran wyników po zakończeniu testu.
      * @param {number} score - Wynik testu w procentach.
      * @param {number} correctCount - Całkowita liczba poprawnych odpowiedzi.
-     * @param {Object<string, number|null>} userAnswers - Obiekt mapujący ID pytania na ID odpowiedzi użytkownika.
+     * @param {Object<string, number|null>} userAnswers - Obiekt z odpowiedziami użytkownika.
      * @private
      */
     showResults(score, correctCount, userAnswers) {
         this.testView.classList.add('hidden');
         this.resultsScreen.classList.remove('hidden');
 
-        document.getElementById('score-percent').textContent = `${score}%`;
-        document.getElementById('correct-count').textContent = `${correctCount} / ${this.questionsData.length}`;
+        // Pobieramy główny kontener, w którym zbudujemy nowy widok wyników.
+        const scoreSummaryContainer = document.getElementById('score-summary');
+        
+        // Wynik dla animacji (musi być liczbą całkowitą)
+        const scoreForAnimation = Math.round(score);
+
+        // Wynik do wyświetlenia (zachowuje precyzję dla pełnego egzaminu)
+        const scoreToDisplay = this.isFullExam ? score : Math.round(score);
+
+        scoreSummaryContainer.innerHTML = `
+            <div class="score-circle" style="--score: ${scoreForAnimation}">s
+                <div class="score-circle__percent">${scoreToDisplay}%</div>
+            </div>
+            <div class="score-stats">
+                <div class="stat-item">
+                    <i class="stat-item__icon fas fa-check"></i>
+                    <div>
+                        <p class="stat-item__label">Poprawne odpowiedzi</p>
+                        <p class="stat-item__value">${correctCount} / ${this.questionsData.length}</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <i class="stat-item__icon fas fa-clock"></i>
+                    <div>
+                        <p class="stat-item__label">Czas ukończenia</p>
+                        <p class="stat-item__value" id="duration-value">00:00</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Obliczamy i wstawiamy czas ukończenia do nowego elementu.
         const durationMinutes = Math.floor(this.timeSpent / 60);
         const durationSeconds = this.timeSpent % 60;
-        document.getElementById('duration').textContent = `${String(durationMinutes).padStart(2, '0')}:${String(durationSeconds).padStart(2, '0')}`;
-        
+        document.getElementById('duration-value').textContent = `${String(durationMinutes).padStart(2, '0')}:${String(durationSeconds).padStart(2, '0')}`;
+
+        // 1. Stwórz element na wiadomość o statystykach.
+        const statsInfo = document.createElement('p');
+        statsInfo.className = 'results-container__stats-info'; 
+
+        // 2. Sprawdź stan zalogowania i ustaw odpowiednią treść.
+        if (window.examlyAppState?.isUserLoggedIn) {
+            statsInfo.innerHTML = `
+                Świetna robota! Możesz śledzić swoje postępy i analizować wyniki 
+                w zakładce <a href="statistics">Statystyki</a>.
+            `;
+        } else {
+            statsInfo.innerHTML = `
+                Chcesz śledzić swoje postępy i zapisywać wyniki? 
+                <a href="register">Załóż darmowe konto</a>, aby odblokować statystyki!
+            `;
+        }
+
+        // 3. Wstaw nową wiadomość zaraz PO kontenerze z wynikami.
+        if (scoreSummaryContainer) {
+            scoreSummaryContainer.insertAdjacentElement('afterend', statsInfo);
+        }
+
+        // Poniższa logika pozostaje bez zmian, ponieważ nadal jest poprawna.
         this.resultsDetailsContainer.innerHTML = this.questionsWrapper.innerHTML;
         this.resultsDetailsContainer.querySelectorAll('input[type="radio"]').forEach(input => input.disabled = true);
         
@@ -261,8 +320,6 @@ export class TestRunner {
             label.classList.remove('selected');
         });
 
-        // Dodanie przycisku "Rozwiąż ponownie" do strony wyników - uwaga:
-        // ten przycisk przeładuje stronę, co spowoduje powrót do formularza konfiguracji.
         const actionsContainer = this.resultsScreen.querySelector('.results-container__actions');
         if (actionsContainer && !actionsContainer.querySelector('#solve-again-btn')) {
             const solveAgainButton = document.createElement('button');

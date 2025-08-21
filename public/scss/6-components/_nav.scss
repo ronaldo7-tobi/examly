@@ -21,6 +21,7 @@
 
   // Element: lista linków nawigacyjnych
   &__links {
+    align-items: center;
     list-style: none;
     display: flex;
     gap: 2rem;
@@ -36,7 +37,7 @@
     color: var(--text);
     text-decoration: none;
     font-weight: 500;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     padding: 0.5rem;
     border-radius: 0.5rem;
     transition: all 0.3s ease;
@@ -83,6 +84,11 @@
     transition: all 0.3s ease;
     z-index: 1000;
     pointer-events: none; // Ukryte menu nie powinno łapać kliknięć
+
+      &--right {
+      left: auto; // Resetujemy wyrównanie do lewej
+      right: 0;   // Ustawiamy wyrównanie do prawej
+      }
   }
 
   // Element: pojedynczy element w dropdownie
@@ -165,5 +171,21 @@
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
     }
+  }
+}
+
+.main-nav__user-avatar {
+  height: 45px;
+  width: 45px;
+  border-radius: 50%; // Zapewnia idealnie okrągły kształt
+  object-fit: cover; // Zapobiega zniekształceniu, gdy wgrasz prawdziwe zdjęcie
+  border: 2px solid transparent; // Domyślnie przezroczysta ramka
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  // Efekt po najechaniu myszką
+  &:hover {
+    border-color: var(--accent); // Podświetla ramkę na kolor akcentowy
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.3); // Dodaje subtelną poświatę
   }
 }

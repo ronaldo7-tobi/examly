@@ -48,7 +48,7 @@
             <div class="form-card__group">
                 <label for="email" class="form-card__label">Adres e-mail</label>
                 <input type="email" id="email" name="email" class="form-card__input" value="<?= htmlspecialchars($formData['email'] ?? '') ?>" 
-                       placeholder="jankowalski@example.com" required>
+                       placeholder="Twój adres e-mail" required>
             </div>
         
             <div class="form-card__group">

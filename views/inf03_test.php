@@ -51,6 +51,18 @@
 </head>
 <body>
     <?php include 'partials/navbar.php'; ?>
+    <header class="page-header">
+        <div class="page-header__content">
+            <h1 class="page-header__title"><span class="text-gradient">EE.09 / INF.03</span> - Test 40 pytań</h1>
+            <p class="page-header__text">
+                Sprawdź się w teście opartym o losowe pytania zgromadzone w naszej bazie danych. To Twoje najważniejsze narzędzie do odkrywania swoich słabości jak i realizacji progressu.
+            </p>
+            <p class="page-header__text">
+                <strong class="text-gradient">Pro Tip:</strong> 
+            </p>
+        </div>
+    </header>
+
     <div class="container">
         <main id="test-container" class="test-container" data-exam-code="<?= htmlspecialchars($examCode) ?>">
             
@@ -59,20 +71,19 @@
                 <p>Proszę czekać, losujemy 40 pytań z całej puli.</p>
                 <div class="spinner"></div>
             </div>
-
+            
             <div id="test-view" class="hidden">
                 <header class="test-header">
-                    <h1 class="test-header__title">Test Całościowy - INF.03</h1>
+                    <h1 class="test-header__title">Test Całościowy - <span class="text-gradient">INF.03</span></h1>
                     <div class="test-header__meta">
                         <div id="timer" class="timer">60:00</div>
-                        <div id="question-counter" class="question-counter">Pytanie 1 / 40</div>
                     </div>
                 </header>
 
                 <div id="questions-wrapper" class="questions-wrapper"></div>
 
                 <footer class="test-footer">
-                    <button id="finish-test-btn" class="btn btn--danger">Zakończ i sprawdź test</button>
+                    <button id="finish-test-btn" class="btn btn--primary">Zakończ i sprawdź test</button>
                 </footer>
             </div>
 
@@ -92,7 +103,8 @@
         </main>
     </div>
 
-    <script type="module" src="/examly/public/js/features/test/index.js"></script>
     <?php include 'partials//footer.php'; ?>
+
+    <script type="module" src="/examly/public/js/features/test/index.js"></script>
 </body>
 </html>

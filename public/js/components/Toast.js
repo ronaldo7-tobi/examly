@@ -1,20 +1,37 @@
 /**
  * @file Reużywalny komponent do wyświetlania powiadomień typu "toast".
  * @module Toast
+ * @version 1.2.0
  */
 class Toast {
     constructor() {
-        this.container = document.getElementById('toast-container');
+        this.container = null;
+        // Ustawiamy maksymalną liczbę widocznych powiadomień
+        this.maxToasts = 3; 
     }
 
     /**
-     * Wyświetla nowe powiadomienie.
+     * Wyświetla nowe powiadomienie z limitem.
      * @param {string} message - Treść wiadomości.
      * @param {string} [type='info'] - Typ powiadomienia ('info', 'success', 'error').
      * @param {number} [duration=5000] - Czas wyświetlania w milisekundach.
      */
     show(message, type = 'info', duration = 5000) {
-        if (!this.container) return;
+        this.container = document.getElementById('toast-container');
+        
+        if (!this.container) {
+            console.error('Błąd krytyczny: Nie znaleziono elementu #toast-container w DOM.');
+            return;
+        }
+
+        // --- NOWA LOGIKA OGRANICZAJĄCA ---
+        // Pętla while upewnia się, że usuniemy wystarczająco dużo starych powiadomień,
+        // jeśli jakimś cudem pojawi się ich więcej niż limit.
+        while (this.container.children.length >= this.maxToasts) {
+            // Usuwamy najstarsze powiadomienie, czyli pierwsze dziecko kontenera.
+            this.container.removeChild(this.container.firstChild);
+        }
+        // --- KONIEC NOWEJ LOGIKI ---
 
         const toast = document.createElement('div');
         toast.className = `toast toast--${type}`;
@@ -37,7 +54,9 @@ class Toast {
         closeButton.addEventListener('click', () => toast.remove());
 
         setTimeout(() => {
-            toast.remove();
+            if (toast.parentElement) {
+                toast.remove();
+            }
         }, duration);
     }
 }
