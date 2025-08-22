@@ -48,17 +48,21 @@
 
     <!-- Link do ikonek -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 </head>
 <body>
     <?php include 'partials/navbar.php'; ?>
     <header class="page-header">
         <div class="page-header__content">
-            <h1 class="page-header__title"><span class="text-gradient">EE.09 / INF.03</span> - Test 40 pytań</h1>
+            <h1 class="page-header__title"><span class="text-gradient">EE.09 / INF.03</span> - Pełny Egzamin Próbny</h1>
             <p class="page-header__text">
-                Sprawdź się w teście opartym o losowe pytania zgromadzone w naszej bazie danych. To Twoje najważniejsze narzędzie do odkrywania swoich słabości jak i realizacji progressu.
+                Zmierz się z pełnym egzaminem próbnym składającym się z 40 losowych pytań z naszej bazy. To najlepszy sposób, by sprawdzić swoją wiedzę, zidentyfikować słabe punkty i śledzić postępy w nauce.
             </p>
             <p class="page-header__text">
-                <strong class="text-gradient">Pro Tip:</strong> 
+                <strong class="text-gradient">Pro Tip:</strong> Po teście skup się na analizie błędnych odpowiedzi. Zrozumienie, dlaczego popełniłeś błąd, jest kluczem do sukcesu na prawdziwym egzaminie.
             </p>
         </div>
     </header>

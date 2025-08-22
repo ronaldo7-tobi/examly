@@ -7,7 +7,7 @@
  */
 
 import api from '../../modules/ApiClient.js';
-import ui from './UiHandler.js';
+import ui from '../../modules/UiHandler.js';
 import Toast from '../../components/Toast.js';
 
 /**
@@ -34,6 +34,7 @@ class Quiz {
         this.quizContainer = document.getElementById('quiz-container');
         this.examCode = this.pageContainer?.dataset.examCode || null;
         this.currentExplanation = null;
+        this.loaderTimer = null;
 
         if (this.topicForm && this.quizContainer && this.examCode) {
             this.init();
@@ -87,22 +88,32 @@ class Quiz {
             return;
         }
 
-        // Delegowanie wywołania API do zaimportowanej instancji `api`.
-        const result = await api.fetchQuestion(this.examCode, selectedSubjects, premiumOption);
+        try {
+            // Ustaw opóźniony wskaźnik ładowania. Pokaże się tylko, jeśli API będzie odpowiadać dłużej niż 300ms.
+            this.loaderTimer = setTimeout(() => {
+                ui.showLoader(this.quizContainer);
+            }, 300);
 
-        if (result.success) {
-            const data = result.data;
-            if (data.status === 'no_questions_left') {
-                // Delegowanie renderowania błędu do komponentu `Toast`.
-                Toast.show(data.message, 'info');
+            const result = await api.fetchQuestion(this.examCode, selectedSubjects, premiumOption);
+
+            if (result.success) {
+                const data = result.data;
+                if (data.status === 'no_questions_left') {
+                    Toast.show(data.message, 'info');
+                    this.quizContainer.innerHTML = '<p class="quiz-placeholder">Wybierz inne kryteria, aby kontynuować naukę.</p>';
+                } else {
+                    this.currentExplanation = data.question.explanation;
+                    ui.renderQuestion(this.quizContainer, data.question, data.answers);
+                }
             } else {
-                this.currentExplanation = data.question.explanation;
-                // Delegowanie renderowania pytania do modułu `ui`.
-                ui.renderQuestion(this.quizContainer, data.question, data.answers);
+                Toast.show(result.error, 'error');
             }
-        } else {
-            // Delegowanie renderowania błędu do komponentu `Toast`.
-            Toast.show(result.error, 'error');
+        } catch (error) {
+            Toast.show('Wystąpił krytyczny błąd. Spróbuj ponownie.', 'error');
+        } finally {
+            // Ten blok wykona się ZAWSZE - po sukcesie lub po błędzie.
+            // Anulujemy timer, aby mieć pewność, że wskaźnik nie pojawi się PO załadowaniu treści.
+            clearTimeout(this.loaderTimer);
         }
     }
 

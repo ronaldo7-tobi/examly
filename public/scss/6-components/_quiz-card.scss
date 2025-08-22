@@ -20,9 +20,9 @@
 
   // Element: sam obrazek
   &__image {
-    display: block;  // Usuwa domyślny mały odstęp pod obrazkiem
-    width: 100%;     // Obrazek jest w pełni responsywny, dopasowuje się do szerokości kontenera
-    height: auto;    // Zachowuje proporcje
+    display: block; // Usuwa domyślny mały odstęp pod obrazkiem
+    width: 100%; // Obrazek jest w pełni responsywny, dopasowuje się do szerokości kontenera
+    height: auto; // Zachowuje proporcje
     max-height: 400px; // Opcjonalnie: ogranicza maksymalną wysokość, by nie zdominował widoku
     object-fit: contain; // Zapewnia, że cały obrazek będzie widoczny, nawet jeśli ma inne proporcje
   }
@@ -44,7 +44,7 @@
 
     // --- OSTATECZNA POPRAWKA ---
     // Gdy na pytanie udzielono odpowiedzi...
-    &[data-answered="true"] .quiz-card__answer {
+    &[data-answered='true'] .quiz-card__answer {
       cursor: default; // 1. Zmień kursor na wszystkich odpowiedziach.
 
       &:hover {
@@ -67,17 +67,17 @@
     transition: all 0.2s ease-in-out;
     position: relative;
 
-    input[type="radio"] {
+    input[type='radio'] {
       display: none;
     }
 
     // Działa tylko wtedy, gdy na pytanie NIE odpowiedziano
     &:hover {
       border-color: var(--accent);
-      box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); 
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
       transform: translateY(-2px);
     }
-    
+
     // Modyfikator: poprawna odpowiedź
     &--correct {
       border-color: var(--success-color, #28a745);
@@ -96,38 +96,38 @@
       border-color: var(--error-color, #dc3545);
       background-color: var(--error-color-light, #fbebed);
       font-weight: 600;
-      
+
       .quiz-card__answer-prefix {
         background-color: var(--error-color, #dc3545);
         border-color: var(--error-color, #dc3545);
         color: white;
       }
     }
-    
+
     // Ikony ✔ i ✖ dla feedbacku
     &--correct::after,
     &--incorrect::after {
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        right: 1.25rem;
-        font-size: 1.5rem;
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      right: 1.25rem;
+      font-size: 1.5rem;
     }
     &--correct::after {
-        content: '\f00c';
-        color: var(--success-color, #28a745);
+      content: '\f00c';
+      color: var(--success-color, #28a745);
     }
     &--incorrect::after {
-        content: '\f00d';
-        color: var(--error-color, #dc3545);
+      content: '\f00d';
+      color: var(--error-color, #dc3545);
     }
   }
 
   // Globalne zmiany po udzieleniu odpowiedzi
-  &__answers[data-answered="true"] {
+  &__answers[data-answered='true'] {
     // Wszystkie odpowiedzi stają się nieklikalne
     .quiz-card__answer {
       cursor: default;
@@ -180,7 +180,7 @@
     font-weight: 600;
     transition: all 0.2s ease;
   }
-  
+
   // Element: kontener na akcje (przyciski i wyjaśnienie)
   &__actions {
     margin-top: 1.5rem;
@@ -193,7 +193,7 @@
     display: flex;
     gap: 1rem;
   }
-  
+
   // Element: panel z wyjaśnieniem
   &__explanation {
     background-color: #f8fafc;
@@ -201,7 +201,7 @@
     line-height: 1.6;
     border-radius: var(--border-radius-base, 8px);
     border-left: 4px solid var(--accent);
-    
+
     // Logika animacji - stan ukryty
     overflow: hidden;
     max-height: 0;
@@ -231,7 +231,7 @@
   }
 }
 
-.code {
+code {
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 0.9em; // Lekko mniejsza czcionka dla kodu
   background-color: var(--field-bg);
