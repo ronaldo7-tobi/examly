@@ -10,16 +10,16 @@
 
   // --- EFEKT GŁĘBI ---
   // Wielowarstwowy cień tworzy subtelny efekt unoszenia się karty nad tłem.
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 10px 25px -4px rgba(0, 0, 0, 0.08);
 
   // Delikatne przejście dla wszystkich zmian
   transition: all 0.3s ease-in-out;
 
   &:hover {
-    box-shadow: 
-      0 4px 8px -1px rgba(0, 0, 0, 0.06), 
+    box-shadow:
+      0 4px 8px -1px rgba(0, 0, 0, 0.06),
       0 12px 30px -4px rgba(0, 0, 0, 0.1);
   }
 
@@ -46,7 +46,7 @@
     margin: 0 0 0.75rem 0;
     color: var(--text);
   }
-  
+
   &__subtitle {
     font-size: 1.1rem;
     color: var(--muted-text);
@@ -74,33 +74,35 @@
     color: var(--text);
     transition: all 0.2s ease;
     outline: none;
-    
+
     // KROK 1: Ustawiamy transparentny border, aby tło mogło "prześwitywać".
-    border: 2px solid transparent; 
+    border: 2px solid transparent;
 
     // KROK 2: Technika podwójnego tła do symulacji ramki.
     // Tło 1: kolor pola (wewnętrzny), Tło 2: kolor/gradient ramki (zewnętrzny)
-    background-image: 
-        linear-gradient(var(--field-bg), var(--field-bg)), // Wypełnienie pola
-        linear-gradient(to right, var(--border), var(--border)); // Domyślna, jednolita "ramka"
+    background-image:
+      linear-gradient(var(--field-bg), var(--field-bg)),
+      // Wypełnienie pola
+      linear-gradient(to right, var(--border), var(--border)); // Domyślna, jednolita "ramka"
     background-origin: border-box;
     background-clip: padding-box, border-box;
 
     // KROK 3: STYL AKTYWACJI GRADIENTU
-    // Aktywujemy gradient, gdy pole jest w focusie LUB gdy ma treść 
+    // Aktywujemy gradient, gdy pole jest w focusie LUB gdy ma treść
     // (sztuczka z :not(:placeholder-shown) wymaga dodania placeholderów w HTML)
     &:focus,
     &:not(:placeholder-shown) {
       border-color: transparent; // Upewniamy się, że ramka jest przezroczysta
-      background-image: 
-          linear-gradient(var(--field-bg), var(--field-bg)),
-          linear-gradient(to right, var(--accent), #8b5cf6); // Twój wymarzony gradient!
+      background-image:
+        linear-gradient(var(--field-bg), var(--field-bg)), linear-gradient(to right, var(--accent), #8b5cf6); // Twój wymarzony gradient!
     }
-    
+
     // KROK 4: Ulepszony focus, który nie koliduje z gradientem
     &:focus {
       // Zostawiamy tylko cienie, ponieważ ramka jest już obsłużona powyżej.
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25), inset 0 1px 2px rgba(0,0,0,0.1);
+      box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.25),
+        inset 0 1px 2px rgba(0, 0, 0, 0.1);
     }
   }
 

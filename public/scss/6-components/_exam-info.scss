@@ -16,11 +16,13 @@
   padding: 2rem;
   border-radius: var(--border-radius-large, 12px);
   border: 1px solid var(--subtle-border);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
   &:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   }
 
   &__question {
@@ -44,24 +46,24 @@
 }
 
 .info-block__list {
-    list-style: none; // Usuwamy domyślne kropki
-    padding: 0;
-    margin-top: 1rem; // Odstęp od tekstu powyżej
+  list-style: none; // Usuwamy domyślne kropki
+  padding: 0;
+  margin-top: 1rem; // Odstęp od tekstu powyżej
 
-    li {
-        position: relative;
-        padding-left: 1.75rem; // Robimy miejsce na ikonę
-        margin-bottom: 0.5rem;
+  li {
+    position: relative;
+    padding-left: 1.75rem; // Robimy miejsce na ikonę
+    margin-bottom: 0.5rem;
 
-        // Dodajemy "ptaszek" jako ikonę punktu listy
-        &::before {
-            content: '✔';
-            position: absolute;
-            left: 0;
-            top: -1px;
-            color: var(--accent);
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
+    // Dodajemy "ptaszek" jako ikonę punktu listy
+    &::before {
+      content: '✔';
+      position: absolute;
+      left: 0;
+      top: -1px;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1.1rem;
     }
+  }
 }

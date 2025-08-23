@@ -2,6 +2,5 @@
 
 class Course
 {
-    private PDO $db;
-
+  private PDO $db;
 }

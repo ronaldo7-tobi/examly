@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Kontroler Strony Logowania.
@@ -13,74 +13,75 @@
  */
 class LoginController extends BaseController
 {
-    /**
-     * Serwis uwierzytelniania, który zawiera główną logikę biznesową logowania.
-     * @var AuthController
-     */
-    private AuthController $auth;
+  /**
+   * Serwis uwierzytelniania, który zawiera główną logikę biznesową logowania.
+   * @var AuthController
+   */
+  private AuthController $auth;
 
-    /**
-     * Konstruktor Kontrolera Logowania.
-     * * Wywołuje konstruktor klasy nadrzędnej (`BaseController`) w celu
-     * inicjalizacji sesji i sprawdzenia statusu logowania, a następnie
-     * tworzy instancję serwisu `AuthController`.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->auth = new AuthController();
+  /**
+   * Konstruktor Kontrolera Logowania.
+   * Wywołuje konstruktor klasy nadrzędnej (`BaseController`) w celu
+   * inicjalizacji sesji i sprawdzenia statusu logowania, a następnie
+   * tworzy instancję serwisu `AuthController`.
+   */
+  public function __construct()
+  {
+    parent::__construct();
+    $this->auth = new AuthController();
+  }
+
+  /**
+   * Główna metoda kontrolera, zarządzająca całą logiką strony logowania.
+   * 1. Sprawdza, czy użytkownik jest już zalogowany, i jeśli tak, przekierowuje go.
+   * 2. Jeśli żądanie jest typu POST, przetwarza dane z formularza, wywołując serwis `auth->login()`.
+   * 3. W przypadku sukcesu: regeneruje ID sesji (ze względów bezpieczeństwa) i przekierowuje na stronę główną.
+   * 4. W przypadku błędu: zbiera komunikaty o błędach.
+   * 5. Na koniec renderuje widok `login.php`, przekazując do niego ewentualne błędy
+   *    oraz dane wprowadzone przez użytkownika w formularzu.
+   * 
+   * @return void
+   */
+  public function handleRequest(): void
+  {
+    // 1. Przekieruj, jeśli użytkownik jest już zalogowany
+    if ($this->isUserLoggedIn) {
+      header('Location: /');
+      exit();
     }
 
-    /**
-     * Główna metoda kontrolera, zarządzająca całą logiką strony logowania.
-     * * 1. Sprawdza, czy użytkownik jest już zalogowany, i jeśli tak, przekierowuje go.
-     * 2. Jeśli żądanie jest typu POST, przetwarza dane z formularza, wywołując serwis `auth->login()`.
-     * 3. W przypadku sukcesu: regeneruje ID sesji (ze względów bezpieczeństwa) i przekierowuje na stronę główną.
-     * 4. W przypadku błędu: zbiera komunikaty o błędach.
-     * 5. Na koniec renderuje widok `login.php`, przekazując do niego ewentualne błędy
-     * oraz dane wprowadzone przez użytkownika w formularzu.
-     * * @return void
-     */
-    public function handleRequest(): void
-    {
-        // 1. Przekieruj, jeśli użytkownik jest już zalogowany
-        if ($this->isUserLoggedIn) {
-            header('Location: /');
-            exit;
+    $errors = [];
+    $formData = [];
+
+    // 2. Obsłuż dane z formularza
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+      $formData = $_POST;
+      $result = $this->auth->login($formData);
+
+      // 3. Reakcja na sukces
+      if ($result['success']) {
+        session_regenerate_id(true); // Zabezpieczenie przed atakiem session fixation
+        unset($_SESSION['verify_user_id']); // Sprzątanie po procesie rejestracji
+
+        header('Location: /examly/public/');
+        exit();
+      } else {
+        // 4. Reakcja na błąd
+        if (isset($result['error_type']) && $result['error_type'] === 'not_verified') {
+          // Stwórz link, który uruchomi ponowne wysłanie e-maila
+          $resendLink = '<a href="verify_email?send=true">Kliknij tutaj, aby wysłać go ponownie.</a>';
+          $errors[] = 'Konto nie zostało jeszcze zweryfikowane. ' . $resendLink;
+        } else {
+          // W przeciwnym razie, obsłuż standardowe błędy
+          $errors = $result['errors'];
         }
-
-        $errors = [];
-        $formData = [];
-
-        // 2. Obsłuż dane z formularza
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $formData = $_POST;
-            $result = $this->auth->login($formData);
-
-            // 3. Reakcja na sukces
-            if ($result['success']) {
-                session_regenerate_id(true); // Zabezpieczenie przed atakiem session fixation
-                unset($_SESSION['verify_user_id']); // Sprzątanie po procesie rejestracji
-                
-                header('Location: /examly/public/');
-                exit;
-            } else {
-                // 4. Reakcja na błąd
-                if (isset($result['error_type']) && $result['error_type'] === 'not_verified') {
-                    // Stwórz link, który uruchomi ponowne wysłanie e-maila
-                    $resendLink = '<a href="verify_email?send=true">Kliknij tutaj, aby wysłać go ponownie.</a>';
-                    $errors[] = 'Konto nie zostało jeszcze zweryfikowane. ' . $resendLink;
-                } else {
-                    // W przeciwnym razie, obsłuż standardowe błędy
-                    $errors = $result['errors'];
-                }
-            }
-        }
-
-        // 5. Renderowanie widoku
-        $this->renderView('login', [
-            'errors' => $errors,
-            'formData' => $formData
-        ]);
+      }
     }
+
+    // 5. Renderowanie widoku
+    $this->renderView('login', [
+      'errors' => $errors,
+      'formData' => $formData,
+    ]);
+  }
 }

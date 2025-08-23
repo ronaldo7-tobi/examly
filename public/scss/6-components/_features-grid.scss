@@ -31,7 +31,7 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
   }
-  
+
   &__icon {
     font-size: 1.75rem;
     color: var(--accent);
@@ -49,7 +49,7 @@
     line-height: 1.6;
     margin: 0;
   }
-  
+
   // Kontener na rozwijany opis
   &__details {
     // Stan domyślny (zwinięty)
@@ -61,7 +61,7 @@
     font-size: 0.95rem;
 
     p {
-        margin: 0;
+      margin: 0;
     }
   }
 

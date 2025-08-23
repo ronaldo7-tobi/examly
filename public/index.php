@@ -8,7 +8,7 @@ require_once __DIR__ . '/../app/Core/autoload.php';
 
 // Odpalenie sesji
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+  session_start();
 }
 
 // Utworzenie obiektu Router'a.

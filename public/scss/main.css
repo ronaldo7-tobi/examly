@@ -884,7 +884,7 @@ body {
   box-shadow: 0 0 0 1px var(--accent);
 }
 
-.code {
+code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.9em;
   background-color: var(--field-bg);
@@ -1134,13 +1134,15 @@ body {
   display: none !important;
 }
 
-.questions-wrapper .quiz-card, .results-details .quiz-card {
+.questions-wrapper .quiz-card,
+.results-details .quiz-card {
   margin: 0 auto 2.5rem auto;
   padding: 2rem;
   box-shadow: none;
   border: 1px solid var(--subtle-border);
 }
-.questions-wrapper .quiz-card__header, .results-details .quiz-card__header {
+.questions-wrapper .quiz-card__header,
+.results-details .quiz-card__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1148,7 +1150,8 @@ body {
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--subtle-border);
 }
-.questions-wrapper .quiz-card__question-number, .results-details .quiz-card__question-number {
+.questions-wrapper .quiz-card__question-number,
+.results-details .quiz-card__question-number {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--muted-text);
@@ -1774,7 +1777,9 @@ body.home-page-background {
   padding: 4rem 1.5rem;
 }
 
-.features-section, .exams-section, .topics-section {
+.features-section,
+.exams-section,
+.topics-section {
   padding: 1rem 1.5rem;
 }
 

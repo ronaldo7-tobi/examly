@@ -11,9 +11,8 @@
 body.home-page-background {
   // --- STYLE TŁA ---
   background-image:
-    linear-gradient(var(--bg-overlay), var(--bg-overlay)),
-    url('/examly/public/images/background.png'); // <-- Pamiętaj o poprawnej nazwie pliku!
-  
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('/examly/public/images/background.png'); // <-- Pamiętaj o poprawnej nazwie pliku!
+
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -26,6 +25,8 @@ body.home-page-background {
 }
 
 // Style sekcji - definiują tylko ich tło i padding
-.features-section, .exams-section, .topics-section {
+.features-section,
+.exams-section,
+.topics-section {
   padding: 1rem 1.5rem;
 }

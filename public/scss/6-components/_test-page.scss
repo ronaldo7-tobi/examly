@@ -1,9 +1,9 @@
 // Plik: public/scss/6-components/_test-page.scss
 
 .test-container {
-    max-width: 900px;
-    margin: 2rem auto;
-    padding: 0; // Resetujemy padding, bo dodamy go do poszczególnych sekcji
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0; // Resetujemy padding, bo dodamy go do poszczególnych sekcji
 }
 
 .test-container--active {
@@ -12,103 +12,103 @@
 
 // Ekran ładowania
 .test-loading {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--muted-text);
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--muted-text);
 
-    .spinner {
-        margin: 2rem auto;
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border-left-color: var(--accent);
-        animation: spin 1s ease infinite;
-    }
+  .spinner {
+    margin: 2rem auto;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: var(--accent);
+    animation: spin 1s ease infinite;
+  }
 }
 
 // Główny widok testu
 #test-view {
-    padding: 2.5rem;
-    background-color: var(--bg);
-    border-radius: var(--border-radius-large, 12px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  padding: 2.5rem;
+  background-color: var(--bg);
+  border-radius: var(--border-radius-large, 12px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 .test-header {
-    position: sticky;
-    top: 10%;
-    background-color: var(--bg);
-    padding: 1.5rem ;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid var(--subtle-border);
-    z-index: 10;
+  position: sticky;
+  top: 10%;
+  background-color: var(--bg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--subtle-border);
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  &__meta {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    &__title {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 700;
-    }
-
-    &__meta {
-        display: flex;
-        gap: 1.5rem;
-        font-weight: 600;
-        color: var(--muted-text);
-        font-size: 1rem;
-    }
+    gap: 1.5rem;
+    font-weight: 600;
+    color: var(--muted-text);
+    font-size: 1rem;
+  }
 }
 
 .test-footer {
-    text-align: center;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--subtle-border);
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--subtle-border);
 }
 
 // Ekran wyników
 .results-container {
-    padding: 2.5rem;
+  padding: 2.5rem;
+  text-align: center;
+  background-color: var(--bg);
+  border-radius: var(--border-radius-large, 12px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+
+  &__title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  // NOWE STYLE
+  &__actions {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--subtle-border);
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap; // Zapewnia responsywność na małych ekranach
+  }
+
+  &__stats-info {
+    width: 100%; // Zajmuje całą szerokość
     text-align: center;
-    background-color: var(--bg);
-    border-radius: var(--border-radius-large, 12px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem; // Odstęp od przycisków
+    font-size: 1rem;
+    color: var(--muted-text);
+    line-height: 1.6;
 
-    &__title {
-        font-size: 2rem;
-        margin-bottom: 2rem;
-    }
-    
-    // NOWE STYLE
-    &__actions {
-        margin-top: 2.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--subtle-border);
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        flex-wrap: wrap; // Zapewnia responsywność na małych ekranach
-    }
-
-    &__stats-info {
-      width: 100%; // Zajmuje całą szerokość
-      text-align: center;
-      margin-bottom: 1.5rem; // Odstęp od przycisków
-      font-size: 1rem;
-      color: var(--muted-text);
-      line-height: 1.6;
-
-      a {
-          color: var(--accent);
-          font-weight: 600;
-          text-decoration: none;
-          &:hover {
-              text-decoration: underline;
-          }
+    a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
       }
+    }
   }
 }
 
@@ -130,10 +130,7 @@
   height: 180px;
   border-radius: 50%;
   // --score to zmienna CSS, którą ustawimy z JS, przechowuje wynik 0-100
-  background: conic-gradient(
-    var(--accent) calc(var(--score) * 1%), 
-    var(--field-bg) 0
-  );
+  background: conic-gradient(var(--accent) calc(var(--score) * 1%), var(--field-bg) 0);
   justify-self: center; // Wycentruj koło w komórce siatki
 
   // Wewnętrzne kółko, które tworzy efekt "obręczy"
@@ -187,97 +184,98 @@
 }
 
 .results-details {
-    .quiz-card {
-        margin: 0 auto 2.5rem auto;
-        padding: 2rem;
-        box-shadow: none;
-        border: 1px solid var(--subtle-border);
+  .quiz-card {
+    margin: 0 auto 2.5rem auto;
+    padding: 2rem;
+    box-shadow: none;
+    border: 1px solid var(--subtle-border);
+  }
+
+  // NOWA REGUŁA: Wyłącza interaktywność odpowiedzi na stronie wyników
+  .quiz-card__answer {
+    cursor: default; // Zmień kursor, by nie sugerował klikalności
+
+    &:hover {
+      // Resetujemy style hovera do ich domyślnych wartości z karty,
+      // aby nic się nie zmieniało po najechaniu myszką.
+      // Te reguły nadpiszą globalny hover z _quiz-card.scss
+      &.correct {
+        border-color: #16a34a;
+        background-color: #f0fdf4;
+      }
+      &.incorrect {
+        border-color: #dc2626;
+        background-color: #fef2f2;
+      }
+      &.missed {
+        border-color: #2563eb;
+        background-color: #eff6ff;
+      }
+      &:not(.correct):not(.incorrect):not(.missed) {
+        background-color: var(--bg);
+        border-color: var(--border);
+      }
     }
-    
-    // NOWA REGUŁA: Wyłącza interaktywność odpowiedzi na stronie wyników
-    .quiz-card__answer {
-        cursor: default; // Zmień kursor, by nie sugerował klikalności
-        
-        &:hover {
-            // Resetujemy style hovera do ich domyślnych wartości z karty,
-            // aby nic się nie zmieniało po najechaniu myszką.
-            // Te reguły nadpiszą globalny hover z _quiz-card.scss
-            &.correct {
-                border-color: #16a34a;
-                background-color: #f0fdf4;
-            }
-            &.incorrect {
-                border-color: #dc2626;
-                background-color: #fef2f2;
-            }
-            &.missed {
-                border-color: #2563eb;
-                background-color: #eff6ff;
-            }
-            &:not(.correct):not(.incorrect):not(.missed) {
-                background-color: var(--bg);
-                border-color: var(--border);
-            }
-        }
-    }
+  }
 }
 
 // Klasa pomocnicza
 .hidden {
-    display: none !important;
+  display: none !important;
 }
 
 // Modyfikacje dla quiz-card wewnątrz testu
-.questions-wrapper, .results-details {
-    .quiz-card {
-        margin: 0 auto 2.5rem auto;
-        padding: 2rem;
-        box-shadow: none;
-        border: 1px solid var(--subtle-border);
-    }
+.questions-wrapper,
+.results-details {
+  .quiz-card {
+    margin: 0 auto 2.5rem auto;
+    padding: 2rem;
+    box-shadow: none;
+    border: 1px solid var(--subtle-border);
+  }
 
-    .quiz-card__header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--subtle-border);
-    }
-    
-    .quiz-card__question-number {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--muted-text);
-    }
+  .quiz-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--subtle-border);
+  }
+
+  .quiz-card__question-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted-text);
+  }
 }
 
 // Style dla poprawnej i niepoprawnej odpowiedzi
 .quiz-card__answer.correct {
-    border-color: #16a34a;
-    background-color: #f0fdf4;
+  border-color: #16a34a;
+  background-color: #f0fdf4;
 }
 
 .quiz-card__answer.incorrect {
-    border-color: #dc2626;
-    background-color: #fef2f2;
+  border-color: #dc2626;
+  background-color: #fef2f2;
 }
 
 // ULEPSZONY Styl dla przycisku wyjaśnienia w wynikach
 .btn--secondary.btn--small {
-    padding: 0.5rem 1rem;      // Lekko dopasowany padding dla lepszej prezencji
-    font-size: 0.9rem;         // Czytelniejsza czcionka
-    font-weight: 500;          // Mniej dominująca grubość
-    // Celowo nie nadpisujemy tutaj tła. Dzięki temu przycisk zachowa
-    // domyślny, przezroczysty styl z .btn--secondary i będzie poprawnie
-    // reagował na najechanie myszką, zgodnie z definicją w _button.scss.
+  padding: 0.5rem 1rem; // Lekko dopasowany padding dla lepszej prezencji
+  font-size: 0.9rem; // Czytelniejsza czcionka
+  font-weight: 500; // Mniej dominująca grubość
+  // Celowo nie nadpisujemy tutaj tła. Dzięki temu przycisk zachowa
+  // domyślny, przezroczysty styl z .btn--secondary i będzie poprawnie
+  // reagował na najechanie myszką, zgodnie z definicją w _button.scss.
 }
 
 // Odpowiedź POPRAWNA (zaznaczona przez usera lub pokazana)
 .quiz-card__answer.correct {
   border-color: #16a34a; // Ciemnozielony
   background-color: #f0fdf4; // Jasnozielony
-  
+
   .quiz-card__answer-text {
     color: #15803d; // Ciemniejszy zielony tekst dla czytelności
     font-weight: 600;

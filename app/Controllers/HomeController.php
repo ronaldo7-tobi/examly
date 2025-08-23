@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Kontroler Strony Głównej.
@@ -10,12 +10,13 @@
  */
 class HomeController extends BaseController
 {
-    /**
-     * Wyświetla widok strony głównej.
-     * @return void
-     */
-    public function show(): void
-    {
-        $this->renderView('home');
-    }
+  /**
+   * Wyświetla widok strony głównej.
+   * 
+   * @return void
+   */
+  public function show(): void
+  {
+    $this->renderView('home');
+  }
 }

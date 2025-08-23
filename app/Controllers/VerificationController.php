@@ -3,109 +3,117 @@
 /**
  * Kontroler Weryfikacji Adresu E-mail.
  *
- * Zarządza logiką walidacji tokenu wysłanego na adres e-mail użytkownika
- * w celu aktywacji konta. Odpowiada za cały proces od odebrania tokenu
- * aż po finalizację weryfikacji lub obsługę błędu.
+ * Odpowiada za finalny etap aktywacji konta użytkownika. Jego jedynym zadaniem
+ * jest odebranie tokenu weryfikacyjnego z adresu URL, jego walidacja oraz,
+ * w przypadku powodzenia, aktywacja powiązanego konta.
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @author Tobiasz Szerszeń
  */
 class VerificationController extends BaseController
 {
-    /**
-     * Instancja modelu użytkownika do interakcji z tabelą użytkowników.
-     * @var UserModel
-     */
-    private UserModel $userModel;
+  /**
+   * Instancja modelu użytkownika do interakcji z tabelą użytkowników.
+   * @var UserModel
+   */
+  private UserModel $userModel;
 
-    /**
-     * Instancja serwisu do obsługi logiki tokenów.
-     * @var TokenService
-     */
-    private TokenService $tokenService;
+  /**
+   * Instancja serwisu do obsługi logiki tokenów (walidacja, usuwanie).
+   * @var TokenService
+   */
+  private TokenService $tokenService;
 
-    /**
-     * Konstruktor kontrolera.
-     *
-     * Inicjalizuje nadrzędny BaseController oraz wstrzykuje niezbędne
-     * zależności, takie jak UserModel i TokenService.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->userModel = new UserModel();
-        $this->tokenService = new TokenService();
+  /**
+   * Konstruktor kontrolera weryfikacji.
+   *
+   * Inicjalizuje nadrzędny BaseController oraz usługi niezbędne do
+   * przeprowadzenia procesu weryfikacji: UserModel i TokenService.
+   */
+  public function __construct()
+  {
+    parent::__construct();
+    $this->userModel = new UserModel();
+    $this->tokenService = new TokenService();
+  }
+
+  /**
+   * Główny endpoint obsługujący proces weryfikacji konta.
+   *
+   * Logika działania:
+   * 1. Sprawdza, czy użytkownik nie jest już zalogowany.
+   * 2. Pobiera token z parametrów GET i sprawdza jego istnienie.
+   * 3. Waliduje token w bazie danych (czy istnieje i czy nie wygasł).
+   * 4. Jeśli token jest poprawny, aktywuje konto użytkownika w modelu.
+   * 5. Po udanej aktywacji, usuwa zużyty token w celu zachowania higieny i bezpieczeństwa.
+   * 6. Ustawia komunikat o sukcesie i przekierowuje na stronę logowania.
+   * 7. W każdym przypadku błędu, wyświetla dedykowany widok z informacją.
+   *
+   * @return void
+   */
+  public function handle(): void
+  {
+    // Krok 1: Sprawdzenie wstępne — zalogowany użytkownik nie wymaga weryfikacji.
+    if ($this->isUserLoggedIn) {
+      header('Location: /');
+      exit();
     }
 
-    /**
-     * Główna metoda obsługująca proces weryfikacji.
-     *
-     * Pobiera token z adresu URL, waliduje go, a następnie albo aktywuje
-     * konto użytkownika i przekierowuje go na stronę logowania z komunikatem
-     * o sukcesie, albo wyświetla stronę z informacją o błędzie.
-     *
-     * @return void
-     */
-    public function handle(): void
-    {
-        // Jeśli użytkownik jest już zalogowany, nie ma potrzeby weryfikacji.
-        // Przekieruj go na stronę główną.
-        if ($this->isUserLoggedIn) {
-            header('Location: /');
-            exit;
-        }
-
-        // Pobierz token z parametrów GET. Użyj operatora ?? dla bezpieczeństwa.
-        $token = $_GET['token'] ?? null;
-
-        // Jeśli token nie został przekazany w URL, obsłuż błąd.
-        if (!$token) {
-            $this->renderErrorView('Brak tokenu weryfikacyjnego.');
-            return; // Zakończ dalsze wykonywanie skryptu.
-        }
-        
-        // Pobierz rekord tokenu z bazy danych.
-        $tokenRecord = $this->tokenService->getTokenRecord($token);
-
-        // Sprawdź, czy token istnieje lub czy nie wygasł.
-        if (!$tokenRecord || strtotime($tokenRecord['expires_at']) < time()) {
-            $this->renderErrorView('Nieprawidłowy lub wygasły token. Spróbuj wysłać link ponownie.');
-            return;
-        }
-        
-        // Jeśli token jest prawidłowy, spróbuj zweryfikować użytkownika.
-        if ($this->userModel->verifyUser($tokenRecord['user_id'])) {
-            // Po udanej weryfikacji usuń użyty token (i inne tego typu), aby zachować porządek.
-            $this->tokenService->deleteTokensForUserByType($tokenRecord['user_id'], 'email_verify');
-
-            // Ustaw jednorazowy komunikat (flash message) dla strony logowania.
-            $_SESSION['flash_message'] = [
-                'type' => 'success', // 'success' lub 'info' dla stylizacji komunikatu
-                'text' => 'Adres e-mail został pomyślnie zweryfikowany! Możesz się teraz zalogować.'
-            ];
-
-            // Przekieruj użytkownika na stronę logowania, aby mógł sfinalizować proces.
-            header('Location: /login');
-            exit;
-        } else {
-            // Obsłuż rzadki przypadek, gdyby aktualizacja w bazie danych się nie powiodła.
-            $this->renderErrorView('Wystąpił nieoczekiwany błąd podczas aktywacji konta.');
-        }
+    // Krok 2: Pobranie i walidacja istnienia tokenu w adresie URL.
+    $token = $_GET['token'] ?? null;
+    if (!$token) {
+      $this->renderErrorView('Brak tokenu weryfikacyjnego w adresie URL.');
+      return;
     }
 
-    /**
-     * Pomocnicza metoda do renderowania widoku błędu.
-     *
-     * Centralizuje logikę wyświetlania strony błędu, aby uniknąć powtarzania kodu.
-     *
-     * @param string $message Komunikat błędu do wyświetlenia.
-     * @return void
-     */
-    private function renderErrorView(string $message): void
-    {
-        $this->renderView('verify', [
-            'status' => 'error',
-            'message' => $message
-        ]);
+    // Krok 3: Walidacja poprawności i ważności tokenu.
+    $tokenRecord = $this->tokenService->getTokenRecord($token);
+    if (!$tokenRecord || strtotime($tokenRecord['expires_at']) < time()) {
+      $this->renderErrorView('Token jest nieprawidłowy lub wygasł. Spróbuj wysłać link ponownie.');
+      return;
     }
+
+    // Krok 4: Aktywacja użytkownika powiązanego z tokenem.
+    if ($this->userModel->verifyUser($tokenRecord['user_id'])) {
+      // Krok 5: Proces finalizacji — sprzątanie i przygotowanie do logowania.
+
+      // Usuń zużyty token (oraz inne tego typu dla tego usera), aby nie mógł być ponownie użyty.
+      $this->tokenService->deleteTokensForUserByType($tokenRecord['user_id'], 'email_verify');
+
+      // Ustaw jednorazowy komunikat (flash message) dla strony logowania.
+      $_SESSION['flash_message'] = [
+        'type' => 'success',
+        'text' => 'Adres e-mail został pomyślnie zweryfikowany! Możesz się teraz zalogować.',
+      ];
+
+      // Przekieruj użytkownika, aby mógł się zalogować na aktywowane konto.
+      header('Location: /login');
+      exit();
+    } else {
+      // Krok 6: Obsługa błędu krytycznego — nieudana aktualizacja w bazie danych.
+      $this->renderErrorView('Wystąpił nieoczekiwany błąd podczas aktywacji konta. Skontaktuj się z administratorem.');
+    }
+  }
+
+  // ========================================================================
+  // METODY POMOCNICZE (PRIVATE)
+  // ========================================================================
+
+  /**
+   * Renderuje ustandaryzowany widok błędu weryfikacji.
+   *
+   * Centralizuje logikę wyświetlania strony błędu, aby zapewnić spójny
+   * wygląd i komunikację z użytkownikiem we wszystkich scenariuszach błędów.
+   *
+   * @param string $message Komunikat błędu do wyświetlenia na stronie.
+   * 
+   * @return void
+   */
+  private function renderErrorView(string $message): void
+  {
+    $this->renderView('verify', [
+      'status' => 'error',
+      'message' => $message,
+    ]);
+  }
 }

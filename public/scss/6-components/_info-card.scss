@@ -21,7 +21,7 @@
     min-height: 80vh; // Trochę mniej niż 100vh dla lepszego wyglądu
     margin: 0; // Resetujemy marginesy, bo centrowanie jest przez flex
   }
-  
+
   // Element: ikona
   &__icon {
     font-size: 3.5rem; // 56px
@@ -32,18 +32,18 @@
     &--success {
       color: var(--success-color, #28a745);
     }
-    
+
     // Modyfikator dla błędu
     &--error {
       color: var(--error-color, #dc3545);
     }
-    
+
     // Modyfikator neutralny
     &--info {
-        color: var(--accent);
+      color: var(--accent);
     }
   }
-  
+
   // Element: tytuł
   &__title {
     font-size: 1.5rem; // 24px
@@ -51,7 +51,7 @@
     margin: 0 0 0.75rem 0;
     color: var(--text);
   }
-  
+
   // Element: treść wiadomości
   &__message {
     font-size: 1rem;
@@ -59,7 +59,7 @@
     line-height: 1.6;
     margin-bottom: 2rem;
   }
-  
+
   // Element: kontener na akcje (przyciski)
   &__actions {
     display: flex;

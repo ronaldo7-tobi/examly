@@ -19,32 +19,32 @@
   // Te zmienne są aktywne domyślnie, dla motywu jasnego.
 
   // Podstawowe kolory
-  --bg: #fff;              // Główne tło aplikacji
-  --text: #000;            // Podstawowy kolor tekstu
-  
+  --bg: #fff; // Główne tło aplikacji
+  --text: #000; // Podstawowy kolor tekstu
+
   // Kolory akcentowe
-  --accent: #3b82f6;       // Główny kolor interaktywny (linki, przyciski)
+  --accent: #3b82f6; // Główny kolor interaktywny (linki, przyciski)
   --accent-hover: #4f46e5; // Kolor akcentowy po najechaniu myszką
 
   // Kolory formularzy i obramowań
-  --field-bg: #f9fafb;     // Tło pól formularzy (input, textarea)
-  --border: #d1d5db;       // Standardowy kolor obramowania (np. dla kart, inputów)
+  --field-bg: #f9fafb; // Tło pól formularzy (input, textarea)
+  --border: #d1d5db; // Standardowy kolor obramowania (np. dla kart, inputów)
 
   // Kolory statusów i komunikatów
-  --error-bg: #fee2e2;     // Tło dla komunikatów o błędach
-  --success-bg: #e9f6ec;   // Tło dla komunikatów o sukcesie
+  --error-bg: #fee2e2; // Tło dla komunikatów o błędach
+  --success-bg: #e9f6ec; // Tło dla komunikatów o sukcesie
 
   // Kolory pomocnicze
-  --muted-text: #4b5563;   // Kolor dla tekstu drugorzędnego, mniej ważnego
-  --subtle-border: #e5e7eb;// Delikatny kolor obramowania (np. dla separatorów)
+  --muted-text: #4b5563; // Kolor dla tekstu drugorzędnego, mniej ważnego
+  --subtle-border: #e5e7eb; // Delikatny kolor obramowania (np. dla separatorów)
 
   // Kolory specyficzne dla komponentów
-  --footer-bg: #f9fafb;     // Tło stopki
-  --footer-icon: #6b7280;   // Kolor ikon w stopce
+  --footer-bg: #f9fafb; // Tło stopki
+  --footer-icon: #6b7280; // Kolor ikon w stopce
 
   --bg-overlay: rgba(255, 255, 255, 0.9); // Półprzezroczysta nakładka na tło
-  --card-bg: rgba(255, 255, 255, 0.6);    // Półprzezroczyste tło dla "boxów"
-  --card-border: rgba(0, 0, 0, 0.05);      // Delikatna ramka dla "boxów"
+  --card-bg: rgba(255, 255, 255, 0.6); // Półprzezroczyste tło dla "boxów"
+  --card-border: rgba(0, 0, 0, 0.05); // Delikatna ramka dla "boxów"
 }
 
 /**
@@ -59,7 +59,7 @@ body.dark {
   // Podstawowe kolory
   --bg: #212325;
   --text: #fff;
-  
+
   // Kolory akcentowe
   --accent: #3b82f6;
   --accent-hover: #2563eb;
@@ -75,7 +75,7 @@ body.dark {
   // Kolory pomocnicze
   --muted-text: #d1d5db;
   --subtle-border: #2a2a2a;
-  
+
   // Kolory specyficzne dla komponentów
   --footer-bg: #1a1c1e;
   --footer-icon: #9ca3af;

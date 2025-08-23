@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Kontroler Akcji Zalogowanego Użytkownika.
@@ -11,40 +11,44 @@
  */
 class UserController extends BaseController
 {
-    /**
-     * Konstruktor, który zabezpiecza wszystkie akcje w tym kontrolerze.
-     * Jeśli użytkownik nie jest zalogowany, zostaje przekierowany na stronę logowania.
-     */
-    public function __construct()
-    {
-        parent::__construct();
+  /**
+   * Konstruktor, który zabezpiecza wszystkie akcje w tym kontrolerze.
+   *
+   * Jeśli użytkownik nie jest zalogowany, zostaje przekierowany na stronę logowania.
+   */
+  public function __construct()
+  {
+    parent::__construct();
 
-        if (!$this->isUserLoggedIn) {
-            header('Location: /login');
-            exit;
-        }
+    if (!$this->isUserLoggedIn) {
+      header('Location: /login');
+      exit();
     }
+  }
 
-    /**
-     * Wyświetla stronę ze statystykami użytkownika.
-     * @return void
-     */
-    public function showStatistics(): void
-    {
-        $this->renderView('statistics');
-    }
+  /**
+   * Wyświetla stronę ze statystykami użytkownika.
+   *
+   * @return void
+   */
+  public function showStatistics(): void
+  {
+    $this->renderView('statistics');
+  }
 
-    /**
-     * Wylogowuje użytkownika.
-     * Niszczy bieżącą sesję i przekierowuje na stronę logowania.
-     * @return void
-     */
-    public function logout(): void
-    {
-        session_unset();    // Usuwa wszystkie zmienne sesyjne
-        session_destroy();  // Niszczy sesję
-        
-        header('Location: /login');
-        exit;
-    }
+  /**
+   * Wylogowuje użytkownika.
+   *
+   * Niszczy bieżącą sesję i przekierowuje na stronę logowania.
+   *
+   * @return void
+   */
+  public function logout(): void
+  {
+    session_unset(); // Usuwa wszystkie zmienne sesyjne
+    session_destroy(); // Niszczy sesję
+
+    header('Location: /login');
+    exit();
+  }
 }

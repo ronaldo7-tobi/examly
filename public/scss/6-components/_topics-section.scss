@@ -42,10 +42,10 @@
 }
 
 .topics-group__icon {
-    font-size: 1.5rem; // Nieco większa niż tekst
-    color: var(--accent);
-    // Delikatne przesunięcie w dół dla idealnego wyrównania z tekstem
-    transform: translateY(1px); 
+  font-size: 1.5rem; // Nieco większa niż tekst
+  color: var(--accent);
+  // Delikatne przesunięcie w dół dla idealnego wyrównania z tekstem
+  transform: translateY(1px);
 }
 
 // Etykieta "Wkrótce!"
@@ -58,7 +58,8 @@
   background-color: #fef9c3; // Jasny żółty
   border-radius: 50px;
 
-  .dark & { // Wersja dla motywu ciemnego
+  .dark & {
+    // Wersja dla motywu ciemnego
     color: #fef08a;
     background-color: rgba(254, 240, 138, 0.15);
   }

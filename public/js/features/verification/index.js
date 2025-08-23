@@ -1,92 +1,111 @@
 /**
+ * @file /features/verification/index.js
  * @module verification-countdown
- * @description Dostarcza reużywalny komponent UI (`VerificationCountdown`) do zarządzania
- * przyciskiem z funkcją odliczania (cooldown). Idealny do akcji, które
- * użytkownik może powtórzyć dopiero po upływie określonego czasu,
- * jak np. ponowne wysłanie e-maila weryfikacyjnego.
+ * @description
+ * Dostarcza reużywalny komponent UI (`VerificationCountdown`) do zarządzania
+ * przyciskiem z funkcją odliczania (cooldown). Komponent jest samowystarczalny
+ * i odczytuje swój stan początkowy z atrybutów `data-` elementu HTML.
+ *
+ * ## Wymagania i Przykład Użycia (HTML)
+ *
+ * Komponent do działania wymaga przycisku z określonym `id`. Jego początkowy
+ * stan jest kontrolowany przez atrybut `data-remaining`.
+ *
+ * ### Stan 1: Przycisk z aktywnym odliczaniem
+ * ```html
+ * <button id="resendButton" data-remaining="55">
+ *  Wyślij ponownie za <span id="countdown">55</span>s
+ * </button>
+ * ```
+ *
+ * ### Stan 2: Przycisk gotowy do użycia
+ * ```html
+ * <button id="resendButton" data-remaining="0">
+ *  Wyślij ponownie e-mail
+ * </button>
+ * ```
+ *
+ * @version 1.1.0
+ * @author Tobiasz Szerszeń
  */
 class VerificationCountdown {
-    /**
-     * @class VerificationCountdown
-     * @classdesc Zarządza logiką przycisku z odliczaniem, blokując go
-     * na określony czas i odblokowując po upływie tego czasu.
-     *
-     * @property {HTMLButtonElement|null} button - Element przycisku, którym zarządza klasa.
-     * @property {number} remaining - Czas w sekundach pozostały do odblokowania przycisku.
-     * @property {HTMLElement|null} countdownSpan - Element <span> wewnątrz przycisku, wyświetlający licznik.
-     */
+  /**
+   * Wyszukuje elementy DOM i inicjalizuje komponent.
+   *
+   * @constructs VerificationCountdown
+   * @param {string} buttonId - ID przycisku, który ma być kontrolowany.
+   */
+  constructor(buttonId) {
+    // Krok 1: Wyszukaj kluczowe elementy DOM.
+    this.button = document.getElementById(buttonId);
+    if (!this.button) return;
 
-    /**
-     * @constructs VerificationCountdown
-     * @description Wyszukuje elementy DOM na podstawie podanego ID, odczytuje
-     * początkowy czas z atrybutu `data-remaining` i inicjalizuje komponent.
-     * @param {string} buttonId - ID przycisku, który ma być kontrolowany.
-     */
-    constructor(buttonId) {
-        this.button = document.getElementById(buttonId);
-        if (!this.button) return;
+    // Krok 2: Odczytaj początkowy czas i znajdź element licznika.
+    this.remaining = parseInt(this.button.dataset.remaining || '0', 10);
+    this.countdownSpan = this.button.querySelector('#countdown');
 
-        this.remaining = parseInt(this.button.dataset.remaining || '0', 10);
-        this.countdownSpan = this.button.querySelector('#countdown');
+    // Krok 3: Uruchom logikę komponentu.
+    this.init();
+  }
 
-        this.init();
+  /**
+   * Inicjalizuje logikę komponentu, uruchamiając odliczanie (jeśli jest
+   * wymagane) i przypisując główną akcję kliknięcia.
+   * @private
+   */
+  init() {
+    // Krok 1: Jeśli z serwera przyszedł czas większy od zera, uruchom odliczanie.
+    if (this.remaining > 0) {
+      this.startCountdown();
     }
 
-    /**
-     * @method init
-     * @description Inicjalizuje logikę komponentu. Uruchamia odliczanie, jeśli jest to
-     * wymagane, oraz na stałe przypisuje obsługę zdarzenia 'click' do przycisku.
-     * @private
-     */
-    init() {
-        if (this.remaining > 0) {
-            this.startCountdown();
-        }
-
-        // Logika kliknięcia jest niezależna od odliczania i powinna być zawsze aktywna.
-        this.button.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!this.button.disabled) {
-                this.button.disabled = true;
-                this.button.textContent = 'Wysyłanie...';
-                // Przekierowuje na adres, który uruchomi wysyłkę w kontrolerze.
-                window.location.href = '/examly/public/verify_email?send=true';
-            }
-        });
-    }
-
-    /**
-     * @method startCountdown
-     * @description Zarządza cyklem życia odliczania. Blokuje przycisk, uruchamia
-     * interwał, który co sekundę aktualizuje licznik, a po zakończeniu
-     * odblokowuje przycisk i przywraca jego pierwotną treść.
-     * @private
-     */
-    startCountdown() {
+    // Krok 2: Zawsze przypisz główną akcję kliknięcia do przycisku.
+    this.button.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Ta akcja wykona się tylko, jeśli przycisk NIE jest zablokowany przez odliczanie.
+      if (!this.button.disabled) {
+        // Natychmiast zablokuj przycisk i zmień tekst dla lepszego UX.
         this.button.disabled = true;
+        this.button.textContent = 'Wysyłanie...';
+        // Przekieruj na adres, który uruchomi wysyłkę w kontrolerze PHP.
+        window.location.href = '/examly/public/verify_email?send=true';
+      }
+    });
+  }
 
-        const timer = setInterval(() => {
-            this.remaining--;
-            if (this.countdownSpan) {
-                this.countdownSpan.textContent = this.remaining;
-            }
+  /**
+   * Zarządza cyklem życia odliczania.
+   * @private
+   */
+  startCountdown() {
+    // Krok 1: Zablokuj przycisk, aby zapobiec kliknięciom podczas odliczania.
+    this.button.disabled = true;
 
-            if (this.remaining <= 0) {
-                clearInterval(timer);
-                this.button.disabled = false;
-                // Zamieniamy całą zawartość przycisku, aby usunąć licznik.
-                this.button.innerHTML = 'Wyślij ponownie e-mail';
-            }
-        }, 1000);
-    }
+    // Krok 2: Uruchom interwał, który będzie wykonywał się co sekundę.
+    const timer = setInterval(() => {
+      // Krok 2a: Zmniejsz pozostały czas i zaktualizuj tekst w liczniku.
+      this.remaining--;
+      if (this.countdownSpan) {
+        this.countdownSpan.textContent = this.remaining;
+      }
+
+      // Krok 2b: Sprawdź, czy odliczanie dobiegło końca.
+      if (this.remaining <= 0) {
+        // Jeśli tak, zatrzymaj interwał, odblokuj przycisk i przywróć jego pierwotny tekst.
+        clearInterval(timer);
+        this.button.disabled = false;
+        this.button.innerHTML = 'Wyślij ponownie e-mail';
+      }
+    }, 1000);
+  }
 }
 
 /**
- * @event DOMContentLoaded
- * @description Punkt wejściowy skryptu. Po załadowaniu struktury DOM,
- * tworzy instancję `VerificationCountdown` dla przycisku ponownego wysłania,
- * aby aktywować logikę odliczania.
+ * --- Punkt Startowy Aplikacji ---
+ *
+ * Po pełnym załadowaniu struktury DOM, tworzy nową instancję komponentu
+ * dla przycisku ponownego wysłania e-maila.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    new VerificationCountdown('resendButton');
+  new VerificationCountdown('resendButton');
 });

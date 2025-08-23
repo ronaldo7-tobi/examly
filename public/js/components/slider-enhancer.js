@@ -1,59 +1,85 @@
 /**
+ * @file slider-enhancer.js
  * @module slider-enhancer
- * @description Dostarcza prosty, reużywalny komponent (`SliderEnhancer`) do dynamicznej
- * aktualizacji wartości liczbowej powiązanej z suwakiem HTML.
- * @version 1.0.0
- */
-
-/**
- * @class SliderEnhancer
- * @classdesc Ten skrypt znajduje na stronie suwak oraz powiązany z nim element <output>
- * i dynamicznie aktualizuje jego zawartość w czasie rzeczywistym,
- * gdy użytkownik przesuwa suwak.
+ * @description
+ * Lekki, reużywalny komponent (`SliderEnhancer`) do dynamicznej aktualizacji
+ * wartości liczbowej powiązanej z suwakiem HTML (`<input type="range">`).
+ * Poprawia doświadczenie użytkownika, dając mu natychmiastową informację
+ * zwrotną o wybranej wartości.
  *
- * @property {HTMLInputElement|null} slider - Element DOM suwaka.
- * @property {HTMLElement|null} output - Element DOM do wyświetlania aktualnej wartości suwaka.
+ * ## Przykład Użycia (HTML)
+ *
+ * Aby komponent zadziałał, struktura HTML powinna wyglądać następująco:
+ *
+ * ```html
+ * * <input type="range" id="question-count" min="10" max="40" value="20">
+ *
+ * * <output id="question-count-value">20</output>
+ * ```
+ *
+ * @version 1.1.0
+ * @author Tobiasz Szerszeń
  */
+
 class SliderEnhancer {
+  /**
+   * Inicjalizuje komponent, łącząc suwak z elementem wyjściowym.
+   *
+   * @constructs SliderEnhancer
+   *
+   * @param {string} sliderId - Atrybut `id` elementu suwaka (`<input type="range">`).
+   * @param {string} outputId - Atrybut `id` elementu, w którym wyświetlana jest wartość (np. `<output>`).
+   */
+  constructor(sliderId, outputId) {
     /**
-     * @constructs SliderEnhancer
-     * @description Wyszukuje suwak i element wyjściowy po ich ID, a następnie
-     * inicjalizuje mechanizm synchronizacji ich wartości.
-     * @param {string} sliderId - ID elementu suwaka (`<input type="range">`).
-     * @param {string} outputId - ID elementu, w którym ma być wyświetlana wartość suwaka.
+     * Element DOM suwaka.
+     * @type {HTMLInputElement|null}
      */
-    constructor(sliderId, outputId) {
-        this.slider = document.getElementById(sliderId);
-        this.output = document.getElementById(outputId);
-
-        if (this.slider && this.output) {
-            this.init();
-        }
-    }
+    this.slider = document.getElementById(sliderId);
 
     /**
-     * @method init
-     * @description Inicjalizuje logikę komponentu. Ustawia wartość początkową
-     * przy załadowaniu strony i dodaje nasłuchiwacz zdarzenia `input`
-     * do aktualizacji wartości w czasie rzeczywistym.
-     * @private
+     * Element DOM do wyświetlania wartości.
+     * @type {HTMLElement|null}
      */
-    init() {
-        // Ustawienie wartości początkowej.
-        this.output.textContent = this.slider.value;
+    this.output = document.getElementById(outputId);
 
-        // Aktualizacja wartości podczas przesuwania suwaka.
-        this.slider.addEventListener('input', () => {
-            this.output.textContent = this.slider.value;
-        });
+    if (this.slider && this.output) {
+      this.init();
+    } else {
+      console.warn(`SliderEnhancer: Nie znaleziono elementu o ID "${sliderId}" lub "${outputId}".`);
     }
+  }
+
+  /**
+   * Ustawia wartość początkową i dodaje nasłuchiwacz zdarzeń.
+   *
+   * Logika działania:
+   * 1. Odczytuje początkową wartość z atrybutu `value` suwaka i wstawia
+   *    ją do elementu `output`.
+   * 2. Dodaje nasłuchiwacz na zdarzenie `input`, które jest wywoływane
+   *    w czasie rzeczywistym przy każdym, nawet najmniejszym, ruchu suwaka.
+   *
+   * @private
+   */
+  init() {
+    // Krok 1: Ustawienie wartości początkowej przy załadowaniu strony.
+    this.output.textContent = this.slider.value;
+
+    // Krok 2: Aktualizacja wartości podczas przesuwania suwaka.
+    // Używamy zdarzenia 'input' zamiast 'change', aby aktualizacja
+    // była płynna, a nie dopiero po puszczeniu myszki.
+    this.slider.addEventListener('input', () => {
+      this.output.textContent = this.slider.value;
+    });
+  }
 }
 
 /**
- * @event DOMContentLoaded
- * @description Po załadowaniu strony, tworzy instancję `SliderEnhancer` dla suwaka
- * wyboru liczby pytań na stronie testu spersonalizowanego.
+ * --- Punkt Startowy Aplikacji ---
+ *
+ * Po pełnym załadowaniu struktury DOM strony, tworzy nową instancję
+ * `SliderEnhancer`, aby aktywować komponent dla suwaka wyboru liczby pytań.
  */
 document.addEventListener('DOMContentLoaded', () => {
-    new SliderEnhancer('question-count', 'question-count-value');
+  new SliderEnhancer('question-count', 'question-count-value');
 });
