@@ -19,7 +19,6 @@ class QuizPageController extends BaseController
    */
   public function showOneQuestionPage()
   {
-    // Przekazujemy kod egzaminu do widoku pojedynczego pytania
     $this->renderView('inf03_one_question', ['examCode' => 'INF.03']);
   }
 
@@ -30,7 +29,20 @@ class QuizPageController extends BaseController
    */
   public function showPersonalizedTestPage(): void
   {
-    $this->renderView('inf03_personalized_test', ['examCode' => 'INF.03']);
+    // Przygotuj domyślną tablicę danych dla widoku.
+    $data = [
+        'examCode' => 'INF.03',
+        'selectedSubjectId' => null // Domyślnie brak wybranego tematu
+    ];
+
+    // Sprawdź, czy przekazano ID tematu w URL.
+    if (isset($_GET['subject']) && is_array($_GET['subject']) && !empty($_GET['subject'][0])) {
+        // Jeśli tak, nadpisz wartość w tablicy danych.
+        $data['selectedSubjectId'] = (int) $_GET['subject'][0];
+    }
+
+    // Wyrenderuj widok tylko raz, przekazując kompletną tablicę danych.
+    $this->renderView('inf03_personalized_test', $data);
   }
 
   /**
@@ -42,6 +54,14 @@ class QuizPageController extends BaseController
   {
     // Przekazujemy kod egzaminu do widoku pełnego testu
     $this->renderView('inf03_test', ['examCode' => 'INF.03']);
+  }
+
+  /** 
+   * Wyświetla stronę kursów.
+   */
+  public function showCoursesPage(): void
+  {
+    $this->renderView('courses');
   }
 
   /**

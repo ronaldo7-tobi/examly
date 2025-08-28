@@ -1,4 +1,11 @@
 <?php
+/**
+ * Konfiguracja komponentu head
+ */
+$noIndex = true;
+$pageTitle = 'Załóż Darmowe Konto i Śledź Postępy | Examly';
+$pageDescription = 'Dołącz do Examly i przygotuj się do egzaminu zawodowego. Załóż darmowe konto, aby śledzić postępy i korzystać z inteligentnych trybów nauki.';
+$canonicalUrl = 'https://www.examly.pl/rejestracja';
 
 /**
  * ========================================================================
@@ -12,6 +19,7 @@
  * aby poprawić doświadczenie użytkownika.
  *
  * @dependencies 
+ * - partials/head.php (head)
  * - partials/navbar.php (Nawigacja)
  * - partials/footer.php (Stopka)
  * - main.css (Główne style)
@@ -36,7 +44,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="auth-page-background">
-  
+  <!-- Dołączenie reużywalnego komponentu head -->
   <?php include 'partials/navbar.php'; ?>
 
   <main>
@@ -128,7 +136,7 @@
 
       <!-- Stopka formularza z linkiem do logowania -->
       <div class="form-card__footer">
-        <p>Masz już konto? <a href="login">Zaloguj się</a></p>
+        <p>Masz już konto? <a href="logowanie">Zaloguj się</a></p>
       </div>
     </form>
   </main>

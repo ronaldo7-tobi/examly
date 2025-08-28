@@ -1,4 +1,14 @@
 <?php
+/**
+ * Konfiguracja komponentu head
+ */
+$pageTitle = 'INF.03 - Jedno pytanie - Inteligentna Powtórka Online | Examly';
+$pageDescription = 'Nie masz czasu na cały test? Wylosuj jedno pytanie z bazy egzaminacyjnej INF.03 i sprawdź swoją wiedzę w mniej niż minutę. Ucz się skutecznie z Examly.';
+$canonicalUrl = 'https://www.examly.pl/inf03-jedno-pytanie';
+$extraScripts = [
+  'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
+  'https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js'
+];
 
 /**
  * ========================================================================
@@ -11,6 +21,7 @@
  * z wybranej puli.
  *
  * @dependencies 
+ * - partials/head.php (head)
  * - partials/navbar.php (Nawigacja)
  * - partials/footer.php (Stopka)
  * - main.css (Główne style)
@@ -27,30 +38,11 @@
 ?>
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Dołączenie reużywalnego komponentu head -->
+<?php include 'partials/head.php'; ?>
 
-  <!-- Meta Tagi SEO i podstawowe informacje -->
-  <title>Examly - INF.03 jedno pytanie</title>
-  <meta name="description" content="Examly to najlepsza platforma edukacyjna oferująca testy i materiały do egzaminów zawodowych. Przygotuj się skutecznie do egzaminu E.14 / INF.03.">
-  <meta name="author" content="Examly.pl">
-  <link rel="canonical" href="https://www.examly.pl/">
-
-  <!-- Meta Tagi Open Graph & X Card (dla podglądów w mediach społecznościowych) -->
-  <!-- ... (pozostałe meta tagi jak w poprzednich plikach) ... -->
-
-  <!-- Zasoby (Assets) -->
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="../public/scss/main.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
-  <!-- Biblioteki JS ładowane w <head> ze względu na renderowanie treści -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-</head>
 <body>
-  
+
   <!-- Dołączenie reużywalnego komponentu paska nawigacyjnego -->
   <?php include 'partials/navbar.php'; ?>
 
@@ -88,38 +80,38 @@
     <!-- Panel boczny (Sidebar) z formularzem wyboru tematów -->
     <aside class="quiz-page-layout__sidebar">
       <form id="topic-form" class="topic-selector">
-        
+
         <!-- Grupa: Główne kategorie tematyczne -->
         <fieldset class="topic-selector__fieldset">
           <legend class="topic-selector__sub-legend">Główne kategorie</legend>
           <div class="topic-selector__options">
             <label class="topic-selector__label">
-                <input type="checkbox" value="inf03" id="select-all-inf03">
-                <span>Cały materiał INF.03</span>
+              <input type="checkbox" value="inf03" id="select-all-inf03">
+              <span>Cały materiał INF.03</span>
             </label>
             <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="1" class="topic-checkbox">
-                <span>HTML</span>
+              <input type="checkbox" name="subject[]" value="1" class="topic-checkbox">
+              <span>HTML</span>
             </label>
             <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="2" class="topic-checkbox">
-                <span>CSS</span>
+              <input type="checkbox" name="subject[]" value="2" class="topic-checkbox">
+              <span>CSS</span>
             </label>
             <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="3" class="topic-checkbox">
-                <span>JS</span>
+              <input type="checkbox" name="subject[]" value="3" class="topic-checkbox">
+              <span>JS</span>
             </label>
             <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="4" class="topic-checkbox">
-                <span>PHP</span>
+              <input type="checkbox" name="subject[]" value="4" class="topic-checkbox">
+              <span>PHP</span>
             </label>
             <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="5" class="topic-checkbox">
-                <span>SQL</span>
+              <input type="checkbox" name="subject[]" value="5" class="topic-checkbox">
+              <span>SQL</span>
             </label>
             <label class="topic-selector__label">
-                <input type="checkbox" name="subject[]" value="6" class="topic-checkbox">
-                <span>Inne pytania teoretyczne</span>
+              <input type="checkbox" name="subject[]" value="6" class="topic-checkbox">
+              <span>Inne pytania teoretyczne</span>
             </label>
           </div>
         </fieldset>
@@ -133,16 +125,16 @@
               <span>Nieodkryte pytania</span>
             </label>
             <label class="topic-selector__label premium-option">
-                <input type="checkbox" name="premium_option" value="toImprove" class="premium-checkbox">
-                <span>Pytania, które gorzej Ci idą</span>
+              <input type="checkbox" name="premium_option" value="toImprove" class="premium-checkbox">
+              <span>Pytania, które gorzej Ci idą</span>
             </label>
             <label class="topic-selector__label premium-option">
-                <input type="checkbox" name="premium_option" value="toRemind" class="premium-checkbox">
-                <span>Pytania najdawniej powtórzone</span>
+              <input type="checkbox" name="premium_option" value="toRemind" class="premium-checkbox">
+              <span>Pytania najdawniej powtórzone</span>
             </label>
             <label class="topic-selector__label premium-option">
-                <input type="checkbox" name="premium_option" value="lastMistakes" class="premium-checkbox">
-                <span>Ostatnio błędne</span>
+              <input type="checkbox" name="premium_option" value="lastMistakes" class="premium-checkbox">
+              <span>Ostatnio błędne</span>
             </label>
           </div>
         </fieldset>
@@ -173,4 +165,5 @@
   <!-- Główny skrypt aplikacji dla tego widoku, obsługujący logikę pobierania i wyświetlania pytań -->
   <script type="module" src="/examly/public/js/features/one-question/index.js"></script>
 </body>
+
 </html>

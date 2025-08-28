@@ -1,4 +1,14 @@
 <?php
+/**
+ * Konfiguracja komponentu head
+ */
+$pageTitle = 'INF.03 - Egzamin próbny - Test Online 40 Pytań | Examly';
+$pageDescription = 'Sprawdź swoją wiedzę przed egzaminem zawodowym INF.03. Rozwiąż pełny test próbny online, który symuluje prawdziwy egzamin i składa się z 40 pytań.';
+$canonicalUrl = 'https://www.examly.pl/inf03-test-probny';
+$extraScripts = [
+  'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
+  'https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js'
+];
 
 /**
  * ========================================================================
@@ -12,6 +22,7 @@
  * i obliczanie wyników jest obsługiwana przez JavaScript.
  *
  * @dependencies 
+ * - partials/head.php (head)
  * - partials/navbar.php (Nawigacja)
  * - partials/footer.php (Stopka)
  * - main.css (Główne style)
@@ -26,28 +37,11 @@
 ?>
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <!-- Meta Tagi SEO i podstawowe informacje -->
-  <title>Examly - INF.03 test</title>
-  <meta name="description" content="Rozwiąż pełny egzamin próbny z kwalifikacji INF.03 / E.14 na platformie Examly. Sprawdź swoją wiedzę przed prawdziwym testem.">
-  <meta name="author" content="Examly.pl">
-  <link rel="canonical" href="https://www.examly.pl/inf03_test">
+<?php include 'partials/head.php'; ?>
 
-  <!-- Meta Tagi Open Graph & X Card -->
-  <!-- ... (pozostałe meta tagi) ... -->
-
-  <!-- Zasoby (Assets) -->
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="../public/scss/main.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-</head>
 <body>
-  
+
   <?php include 'partials/navbar.php'; ?>
 
   <!-- Nagłówek wprowadzający w kontekst strony -->
@@ -55,11 +49,11 @@
     <div class="page-header__content">
       <h1 class="page-header__title"><span class="text-gradient">EE.09 / INF.03</span> - Pełny Egzamin Próbny</h1>
       <p class="page-header__text">
-        Zmierz się z pełnym egzaminem próbnym składającym się z 40 losowych pytań z naszej bazy. 
+        Zmierz się z pełnym egzaminem próbnym składającym się z 40 losowych pytań z naszej bazy.
         To najlepszy sposób, by sprawdzić swoją wiedzę, zidentyfikować słabe punkty i śledzić postępy w nauce.
       </p>
       <p class="page-header__text">
-        <strong class="text-gradient">Pro Tip:</strong> Po teście skup się na analizie błędnych odpowiedzi. 
+        <strong class="text-gradient">Pro Tip:</strong> Po teście skup się na analizie błędnych odpowiedzi.
         Zrozumienie, dlaczego popełniłeś błąd, jest kluczem do sukcesu na prawdziwym egzaminie.
       </p>
     </div>
@@ -79,14 +73,14 @@
       =====================================================================
     -->
     <main id="test-container" class="test-container" data-exam-code="<?= htmlspecialchars($examCode) ?>">
-      
+
       <!-- Stan 1: Ekran ładowania -->
       <div id="loading-screen" class="test-loading">
         <h2>Trwa przygotowywanie testu...</h2>
         <p>Proszę czekać, losujemy 40 pytań z całej puli.</p>
         <div class="spinner"></div>
       </div>
-      
+
       <!-- Stan 2: Widok aktywnego testu (początkowo ukryty) -->
       <div id="test-view" class="hidden">
         <header class="test-header">
@@ -129,4 +123,5 @@
   <!-- Główny skrypt aplikacji dla tego widoku, zarządzający całą logiką testu -->
   <script type="module" src="/examly/public/js/features/test/index.js"></script>
 </body>
+
 </html>

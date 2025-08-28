@@ -21,7 +21,7 @@ class UserController extends BaseController
     parent::__construct();
 
     if (!$this->isUserLoggedIn) {
-      header('Location: /login');
+      header('Location: /logowanie');
       exit();
     }
   }
@@ -48,7 +48,7 @@ class UserController extends BaseController
     session_unset(); // Usuwa wszystkie zmienne sesyjne
     session_destroy(); // Niszczy sesję
 
-    header('Location: /login');
+    header('Location: /logowanie');
     exit();
   }
 }

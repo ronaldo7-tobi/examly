@@ -147,13 +147,13 @@ class Router
         (new HomeController())->show();
         break;
       // --- Grupa Uwierzytelniania ---
-      case 'login':
+      case 'logowanie':
         (new LoginController())->handleRequest();
         break;
-      case 'register':
+      case 'rejestracja':
         (new RegisterController())->handleRequest();
         break;
-      case 'verify_email':
+      case 'autoryzacja-email':
         $controller = new RegisterController();
         // Sub-routing na podstawie parametru GET dla tej samej ścieżki.
         if (isset($_GET['send']) && $_GET['send'] === 'true') {
@@ -162,27 +162,30 @@ class Router
           $controller->showVerificationPage();
         }
         break;
-      case 'verify':
+      case 'weryfikacja':
         (new VerificationController())->handle();
         break;
-      case 'logout':
+      case 'wyloguj':
         (new UserController())->logout();
         break;
       // --- Grupa Quizów ---
-      case 'inf03_one_question':
+      case 'inf03-jedno-pytanie':
         (new QuizPageController())->showOneQuestionPage();
         break;
-      case 'inf03_personalized_test':
+      case 'inf03-personalizowany-test':
         (new QuizPageController())->showPersonalizedTestPage();
         break;
-      case 'inf03_test':
+      case 'inf03-test':
         (new QuizPageController())->showTestPage();
         break;
-      case 'inf03_course':
+      case 'kursy':
+        (new QuizPageController)->showCoursesPage();
+        break;
+      case 'kurs-inf03':
         (new QuizPageController())->showCoursePage();
         break;
       // --- Grupa Użytkownika ---
-      case 'statistics':
+      case 'statystyki':
         (new UserController())->showStatistics();
         break;
       // --- Domyślna obsługa błędu ---

@@ -1,4 +1,11 @@
 <?php
+/**
+ * Konfiguracja komponentu head
+ */
+$noIndex = true;
+$pageTitle = 'Logowanie do Konta | Examly';
+$pageDescription = 'Zaloguj się na swoje konto w Examly, aby uzyskać dostęp do zapisanych wyników, statystyk i kontynuować naukę do egzaminu zawodowego.';
+$canonicalUrl = 'https://www.examly.pl/logowanie';
 
 /**
  * ========================================================================
@@ -11,6 +18,7 @@
  * "flash" (np. po pomyślnej rejestracji).
  *
  * @dependencies 
+ * - partials/head.php (head)
  * - partials/navbar.php (Nawigacja)          
  * - partials/footer.php (Stopka)            
  * - main.css (Główne style)     
@@ -39,7 +47,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  
+  <!-- Dołączenie reużywalnego komponentu head -->
   <?php include 'partials/navbar.php'; ?>
 
   <main>
@@ -68,7 +76,7 @@
             do serwisu. Dane są wysyłane metodą POST.
       =====================================================================
     -->
-    <form method="POST" action="login" class="form-card">
+    <form method="POST" class="form-card">
       <div class="form-card__header">
         <h1 class="form-card__title">Witaj ponownie!</h1>
         <p class="form-card__subtitle">Zaloguj się, aby kontynuować naukę.</p>
@@ -120,8 +128,8 @@
 
       <!-- Stopka formularza z dodatkowymi linkami -->
       <div class="form-card__footer">
-        <p>Nie masz konta? <a href="register">Stwórz je teraz</a></p>
-        <p><a href="reset-password">Nie pamiętasz hasła?</a></p>
+        <p>Nie masz konta? <a href="rejestracja">Stwórz je teraz</a></p>
+        <p><a href="reset-hasla">Nie pamiętasz hasła?</a></p>
       </div>
     </form>
   </main>

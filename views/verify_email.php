@@ -1,4 +1,12 @@
 <?php
+/**
+ * Konfiguracja komponentu head
+ */
+$noIndex = true;
+$noFollow = true; 
+$pageTitle = 'Autoryzacja adresu e-mail | Examly';
+$pageDescription = 'Proces weryfikacji konta w serwisie Examly.';
+$canonicalUrl = 'https://www.examly.pl/autoryzacja-email';
 
 /**
  * ========================================================================
@@ -12,6 +20,7 @@
  * (odliczania), zarządzany wspólnie przez PHP i JavaScript.
  *
  * @dependencies 
+ * - partials/head.php (head)
  * - partials/navbar.php (Nawigacja)
  * - partials/footer.php (Stopka)
  * - main.css (Główne style)
@@ -27,6 +36,7 @@
 ?>
 <!DOCTYPE html>
 <html lang="pl">
+<!-- Dołączenie reużywalnego komponentu head -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -39,7 +49,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  
+  <!-- Dołączenie reużywalnego komponentu nawigacji -->
   <?php include 'partials/navbar.php'; ?>
 
   <main>

@@ -1,4 +1,12 @@
 <?php
+/**
+ * Konfiguracja komponentu head
+ */
+$noIndex = true; 
+$noFollow = true;
+$pageTitle = 'Weryfikacja Konta | Examly';
+$pageDescription = 'Proces weryfikacji konta w serwisie Examly i jego wynik.';
+$canonicalUrl = 'https://www.examly.pl/weryfikacja';
 
 /**
  * ========================================================================
@@ -11,7 +19,9 @@
  * w zależności od wyniku procesu weryfikacji obsłużonego
  * w kontrolerze.
  *
- * @dependencies - main.css (Główne style)
+ * @dependencies
+ * - partials/head.php (head)
+ * - main.css (Główne style)
  *
  * @state_variables 
  * - $status (string): Wynik weryfikacji przekazany z kontrolera.
@@ -22,6 +32,7 @@
 ?>
 <!DOCTYPE html>
 <html lang="pl">
+<!-- Dołączenie reużywalnego komponentu head -->
 <head>
   <meta charset="UTF-8">
   <title>Weryfikacja E-mail</title>

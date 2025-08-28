@@ -67,7 +67,7 @@ class RegisterController extends BaseController
       // Krok 3: Reakcja na wynik operacji rejestracji.
       if ($result['success']) {
         // Sukces: przekieruj na stronę weryfikacji z flagą do wysłania e-maila.
-        header('Location: /verify_email?send=true');
+        header('Location: /autoryzacja-email?send=true');
         exit();
       } else {
         // Porażka: zbierz błędy walidacji.
@@ -83,48 +83,62 @@ class RegisterController extends BaseController
   }
 
   /**
-   * Endpoint: Wyświetla stronę z informacją o potrzebie weryfikacji e-mail (/verify_email).
+   * Endpoint: Wyświetla stronę z informacją o potrzebie weryfikacji e-mail (/autoryzacja-email).
    *
    * Logika działania:
-   * 1. Sprawdza, czy użytkownik w bieżącej sesji jest już zweryfikowany. Jeśli tak,
+   * 1. Sprawdza czy użytkownik w bieżącej sesji oczekuje na weryfikacje lub czy jest już zalogowany.
+   * 2. Sprawdza, czy użytkownik w bieżącej sesji jest już zweryfikowany. Jeśli tak,
    *    przekierowuje go na stronę logowania z odpowiednim komunikatem.
-   * 2. Oblicza czas pozostały do możliwości ponownego wysłania e-maila (cooldown).
-   * 3. Pobiera jednorazowe komunikaty (tzw. flash messages) z sesji i od razu je usuwa.
-   * 4. Renderuje widok, przekazując do niego wszystkie potrzebne dane (czas, komunikaty).
+   * 3. Oblicza czas pozostały do możliwości ponownego wysłania e-maila (cooldown).
+   * 4. Pobiera jednorazowe komunikaty (tzw. flash messages) z sesji i od razu je usuwa.
+   * 5. Renderuje widok, przekazując do niego wszystkie potrzebne dane (czas, komunikaty).
    *
    * @return void
    */
   public function showVerificationPage(): void
   {
-    // Krok 1: Sprawdzenie, czy użytkownik nie jest już zweryfikowany.
-    if (isset($_SESSION['verify_user_id'])) {
-      $userModel = new UserModel();
-      $user = $userModel->getUserById($_SESSION['verify_user_id']);
-
-      // Jeśli konto zostało w międzyczasie aktywowane, posprzątaj sesję i przekieruj.
-      if ($user && $user->isVerified()) {
-        unset($_SESSION['verify_user_id'], $_SESSION['email_sent']);
-        $_SESSION['flash_message'] = [
-          'type' => 'info',
-          'text' => 'Twoje konto jest już aktywne. Możesz się zalogować.',
-        ];
-        header('Location: /login');
-        exit();
-      }
+    // Krok 1: Sprawdź czy użytkownik jest zalogowany, jeśli tak przekieruj go na stronę główną.
+    if ($this->isUserLoggedIn) {
+      header('Location: /');
+      exit();
     }
 
-    // Krok 2: Obliczenie pozostałego czasu do ponownej wysyłki e-maila (cooldown 60s).
+    // Krok 2: Sprawdź, czy w sesji jest ID użytkownika oczekującego na weryfikację.
+    // Jeśli nie ma, to znaczy, że użytkownik nie jest w trakcie procesu rejestracji,
+    // więc nie ma powodu, by przebywał na tej stronie.
+    if (!isset($_SESSION['verify_user_id'])) {
+      header('Location: /rejestracja');
+      exit();
+    }
+
+    // Krok 3: Pobierz dane użytkownika i sprawdź, czy w międzyczasie nie zweryfikował już konta
+    // (np. klikając w link na innym urządzeniu).
+    $userModel = new UserModel();
+    $user = $userModel->getUserById($_SESSION['verify_user_id']);
+
+    // Jeśli konto jest już aktywne, posprzątaj sesję i przekieruj do logowania.
+    if ($user && $user->isVerified()) {
+      unset($_SESSION['verify_user_id'], $_SESSION['email_sent']);
+      $_SESSION['flash_message'] = [
+        'type' => 'info',
+        'text' => 'Twoje konto jest już aktywne. Możesz się zalogować.',
+      ];
+      header('Location: /logowanie');
+      exit();
+    }
+
+    // Krok 4: Obliczenie pozostałego czasu do ponownej wysyłki e-maila (cooldown 60s).
     $remainingCooldown = 0;
     if (isset($_SESSION['email_sent'])) {
       $elapsed = time() - $_SESSION['email_sent'];
       $remainingCooldown = max(0, 60 - $elapsed); // Upewnij się, że czas nie jest ujemny.
     }
 
-    // Krok 3: Obsługa jednorazowych komunikatów (flash messages).
+    // Krok 5: Obsługa jednorazowych komunikatów (flash messages).
     $flashMessage = $_SESSION['flash_message'] ?? null;
     unset($_SESSION['flash_message']); // Komunikat jest wyświetlany tylko raz.
 
-    // Krok 4: Renderowanie widoku z przekazaniem danych.
+    // Krok 6: Renderowanie widoku z przekazaniem danych.
     $this->renderView('verify_email', [
       'flashMessage' => $flashMessage,
       'remaining' => $remainingCooldown,
@@ -144,7 +158,7 @@ class RegisterController extends BaseController
    * 4. Generuje unikalny token weryfikacyjny.
    * 5. Wysyła e-mail z linkiem weryfikacyjnym.
    * 6. Zapisuje w sesji stosowny komunikat (o sukcesie lub porażce).
-   * 7. Zawsze na końcu przekierowuje z powrotem na `/verify_email`, aby wyświetlić komunikat.
+   * 7. Zawsze na końcu przekierowuje z powrotem na `/autoryzacja-email`, aby wyświetlić komunikat.
    *
    * @return void
    */
@@ -156,14 +170,14 @@ class RegisterController extends BaseController
         'type' => 'error',
         'text' => 'Sesja wygasła. Zaloguj się lub zarejestruj ponownie.',
       ];
-      header('Location: /login');
+      header('Location: /logowanie');
       exit();
     }
 
     // Krok 2: Zabezpieczenie przed spamem - limit czasowy na ponowną wysyłkę.
     if (isset($_SESSION['email_sent']) && time() - $_SESSION['email_sent'] < 60) {
       $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Kolejny e-mail można wysłać dopiero po minucie.'];
-      header('Location: /verify_email');
+      header('Location: /autoryzacja-email');
       exit();
     }
 
@@ -173,14 +187,14 @@ class RegisterController extends BaseController
     if (!$user || $user->isVerified()) {
       unset($_SESSION['verify_user_id']); // Sprzątanie sesji.
       $_SESSION['flash_message'] = ['type' => 'info', 'text' => 'Twoje konto jest już aktywne. Możesz się zalogować.'];
-      header('Location: /login');
+      header('Location: /logowanie');
       exit();
     }
 
     // Krok 4: Generowanie tokenu i linku weryfikacyjnego.
     $tokenService = new TokenService();
     $token = $tokenService->generateToken($user->getId(), 'email_verify');
-    $verifyLink = "https://examly.sprzatanieleszno.pl/verify?token=$token";
+    $verifyLink = "https://examly.sprzatanieleszno.pl/weryfikacja?token=$token";
 
     // Krok 5: Przygotowanie i wysłanie e-maila.
     $body =
@@ -205,7 +219,7 @@ class RegisterController extends BaseController
     }
 
     // Krok 6: Zawsze przekieruj z powrotem, aby wyświetlić wynik operacji.
-    header('Location: /verify_email');
+    header('Location: /autoryzacja-email');
     exit();
   }
 }

@@ -1,4 +1,14 @@
 <?php
+/**
+ * Konfiguracja komponentu head
+ */
+$pageTitle = 'INF.03 - Stwórz swój własny test - Spersonalizowana Nauka | Examly';
+$pageDescription = 'Dopasuj naukę do swoich potrzeb. Stwórz spersonalizowany test z kwalifikacji INF.03, wybierając tematy, liczbę pytań i inteligentne filtry nauki.';
+$canonicalUrl = 'https://www.examly.pl/inf03-test-spersonalizowany';
+$extraScripts = [
+  'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
+  'https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js'
+];
 
 /**
  * ========================================================================
@@ -11,6 +21,7 @@
  * i opcjonalne filtry inteligentnej nauki.
  *
  * @dependencies 
+ * - partials/head.php (head)
  * - partials/navbar.php (Nawigacja)
  * - partials/footer.php (Stopka)
  * - main.css (Główne style)
@@ -27,28 +38,11 @@
 ?>
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Dołączenie reużywalnego komponentu head -->
+<?php include 'partials/head.php'; ?>
 
-  <!-- Meta Tagi SEO i podstawowe informacje -->
-  <title>Examly - INF.03 spersonalizowany test</title>
-  <meta name="description" content="Stwórz własny test z kwalifikacji INF.03 / E.14. Wybierz tematy, liczbę pytań i ucz się tak, jak lubisz z platformą Examly.">
-  <meta name="author" content="Examly.pl">
-  <link rel="canonical" href="https://www.examly.pl/inf03_personalized_test">
-
-  <!-- Meta Tagi Open Graph & X Card -->
-  <!-- ... (pozostałe meta tagi) ... -->
-
-  <!-- Zasoby (Assets) -->
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="../public/scss/main.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-</head>
 <body>
-  
+
   <?php include 'partials/navbar.php'; ?>
 
   <!-- Nagłówek wprowadzający w kontekst strony -->
@@ -91,27 +85,39 @@
               <span>Cały materiał INF.03</span>
             </label>
             <label class="topic-selector__label">
-              <input type="checkbox" name="subject[]" value="1" class="topic-checkbox">
+              <input type="checkbox" name="subject[]" value="1" class="topic-checkbox"
+                    <?= ($selectedSubjectId === 1) ? 'checked' : '' ?>
+              >
               <span>HTML</span>
             </label>
             <label class="topic-selector__label">
-              <input type="checkbox" name="subject[]" value="2" class="topic-checkbox">
+              <input type="checkbox" name="subject[]" value="2" class="topic-checkbox"
+                    <?= ($selectedSubjectId === 2) ? 'checked' : '' ?>
+              >
               <span>CSS</span>
             </label>
             <label class="topic-selector__label">
-              <input type="checkbox" name="subject[]" value="3" class="topic-checkbox">
+              <input type="checkbox" name="subject[]" value="3" class="topic-checkbox"
+                    <?= ($selectedSubjectId === 3) ? 'checked' : '' ?>
+              >
               <span>JS</span>
             </label>
             <label class="topic-selector__label">
-              <input type="checkbox" name="subject[]" value="4" class="topic-checkbox">
+              <input type="checkbox" name="subject[]" value="4" class="topic-checkbox"
+                    <?= ($selectedSubjectId === 4) ? 'checked' : '' ?>
+              >
               <span>PHP</span>
             </label>
             <label class="topic-selector__label">
-              <input type="checkbox" name="subject[]" value="5" class="topic-checkbox">
+              <input type="checkbox" name="subject[]" value="5" class="topic-checkbox"
+                    <?= ($selectedSubjectId === 5) ? 'checked' : '' ?>
+              >
               <span>SQL</span>
             </label>
             <label class="topic-selector__label">
-              <input type="checkbox" name="subject[]" value="6" class="topic-checkbox">
+              <input type="checkbox" name="subject[]" value="6" class="topic-checkbox"
+                    <?= ($selectedSubjectId === 6) ? 'checked' : '' ?>
+              >
               <span>Inne pytania teoretyczne</span>
             </label>
           </div>
@@ -187,4 +193,5 @@
   <!-- Skrypt pomocniczy do obsługi checkboxów (np. "zaznacz wszystko") -->
   <script type="module" src="/examly/public/js/components/topic-form-enhancer.js"></script>
 </body>
+
 </html>

@@ -261,10 +261,10 @@ export class TestRunner {
     statsInfo.className = 'results-container__stats-info';
     if (window.examlyAppState?.isUserLoggedIn) {
       statsInfo.innerHTML = `Świetna robota! Możesz śledzić swoje postępy i analizować wyniki
-        w zakładce <a href="statistics">Statystyki</a>.`;
+        w zakładce <a href="statystyki">Statystyki</a>.`;
     } else {
       statsInfo.innerHTML = `Chcesz śledzić swoje postępy i zapisywać wyniki?
-        <a href="register">Załóż darmowe konto</a>, aby odblokować statystyki!`;
+        <a href="rejestracja">Załóż darmowe konto</a>, aby odblokować statystyki!`;
     }
     scoreSummaryContainer.insertAdjacentElement('afterend', statsInfo);
 

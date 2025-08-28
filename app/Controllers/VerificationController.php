@@ -41,7 +41,7 @@ class VerificationController extends BaseController
    * Główny endpoint obsługujący proces weryfikacji konta.
    *
    * Logika działania:
-   * 1. Sprawdza, czy użytkownik nie jest już zalogowany.
+   * 1. Sprawdza, czy użytkownik nie jest już zalogowany i czy jest w procesie weryfikacji.
    * 2. Pobiera token z parametrów GET i sprawdza jego istnienie.
    * 3. Waliduje token w bazie danych (czy istnieje i czy nie wygasł).
    * 4. Jeśli token jest poprawny, aktywuje konto użytkownika w modelu.
@@ -56,6 +56,12 @@ class VerificationController extends BaseController
     // Krok 1: Sprawdzenie wstępne — zalogowany użytkownik nie wymaga weryfikacji.
     if ($this->isUserLoggedIn) {
       header('Location: /');
+      exit();
+    }
+
+    // Krok 2: Sprawdzenie czy użytkownik na pewno jest w procesie weryfikacji.
+    if (!isset($_SESSION['verify_user_id'])) {
+      header('Location: /rejestracja');
       exit();
     }
 
@@ -87,7 +93,7 @@ class VerificationController extends BaseController
       ];
 
       // Przekieruj użytkownika, aby mógł się zalogować na aktywowane konto.
-      header('Location: /login');
+      header('Location: /logowanie');
       exit();
     } else {
       // Krok 6: Obsługa błędu krytycznego — nieudana aktualizacja w bazie danych.
