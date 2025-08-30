@@ -41,17 +41,27 @@ class PasswordResetController extends BaseController
     $user = $this->userModel->getUserByEmail($email);
 
     if ($user) {
-      // Użytkownik istnieje, generujemy token i wysyłamy e-mail
-      $token = $this->tokenService->generateToken($user->getId(), 'password_reset');
-      $resetLink = url("nowe-haslo?token=$token");
+      // Generujemy token i kod
+      $tokenData = $this->tokenService->generateToken($user->getId(), 'password_reset');
 
-      $body = '<p>Witaj,</p><p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta. Kliknij poniższy link, aby ustawić nowe hasło:</p>';
-      $body .= "<p><a href='$resetLink'>$resetLink</a></p>";
-      $body .= '<p>Jeśli to nie ty prosiłeś o zmianę hasła, zignoruj tę wiadomość.</p>';
+      if ($tokenData) {
+        $token = $tokenData['token'];
+        $code = $tokenData['code'];
 
-      $mailer = new Mailer();
-      if ($mailer->send($user->getEmail(), 'Reset hasła w serwisie Examly', $body)) {
-        $_SESSION['password_reset_sent'] = time();
+        $resetLink = url("nowe-haslo?token=$token");
+        $body = "<p>Witaj,</p>" .
+          "<p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta. Kliknij poniższy link, aby ustawić nowe hasło:</p>" .
+          "<p><a href='$resetLink'>$resetLink</a></p>" .
+          "<p>Na następnej stronie zostaniesz poproszony o podanie 6-cyfrowego kodu bezpieczeństwa, który jest widoczny na stronie resetowania hasła.</p>" .
+          "<p>Jeśli to nie Ty prosiłeś o zmianę, zignoruj tę wiadomość.</p>";
+        $mailer = new Mailer();
+
+        if ($mailer->send($user->getEmail(), 'Reset hasła w serwisie Examly', $body)) {
+          $_SESSION['password_reset_sent'] = time();
+        }
+
+        // Zapisz kod do sesji, aby wyświetlić go użytkownikowi
+        $_SESSION['password_reset_code'] = $code;
       }
     }
 
@@ -90,6 +100,7 @@ class PasswordResetController extends BaseController
   public function handleNewPasswordRequest(): void
   {
     $token = $_POST['token'] ?? null;
+    $otpCode = $_POST['otp_code'] ?? '';
     $newPassword = $_POST['new_password'] ?? '';
     $confirmPassword = $_POST['confirm_new_password'] ?? '';
 
@@ -99,6 +110,10 @@ class PasswordResetController extends BaseController
       $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Sesja zmiany hasła wygasła. Spróbuj ponownie.'];
       header('Location: ' . url('logowanie'));
       exit();
+    }
+
+    if ($tokenRecord['token_data'] !== $otpCode) {
+      $errors[] = 'Podany kod bezpieczeństwa jest nieprawidłowy.';
     }
 
     if (strlen($newPassword) < 6) {

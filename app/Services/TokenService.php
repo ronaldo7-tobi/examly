@@ -30,38 +30,33 @@ class TokenService
     $this->db = Database::getInstance();
   }
 
-  /**
-   * Generuje nowy, kryptograficznie bezpieczny token i zapisuje go w bazie.
-   *
-   * Do generowania tokena używana jest funkcja `random_bytes()`, która jest
-   * standardem bezpieczeństwa w nowoczesnym PHP. Gwarantuje ona, że token
-   * jest nieprzewidywalny i odporny na próby odgadnięcia. Tokeny są zapisywane
-   * z jednogodzinnym terminem ważności, co ogranicza ryzyko w razie ich wycieku.
-   *
-   * @param int $userId ID użytkownika, dla którego tworzony jest token.
-   * @param string $type Typ tokena (np. 'email_verify', 'password_reset', 'email_change'),
-   * pozwalający na rozróżnienie ich przeznaczenia.
-   * @param string $data Opcjonalne dodatkowe dane (np. potencjalny nowy e-mail).
-   *
-   * @return string Wygenerowany, 64-znakowy token w formacie heksadecymalnym.
-   */
-  public function generateToken(int $userId, string $type, ?string $data = null): string
-  { 
-    // NAJPIERW usuń wszystkie stare tokeny tego samego typu dla tego użytkownika
+  public function generateToken(int $userId, string $type, ?string $data = null): array|false
+  {
+    // WAŻNA POPRAWKA: Najpierw usuwamy stare tokeny tego typu!
     $this->deleteTokensForUserByType($userId, $type);
-    
-    // Krok 1: Wygeneruj 32 bajty kryptograficznie bezpiecznych, losowych danych
-    // i przekonwertuj je na 64-znakowy ciąg heksadecymalny.
+
     $token = bin2hex(random_bytes(32));
+    $code = null;
 
-    // Krok 2: Zapisz token w bazie danych z datą wygaśnięcia ustawioną na 1 godzinę w przyszłości.
+    if ($type === 'password_reset') {
+      $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+      $data = $code;
+    }
+
     $sql = "INSERT INTO user_tokens (user_id, token, type, token_data, expires_at)
-            VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))";
+            VALUES (:user_id, :token, :type, :token_data, DATE_ADD(NOW(), INTERVAL 1 HOUR))";
+    $params = [
+      ':user_id' => $userId,
+      ':token' => $token,
+      ':type' => $type,
+      ':token_data' => $data
+    ];
 
-    $this->db->execute($sql, [$userId, $token, $type, $data]);
+    if ($this->db->execute($sql, $params)) {
+      return ['token' => $token, 'code' => $code];
+    }
 
-    // Krok 3: Zwróć wygenerowany token, aby mógł być np. wysłany w e-mailu.
-    return $token;
+    return false;
   }
 
   /**

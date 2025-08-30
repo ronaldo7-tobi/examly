@@ -5,6 +5,7 @@ $noIndex = true;
 <!DOCTYPE html>
 <html lang="pl">
 <?php include 'partials/head.php'; ?>
+
 <body class="auth-page-background">
   <?php include 'partials/navbar.php'; ?>
   <main>
@@ -15,35 +16,40 @@ $noIndex = true;
       </div>
 
       <?php if (isset($_SESSION['flash_message'])):
-          $flash = $_SESSION['flash_message'];
-          unset($_SESSION['flash_message']);
+        $flash = $_SESSION['flash_message'];
+        unset($_SESSION['flash_message']);
       ?>
-      <div class="alert alert--<?= htmlspecialchars($flash['type']) ?>">
-        <?php if (isset($flash['errors'])): ?>
-          <ul class="alert__list">
-            <?php foreach ($flash['errors'] as $error): ?>
-              <li><?= htmlspecialchars($error) ?></li>
-            <?php endforeach; ?>
-          </ul>
-        <?php else: ?>
-          <?= htmlspecialchars($flash['text']) ?>
-        <?php endif; ?>
-      </div>
+        <div class="alert alert--<?= htmlspecialchars($flash['type']) ?>">
+          <?php if (isset($flash['errors'])): ?>
+            <ul class="alert__list">
+              <?php foreach ($flash['errors'] as $error): ?>
+                <li><?= htmlspecialchars($error) ?></li>
+              <?php endforeach; ?>
+            </ul>
+          <?php else: ?>
+            <?= htmlspecialchars($flash['text']) ?>
+          <?php endif; ?>
+        </div>
       <?php endif; ?>
 
       <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
       
       <div class="form-card__group">
+        <label for="otp_code" class="form-card__label">Kod bezpieczeństwa</label>
+        <input type="text" id="otp_code" name="otp_code" class="form-card__input" placeholder="Wpisz 6-cyfrowy kod" required>
+      </div>
+
+      <div class="form-card__group">
         <label for="new_password" class="form-card__label">Nowe hasło</label>
         <input type="password" id="new_password" name="new_password" class="form-card__input"
-               placeholder="Hasło" required>
+          placeholder="Hasło" required>
       </div>
       <div class="form-card__group">
         <label for="confirm_new_password" class="form-card__label">Powtórz nowe hasło</label>
         <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-card__input"
-               placeholder="Powtórz nowe hasło" required>
+          placeholder="Powtórz nowe hasło" required>
       </div>
-      
+
       <div class="form-card__action-container">
         <button type="submit" class="btn btn--primary">Zapisz nowe hasło</button>
       </div>
@@ -51,4 +57,5 @@ $noIndex = true;
   </main>
   <?php include 'partials/footer.php'; ?>
 </body>
+
 </html>

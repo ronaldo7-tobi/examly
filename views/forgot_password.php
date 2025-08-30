@@ -22,6 +22,16 @@ $noIndex = true;
         <?php unset($_SESSION['flash_message']); ?>
       <?php endif; ?>
 
+      <?php if (isset($_SESSION['password_reset_code'])): ?>
+        <div class="alert alert--success">
+          <strong>Twój kod bezpieczeństwa to: 
+            <?= htmlspecialchars(substr($_SESSION['password_reset_code'], 0, 3) . '-' . substr($_SESSION['password_reset_code'], 3, 3)); ?>
+          </strong>
+          <p style="font-size: 0.9em; margin-top: 0.5rem;">Użyj go na stronie resetowania hasła, na którą link wysłaliśmy Ci w e-mailu.</p>
+        </div>
+        <?php unset($_SESSION['password_reset_code']); ?>
+      <?php endif; ?>
+
       <div class="form-card__group">
         <label for="email" class="form-card__label">Adres e-mail</label>
         <input type="email" id="email" name="email" class="form-card__input" placeholder="Twój adres e-mail" required>
