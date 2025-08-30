@@ -3,6 +3,7 @@
  * Konfiguracja komponentu head
  */
 $noIndex = true;
+$noFollow = true;
 $pageTitle = 'Załóż Darmowe Konto i Śledź Postępy | Examly';
 $pageDescription = 'Dołącz do Examly i przygotuj się do egzaminu zawodowego. Załóż darmowe konto, aby śledzić postępy i korzystać z inteligentnych trybów nauki.';
 $canonicalUrl = 'https://www.examly.pl/rejestracja';
@@ -33,16 +34,9 @@ $canonicalUrl = 'https://www.examly.pl/rejestracja';
 ?>
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Dołączenie reużywalnego komponentu head -->
+<?php include 'partials/head.php'; ?>
 
-  <!-- Podstawowe meta tagi i zasoby -->
-  <title>Formularz rejestracji</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="../public/scss/main.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
 <body class="auth-page-background">
   <!-- Dołączenie reużywalnego komponentu head -->
   <?php include 'partials/navbar.php'; ?>
@@ -136,7 +130,7 @@ $canonicalUrl = 'https://www.examly.pl/rejestracja';
 
       <!-- Stopka formularza z linkiem do logowania -->
       <div class="form-card__footer">
-        <p>Masz już konto? <a href="logowanie">Zaloguj się</a></p>
+        <p>Masz już konto? <a href="<?= url('logowanie') ?>">Zaloguj się</a></p>
       </div>
     </form>
   </main>

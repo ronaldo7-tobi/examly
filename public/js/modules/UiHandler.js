@@ -41,7 +41,7 @@ class UIHandler {
      * @private
      * @type {string}
      */
-    this.IMAGE_BASE_PATH = '/examly/public/images/questions/';
+    this.IMAGE_BASE_PATH = `${window.examlyAppState.baseUrl}/images/questions/`;
   }
 
   /**

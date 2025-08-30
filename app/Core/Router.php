@@ -29,31 +29,38 @@ class Router
   /**
    * Główna metoda routera, która przetwarza całe żądanie HTTP.
    *
-   * Logika działania:
-   * 1. Pobiera i "czyści" URI żądania, usuwając z niego bazową ścieżkę projektu.
+   * Logika działania opiera się na ścisłej współpracy z plikiem .htaccess,
+   * który przekazuje "czystą" ścieżkę żądania jako parametr GET o nazwie 'url'.
+   * To podejście uniezależnia aplikację od jej lokalizacji na serwerze
+   * (np. czy jest w głównym katalogu domeny, czy w podkatalogu).
+   *
+   * 1. Odczytuje ścieżkę z `$_GET['url']`. To jest najbardziej niezawodny sposób
+   * na uzyskanie URI, ponieważ `.htaccess` już wykonał pracę przygotowawczą.
    * 2. Sprawdza, czy URI wskazuje na zasób API (rozpoczyna się od `api/`).
    * 3. Na podstawie wyniku, deleguje dalsze przetwarzanie do wyspecjalizowanej
-   *    metody: `handleApiRequest()` lub `handleWebRequest()`.
+   * metody: `handleApiRequest()` lub `handleWebRequest()`.
    *
    * @return void
    */
   public function handleRequest(): void
   {
-    // Krok 1: Przygotowanie "czystego" URI do analizy.
-    $basePath = '/examly/public/';
-    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    $uri = str_replace($basePath, '', $uri);
-    $uri = trim($uri, '/');
+      // Krok 1: Pobierz "czysty" URI bezpośrednio z parametru 'url'
+      // ustawionego przez .htaccess. Zapewnia to przenośność aplikacji.
+      // Jeśli parametr nie istnieje (np. żądanie do strony głównej), użyj pustego stringa.
+      $uri = $_GET['url'] ?? '';
 
-    // Krok 2: Decyzja o strategii routingu na podstawie prefiksu URI.
-    if (strpos($uri, 'api/') === 0) {
-      // Żądanie do API: usuń prefiks 'api/' i przekaż do handlera API.
-      $this->handleApiRequest(substr($uri, 4));
-    } else {
-      // Żądanie do strony WWW: przekaż pełny, czysty URI do handlera stron.
-      $this->handleWebRequest($uri);
-    }
-  }
+      // Usuwamy ewentualne ukośniki z początku i końca dla spójności.
+      $uri = trim($uri, '/');
+
+      // Krok 2: Decyzja o strategii routingu na podstawie prefiksu URI.
+      if (strpos($uri, 'api/') === 0) {
+          // Żądanie do API: usuń prefiks 'api/' i przekaż do handlera API.
+          $this->handleApiRequest(substr($uri, 4));
+      } else {
+          // Żądanie do strony WWW: przekaż pełny, czysty URI do handlera stron.
+          $this->handleWebRequest($uri);
+      }
+}
 
   /**
    * Rejestruje i konwertuje ścieżkę API na wyrażenie regularne.
@@ -168,6 +175,22 @@ class Router
       case 'wyloguj':
         (new UserController())->logout();
         break;
+      case 'reset-hasla':
+        $controller = new PasswordResetController();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+          $controller->handleForgotPasswordRequest();
+        } else {
+          $controller->showForgotPasswordForm();
+        }
+        break;
+      case 'nowe-haslo':
+        $controller = new PasswordResetController();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+          $controller->handleNewPasswordRequest();
+        } else {
+          $controller->showNewPasswordForm();
+        }
+        break;
       // --- Grupa Quizów ---
       case 'inf03-jedno-pytanie':
         (new QuizPageController())->showOneQuestionPage();
@@ -187,6 +210,12 @@ class Router
       // --- Grupa Użytkownika ---
       case 'statystyki':
         (new UserController())->showStatistics();
+        break;
+      case 'ustawienia':
+        (new SettingsController())->showSettingsPage();
+        break;
+      case 'usun-konto':
+        (new SettingsController())->handleAccountDeletion();
         break;
       // --- Domyślna obsługa błędu ---
       default:

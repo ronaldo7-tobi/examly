@@ -1,6 +1,15 @@
+# Zapobiega problemom z rozszerzeniami plików
+Options -MultiViews
+
 RewriteEngine On
+
+# Ustawia ścieżkę bazową na katalog, w którym znajduje się ten plik .htaccess
+# To sprawia, że jest ona dynamiczna i nie trzeba jej zmieniać.
 RewriteBase /examly/public/
 
+# Przekierowuje wszystkie żądania, które nie są fizycznymi plikami lub katalogami
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
+
+# Przechwytuje całą ścieżkę i przekazuje ją jako parametr 'url' do index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]

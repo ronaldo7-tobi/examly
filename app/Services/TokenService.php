@@ -39,22 +39,26 @@ class TokenService
    * z jednogodzinnym terminem ważności, co ogranicza ryzyko w razie ich wycieku.
    *
    * @param int $userId ID użytkownika, dla którego tworzony jest token.
-   * @param string $type Typ tokena (np. 'email_verify', 'password_reset'),
+   * @param string $type Typ tokena (np. 'email_verify', 'password_reset', 'email_change'),
    * pozwalający na rozróżnienie ich przeznaczenia.
+   * @param string $data Opcjonalne dodatkowe dane (np. potencjalny nowy e-mail).
    *
    * @return string Wygenerowany, 64-znakowy token w formacie heksadecymalnym.
    */
-  public function generateToken(int $userId, string $type): string
-  {
+  public function generateToken(int $userId, string $type, ?string $data = null): string
+  { 
+    // NAJPIERW usuń wszystkie stare tokeny tego samego typu dla tego użytkownika
+    $this->deleteTokensForUserByType($userId, $type);
+    
     // Krok 1: Wygeneruj 32 bajty kryptograficznie bezpiecznych, losowych danych
     // i przekonwertuj je na 64-znakowy ciąg heksadecymalny.
     $token = bin2hex(random_bytes(32));
 
     // Krok 2: Zapisz token w bazie danych z datą wygaśnięcia ustawioną na 1 godzinę w przyszłości.
-    $sql = "INSERT INTO user_tokens (user_id, token, type, expires_at)
-                VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))";
+    $sql = "INSERT INTO user_tokens (user_id, token, type, token_data, expires_at)
+            VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))";
 
-    $this->db->execute($sql, [$userId, $token, $type]);
+    $this->db->execute($sql, [$userId, $token, $type, $data]);
 
     // Krok 3: Zwróć wygenerowany token, aby mógł być np. wysłany w e-mailu.
     return $token;
@@ -92,7 +96,7 @@ class TokenService
    */
   public function getTokenRecord(string $token): ?array
   {
-    $sql = 'SELECT * FROM user_tokens WHERE token = ?';
+    $sql = 'SELECT * FROM user_tokens WHERE token = ? AND expires_at > NOW()';
     $result = $this->db->fetch($sql, [$token]);
 
     // Użycie operatora trójargumentowego (ternary) zapewnia, że metoda

@@ -11,7 +11,7 @@
 body.home-page-background {
   // --- STYLE TŁA ---
   background-image:
-    linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('/examly/public/images/background.png'); // <-- Pamiętaj o poprawnej nazwie pliku!
+    linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('../images/background.png'); // <-- Pamiętaj o poprawnej nazwie pliku!
 
   background-size: cover;
   background-position: center center;

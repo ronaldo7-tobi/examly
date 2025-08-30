@@ -147,4 +147,120 @@ class UserModel
 
     return $user_data ? new User($user_data) : null;
   }
+
+  /**
+   * Pobiera obiekt użytkownika na podstawie jego adresu e-mail.
+   *
+   * @param string $email Adres e-mail użytkownika.
+   *
+   * @return User|null Obiekt User lub null, jeśli nie znaleziono.
+   */
+  public function getUserByEmail(string $email): ?User
+  {
+    $sql = 'SELECT id, first_name, last_name, email, is_verified, role FROM users WHERE email = ?';
+    $user_data = $this->db->fetch($sql, [$email]);
+
+    return $user_data ? new User($user_data) : null;
+  }
+
+  /**
+   * Sprawdza, czy podane hasło jest zgodne z hasłem użytkownika w bazie.
+   *
+   * @param int    $userId   ID użytkownika do sprawdzenia.
+   * @param string $password Hasło do weryfikacji.
+   *
+   * @return bool `true`, jeśli hasło jest poprawne, w przeciwnym razie `false`.
+   */
+  public function checkPassword(int $userId, string $password): bool
+  {
+    $sql = 'SELECT password_hash FROM users WHERE id = ?';
+    $user_data = $this->db->fetch($sql, [$userId]);
+
+    if ($user_data && password_verify($password, $user_data['password_hash'])) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Aktualizuje hasło użytkownika w bazie danych.
+   *
+   * @param int    $userId      ID użytkownika, któremu zmieniamy hasło.
+   * @param string $newPassword Nowe, niezaszyfrowane hasło.
+   *
+   * @return bool `true` w przypadku sukcesu, `false` w przypadku błędu.
+   */
+  public function updatePassword(int $userId, string $newPassword): bool
+  {
+    $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+    $sql = 'UPDATE users SET password_hash = ? WHERE id = ?';
+    
+    return $this->db->execute($sql, [$newPasswordHash, $userId]);
+  }
+
+  /**
+   * Aktualizuje imię i nazwisko użytkownika.
+   *
+   * @param int    $userId      ID użytkownika.
+   * @param string $firstName   Nowe imię.
+   * @param string $lastName    Nowe nazwisko.
+   *
+   * @return bool `true` w przypadku sukcesu.
+   */
+  public function updateName(int $userId, string $firstName, string $lastName): bool
+  {
+    $sql = 'UPDATE users SET first_name = ?, last_name = ? WHERE id = ?';
+    if ($this->db->execute($sql, [$firstName, $lastName, $userId])) {
+        // Po udanej aktualizacji w bazie, zaktualizuj obiekt użytkownika w sesji
+        $_SESSION['user'] = $this->getUserById($userId);
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Aktualizuje adres e-mail użytkownika i od razu ustawia konto jako zweryfikowane.
+   * Używane po pomyślnym kliknięciu w link potwierdzający zmianę e-maila.
+   *
+   * @param int    $userId   ID użytkownika.
+   * @param string $newEmail Nowy, zweryfikowany adres e-mail.
+   *
+   * @return bool `true` w przypadku sukcesu.
+   */
+  public function updateAndVerifyEmail(int $userId, string $newEmail): bool
+  {
+    // Ustawiamy is_verified na 1, ponieważ nowy e-mail został właśnie zweryfikowany
+    $sql = 'UPDATE users SET email = ?, is_verified = 1 WHERE id = ?';
+    return $this->db->execute($sql, [$newEmail, $userId]);
+  }
+
+/**
+ * Trwale usuwa użytkownika i wszystkie powiązane z nim dane.
+ * Operacja jest wykonywana w ramach transakcji, aby zapewnić spójność danych.
+ */
+public function deleteUser(int $userId): bool
+{
+    $this->db->beginTransaction();
+    try {
+        // Usuń powiązane dane (kolejność jest ważna)
+        $this->db->execute('DELETE FROM user_progress WHERE user_id = ?', [$userId]);
+        $this->db->execute('DELETE FROM user_tokens WHERE user_id = ?', [$userId]);
+        // Musimy usunąć wpisy z tabeli łączącej, zanim usuniemy egzaminy
+        $this->db->execute(
+            'DELETE uet FROM user_exam_topics uet JOIN user_exams ue ON uet.user_exam_id = ue.id WHERE ue.user_id = ?',
+            [$userId]
+        );
+        $this->db->execute('DELETE FROM user_exams WHERE user_id = ?', [$userId]);
+
+        // Na końcu usuń samego użytkownika
+        $this->db->execute('DELETE FROM users WHERE id = ?', [$userId]);
+
+        return $this->db->commit();
+    } catch (Exception $e) {
+        $this->db->rollBack();
+        error_log('Błąd podczas usuwania użytkownika: ' . $e->getMessage());
+        return false;
+    }
+}
 }

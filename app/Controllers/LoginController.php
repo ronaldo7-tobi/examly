@@ -46,7 +46,7 @@ class LoginController extends BaseController
   {
     // 1. Przekieruj, jeśli użytkownik jest już zalogowany
     if ($this->isUserLoggedIn) {
-      header('Location: /');
+      header('Location: ' . url('/'));
       exit();
     }
 
@@ -63,13 +63,13 @@ class LoginController extends BaseController
         session_regenerate_id(true); // Zabezpieczenie przed atakiem session fixation
         unset($_SESSION['verify_user_id']); // Sprzątanie po procesie rejestracji
 
-        header('Location: /examly/public/');
+        header('Location: ' . url('/'));
         exit();
       } else {
         // 4. Reakcja na błąd
         if (isset($result['error_type']) && $result['error_type'] === 'not_verified') {
           // Stwórz link, który uruchomi ponowne wysłanie e-maila
-          $resendLink = '<a href="verify_email?send=true">Kliknij tutaj, aby wysłać go ponownie.</a>';
+          $resendLink = '<a href="' . url('autoryzacja-email?send=true') . '">Kliknij tutaj, aby wysłać link weryfikacyjny ponownie.</a>';
           $errors[] = 'Konto nie zostało jeszcze zweryfikowane. ' . $resendLink;
         } else {
           // W przeciwnym razie, obsłuż standardowe błędy

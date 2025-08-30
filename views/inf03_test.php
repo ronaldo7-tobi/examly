@@ -111,7 +111,7 @@ $extraScripts = [
         <!-- Kontener na szczegółową listę pytań z odpowiedziami, generowany przez JS -->
         <div id="results-details" class="results-details"></div>
         <div class="results-container__actions">
-          <a href="/examly/public/" class="btn btn--primary">Wróć na stronę główną</a>
+          <a href="<?= url('/') ?>" class="btn btn--primary">Wróć na stronę główną</a>
         </div>
       </div>
 
@@ -121,7 +121,7 @@ $extraScripts = [
   <?php include 'partials/footer.php'; ?>
 
   <!-- Główny skrypt aplikacji dla tego widoku, zarządzający całą logiką testu -->
-  <script type="module" src="/examly/public/js/features/test/index.js"></script>
+  <script type="module" src="<?= url('js/features/test/index.js') ?>"></script>
 </body>
 
 </html>

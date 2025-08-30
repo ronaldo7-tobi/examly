@@ -3,6 +3,7 @@
  * Konfiguracja komponentu head
  */
 $noIndex = true;
+$noFollow = true;
 $pageTitle = 'Logowanie do Konta | Examly';
 $pageDescription = 'Zaloguj się na swoje konto w Examly, aby uzyskać dostęp do zapisanych wyników, statystyk i kontynuować naukę do egzaminu zawodowego.';
 $canonicalUrl = 'https://www.examly.pl/logowanie';
@@ -36,16 +37,9 @@ $canonicalUrl = 'https://www.examly.pl/logowanie';
 ?>
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Dołączenie reużywalnego komponentu head -->
+<?php include 'partials/head.php'; ?>
 
-  <!-- Podstawowe meta tagi i zasoby -->
-  <title>Formularz logowania</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="../public/scss/main.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
 <body>
   <!-- Dołączenie reużywalnego komponentu head -->
   <?php include 'partials/navbar.php'; ?>
@@ -62,8 +56,10 @@ $canonicalUrl = 'https://www.examly.pl/logowanie';
       =====================================================================
     -->
     <?php if (isset($_SESSION['flash_message']) && is_array($_SESSION['flash_message'])): ?>
-      <div class="alert alert--<?= htmlspecialchars($_SESSION['flash_message']['type']) ?>" role="alert">
-        <?= htmlspecialchars($_SESSION['flash_message']['text']) ?>
+      <div class="centered">
+        <div class="alert alert--<?= htmlspecialchars($_SESSION['flash_message']['type']) ?>" role="alert">
+          <?= htmlspecialchars($_SESSION['flash_message']['text']) ?>
+        </div>
       </div>
       <?php unset($_SESSION['flash_message']); ?>
     <?php endif; ?>
@@ -128,8 +124,8 @@ $canonicalUrl = 'https://www.examly.pl/logowanie';
 
       <!-- Stopka formularza z dodatkowymi linkami -->
       <div class="form-card__footer">
-        <p>Nie masz konta? <a href="rejestracja">Stwórz je teraz</a></p>
-        <p><a href="reset-hasla">Nie pamiętasz hasła?</a></p>
+        <p>Nie masz konta? <a href="<?= url('rejestracja') ?>">Stwórz je teraz</a></p>
+        <p><a href="<?= url('reset-hasla') ?>">Nie pamiętasz hasła?</a></p>
       </div>
     </form>
   </main>

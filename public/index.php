@@ -1,12 +1,18 @@
 <?php
 /**
- * Front controller — punkt wejściowy aplikacji
+ * Front controller — punkt wejściowy aplikacji.
  */
 
-// Wczytanie autoloadera klas
+// Wczytanie pliku konfiguracyjnego.
+require_once __DIR__ . '/../config.php';
+
+// Wczytanie autoloadera klas.
 require_once __DIR__ . '/../app/Core/autoload.php';
 
-// Odpalenie sesji
+// Wczytanie globalnych funkcji pomocniczych.
+require_once __DIR__ . '/../app/Core/helpers.php';
+
+// Odpalenie sesji.
 if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }

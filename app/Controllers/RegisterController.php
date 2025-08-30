@@ -52,7 +52,7 @@ class RegisterController extends BaseController
   {
     // Krok 1: Zabezpieczenie - przekieruj, jeśli użytkownik jest już zalogowany.
     if ($this->isUserLoggedIn) {
-      header('Location: /');
+      header('Location: ' . url('/'));
       exit();
     }
 
@@ -67,7 +67,7 @@ class RegisterController extends BaseController
       // Krok 3: Reakcja na wynik operacji rejestracji.
       if ($result['success']) {
         // Sukces: przekieruj na stronę weryfikacji z flagą do wysłania e-maila.
-        header('Location: /autoryzacja-email?send=true');
+        header('Location: ' . url('autoryzacja-email?send=true'));
         exit();
       } else {
         // Porażka: zbierz błędy walidacji.
@@ -99,7 +99,7 @@ class RegisterController extends BaseController
   {
     // Krok 1: Sprawdź czy użytkownik jest zalogowany, jeśli tak przekieruj go na stronę główną.
     if ($this->isUserLoggedIn) {
-      header('Location: /');
+      header('Location: ' . url('/'));
       exit();
     }
 
@@ -107,7 +107,7 @@ class RegisterController extends BaseController
     // Jeśli nie ma, to znaczy, że użytkownik nie jest w trakcie procesu rejestracji,
     // więc nie ma powodu, by przebywał na tej stronie.
     if (!isset($_SESSION['verify_user_id'])) {
-      header('Location: /rejestracja');
+      header('Location: ') . url('rejestracja');
       exit();
     }
 
@@ -123,7 +123,7 @@ class RegisterController extends BaseController
         'type' => 'info',
         'text' => 'Twoje konto jest już aktywne. Możesz się zalogować.',
       ];
-      header('Location: /logowanie');
+      header('Location: ' . url('logowanie'));
       exit();
     }
 
@@ -170,14 +170,14 @@ class RegisterController extends BaseController
         'type' => 'error',
         'text' => 'Sesja wygasła. Zaloguj się lub zarejestruj ponownie.',
       ];
-      header('Location: /logowanie');
+      header('Location: ' . url('logowanie'));
       exit();
     }
 
     // Krok 2: Zabezpieczenie przed spamem - limit czasowy na ponowną wysyłkę.
     if (isset($_SESSION['email_sent']) && time() - $_SESSION['email_sent'] < 60) {
       $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Kolejny e-mail można wysłać dopiero po minucie.'];
-      header('Location: /autoryzacja-email');
+      header('Location: ' . url('autoryzacja-email'));
       exit();
     }
 
@@ -187,14 +187,14 @@ class RegisterController extends BaseController
     if (!$user || $user->isVerified()) {
       unset($_SESSION['verify_user_id']); // Sprzątanie sesji.
       $_SESSION['flash_message'] = ['type' => 'info', 'text' => 'Twoje konto jest już aktywne. Możesz się zalogować.'];
-      header('Location: /logowanie');
+      header('Location: ' . url('logowanie'));
       exit();
     }
 
     // Krok 4: Generowanie tokenu i linku weryfikacyjnego.
     $tokenService = new TokenService();
     $token = $tokenService->generateToken($user->getId(), 'email_verify');
-    $verifyLink = "https://examly.sprzatanieleszno.pl/weryfikacja?token=$token";
+    $verifyLink = url("weryfikacja?token=$token");
 
     // Krok 5: Przygotowanie i wysłanie e-maila.
     $body =
@@ -219,7 +219,7 @@ class RegisterController extends BaseController
     }
 
     // Krok 6: Zawsze przekieruj z powrotem, aby wyświetlić wynik operacji.
-    header('Location: /autoryzacja-email');
+    header('Location: ' . url('autoryzacja-email'));
     exit();
   }
 }

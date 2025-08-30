@@ -1,5 +1,5 @@
 /**
- * @file slider-enhancer.js
+ * @file SliderEnhancer.js
  * @module slider-enhancer
  * @description
  * Lekki, reużywalny komponent (`SliderEnhancer`) do dynamicznej aktualizacji

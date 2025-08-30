@@ -28,10 +28,10 @@
     <div class="footer__section">
       <h4 class="footer__heading">Examly</h4>
       <ul class="footer__list">
-        <li class="footer__item"><a href="/" class="footer__link">Strona główna</a></li>
-        <li class="footer__item"><a href="/register" class="footer__link">Rejestracja</a></li>
-        <li class="footer__item"><a href="/login" class="footer__link">Logowanie</a></li>
-        <li class="footer__item"><a href="/statistics" class="footer__link">Statystyki</a></li>
+        <li class="footer__item"><a href="<?= url('/') ?>" class="footer__link">Strona główna</a></li>
+        <li class="footer__item"><a href="<?= url('rejestracja') ?>" class="footer__link">Rejestracja</a></li>
+        <li class="footer__item"><a href="<?= url('logowanie') ?>" class="footer__link">Logowanie</a></li>
+        <li class="footer__item"><a href="<?= url('statystyki') ?>" class="footer__link">Statystyki</a></li>
       </ul>
     </div>
 
@@ -39,9 +39,9 @@
     <div class="footer__section">
       <h4 class="footer__heading">Materiały</h4>
       <ul class="footer__list">
-        <li class="footer__item"><a href="/inf03_course" class="footer__link">Kurs INF.03</a></li>
-        <li class="footer__item"><a href="/inf03_one_question" class="footer__link">Jedno pytanie</a></li>
-        <li class="footer__item"><a href="/inf03_test" class="footer__link">Egzamin próbny</a></li>
+        <li class="footer__item"><a href="<?= url('kurs-inf03') ?>" class="footer__link">Kurs INF.03</a></li>
+        <li class="footer__item"><a href="<?= url('inf03-jedno-pytanie') ?>" class="footer__link">Jedno pytanie</a></li>
+        <li class="footer__item"><a href="<?= url('inf03-test') ?>" class="footer__link">Egzamin próbny</a></li>
       </ul>
     </div>
 
@@ -75,10 +75,23 @@
     Dolny pasek stopki (Copyright)
     Przeznaczenie: Oddzielna sekcja na informacje o prawach autorskich.
                    Wydzielona dla ułatwienia stylowania (np. inne tło,
-                   pełna szerokość).
+                   pełna szerokość). Zawiera suwak do zmiany motywu aplikacji.
   -->
   <div class="footer__bottom">
     <p>&copy; <?= date('Y') ?> Examly. Wszelkie prawa zastrzeżone.</p>
+    <div class="centered">
+      <div class="theme-switcher">
+        <input type="checkbox" id="theme-toggle-checkbox">
+        <label for="theme-toggle-checkbox" class="theme-toggle-label" aria-label="Zmień motyw">
+          <i class="fas fa-moon"></i>
+          <i class="fas fa-sun"></i>
+          <span class="ball"></span>
+        </label>
+      </div>
+    </div>
   </div>
 </footer>
-<!-- /Koniec Komponentu Stopki -->
+<!-- Koniec Komponentu Stopki -->
+
+<!-- Skrypt do zmiany motywu strony -->
+<script type="module" src="<?= url('js/components/ThemeSwitcher.js') ?>"></script>

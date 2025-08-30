@@ -13,7 +13,7 @@
 <nav class="main-nav">
   <!-- Sekcja 1: Logo i link do strony głównej -->
   <div class="main-nav__logo">
-    <a href="/examly/public/" aria-label="Strona główna Examly">
+    <a href="<?= url() ?>" aria-label="Strona główna Examly">
       <img src="/path/to/your/logo.png" alt="Logo Examly" class="logo">
     </a>
   </div>
@@ -23,24 +23,24 @@
     
     <!-- Element nawigacji z menu rozwijanym (dropdown) -->
     <li class="main-nav__item dropdown">
-      <a href="/examly/public/#egzaminy" class="main-nav__link">
+      <a href="<?= url('#egzaminy') ?>" class="main-nav__link">
         <i class="main-nav__icon fas fa-laptop-code"></i>
         <span>INF.03</span>
       </a>
       <!-- Kontener menu rozwijanego; jego widoczność jest kontrolowana przez CSS/JS -->
       <ul class="dropdown__menu">
         <li class="dropdown__item">
-          <a href="inf03-jedno-pytanie" class="dropdown__link">
+          <a href="<?= url('inf03-jedno-pytanie') ?>" class="dropdown__link">
             <i class="dropdown__icon fas fa-question-circle"></i> Jedno Pytanie
           </a>
         </li>
         <li class="dropdown__item">
-          <a href="inf03-personalizowany-test" class="dropdown__link">
+          <a href="<?= url('inf03-personalizowany-test') ?>" class="dropdown__link">
             <i class="dropdown__icon fas fa-sliders-h"></i> Spersonalizowany Test
           </a>
         </li>
         <li class="dropdown__item">
-          <a href="inf03-test" class="dropdown__link">
+          <a href="<?= url('inf03-test') ?>" class="dropdown__link">
             <i class="dropdown__icon fas fa-file-alt"></i> Egzamin próbny
           </a>
         </li>
@@ -49,14 +49,14 @@
 
     <!-- Kolejny element nawigacji z menu rozwijanym -->
     <li class="main-nav__item dropdown">
-      <a href="kursy" class="main-nav__link">
+      <a href="<?= url('kursy') ?>" class="main-nav__link">
         <i class="main-nav__icon fas fa-graduation-cap"></i>
         <span>Kursy</span>
       </a>
       <!-- Modyfikator BEM `--right` może służyć do wyrównania tego menu do prawej krawędzi rodzica -->
       <ul class="dropdown__menu dropdown__menu--right">
         <li class="dropdown__item">
-          <a href="kurs-inf03" class="dropdown__link">
+          <a href="<?= url('kurs-inf03') ?>" class="dropdown__link">
             <i class="dropdown__icon fas fa-chalkboard-teacher"></i> Kurs INF.03
           </a>
         </li>
@@ -75,13 +75,13 @@
     <?php if (!$isUserLoggedIn): ?>
       <!-- Wariant dla użytkownika NIEZALOGOWANEGO -->
       <li class="main-nav__item">
-        <a href="rejestracja" class="nav-button nav-button--register">
+        <a href="<?= url('rejestracja') ?>" class="nav-button nav-button--register">
           <i class="main-nav__icon fas fa-user-plus"></i>
           <span>Zarejestruj się</span>
         </a>
       </li>
       <li class="main-nav__item">
-        <a href="logowanie" class="nav-button nav-button--login">
+        <a href="<?= url('logowanie') ?>" class="nav-button nav-button--login">
           <i class="main-nav__icon fas fa-sign-in-alt"></i>
           <span>Zaloguj się</span>
         </a>
@@ -89,22 +89,22 @@
     <?php else: ?>
       <!-- Wariant dla użytkownika ZALOGOWANEGO -->
       <li class="main-nav__item dropdown">
-        <a href="/statystyki" class="main-nav__link" aria-label="Profil użytkownika">
-          <img src="/examly/public/images/user.png" alt="Avatar użytkownika" class="main-nav__user-avatar">
+        <a href="<?= url('statystyki') ?>" class="main-nav__link" aria-label="Profil użytkownika">
+          <img src="<?= url('images/user.png') ?>" alt="Avatar użytkownika" class="main-nav__user-avatar">
         </a>
         <ul class="dropdown__menu dropdown__menu--right">
           <li class="dropdown__item">
-            <a href="statystyki" class="dropdown__link">
+            <a href="<?= url('statystyki') ?>" class="dropdown__link">
               <i class="dropdown__icon fas fa-chart-bar"></i> Statystyki
             </a>
           </li>
           <li class="dropdown__item">
-            <a href="ustawienia" class="dropdown__link">
+            <a href="<?= url('ustawienia') ?>" class="dropdown__link">
               <i class="dropdown__icon fas fa-cog"></i> Ustawienia
             </a>
           </li>
           <li class="dropdown__item">
-            <a href="wyloguj" class="dropdown__link">
+            <a href="<?= url('wyloguj') ?>" class="dropdown__link">
               <i class="dropdown__icon fas fa-sign-out-alt"></i> Wyloguj się
             </a>
           </li>
@@ -127,6 +127,7 @@
 -->
 <script>
   window.examlyAppState = {
-    isUserLoggedIn: <?= isset($_SESSION['user']) && $_SESSION['user'] instanceof User ? 'true' : 'false' ?>
+    isUserLoggedIn: <?= isset($_SESSION['user']) && $_SESSION['user'] instanceof User ? 'true' : 'false' ?>,
+    baseUrl: '<?= BASE_URL ?>'
   };
 </script>

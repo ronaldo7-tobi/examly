@@ -187,11 +187,11 @@ $extraScripts = [
 
   <!-- Skrypty JS ładowane jako moduły na końcu strony -->
   <!-- Skrypt obsługujący interaktywność suwaka -->
-  <script type="module" src="/examly/public/js/components/slider-enhancer.js"></script>
+  <script type="module" src="<?= url('js/components/SliderEnhancer.js') ?>"></script>
   <!-- Główny skrypt logiki dla tej strony (zarządzanie krokami, pobieranie i renderowanie testu) -->
-  <script type="module" src="/examly/public/js/features/personalized-test/index.js"></script>
+  <script type="module" src="<?= url('js/features/personalized-test/index.js') ?>"></script>
   <!-- Skrypt pomocniczy do obsługi checkboxów (np. "zaznacz wszystko") -->
-  <script type="module" src="/examly/public/js/components/topic-form-enhancer.js"></script>
+  <script type="module" src="<?= url('js/components/TopicFormEnhancer.js') ?>"></script>
 </body>
 
 </html>

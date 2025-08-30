@@ -1,0 +1,14 @@
+// Plik: scss/7-utilities/_helpers.scss
+// Reużywalne klasy pomocnicze
+
+.centered {
+  display: flex;
+  margin-top: 1rem;
+  justify-content: center;
+  width: 100%; // Upewnij się, że kontener zajmuje całą dostępną szerokość
+}
+
+// Możesz tu w przyszłości dodawać inne pomocne klasy, np.:
+.text-center {
+  text-align: center;
+}

@@ -161,9 +161,9 @@ $extraScripts = [
 
   <!-- Skrypty JS ładowane jako moduły na końcu strony -->
   <!-- Skrypt pomocniczy, dodający funkcjonalności do formularza (np. "zaznacz wszystko") -->
-  <script type="module" src="/examly/public/js/components/topic-form-enhancer.js"></script>
+  <script type="module" src="<?= url('js/components/TopicFormEnhancer.js') ?>"></script>
   <!-- Główny skrypt aplikacji dla tego widoku, obsługujący logikę pobierania i wyświetlania pytań -->
-  <script type="module" src="/examly/public/js/features/one-question/index.js"></script>
+  <script type="module" src="<?= url('js/features/one-question/index.js') ?>"></script>
 </body>
 
 </html>

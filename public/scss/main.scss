@@ -69,6 +69,8 @@
 @import '6-components/page-header';
 @import '6-components/test-configurator';
 @import '6-components/toast';
+@import '6-components/theme-switcher';
+@import '6-components/settings-page';
 
 // =============================================================================
 // 7. NARZĘDZIA POMOCNICZE (UTILITIES)
@@ -78,3 +80,4 @@
 @import '7-utilities/home';
 @import '7-utilities/auth-page';
 @import '7-utilities/text';
+@import '7-utilities/helpers';

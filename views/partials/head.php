@@ -97,16 +97,16 @@
   <!-- ================================================================== -->
   <!-- 4. Ikony i zasoby (Assets) -->
   <!-- ================================================================== -->
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="<?= url('favicon.ico') ?>" type="image/x-icon">
 
   <!-- 
     @property apple-touch-icon
     @description Ikona wyświetlana na ekranie głównym urządzeń Apple (iPhone, iPad),
                  gdy użytkownik doda skrót do Twojej strony. Ważne dla brandingu.
   -->
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png"> <!-- Upewnij się, że ten plik istnieje -->
+  <link rel="apple-touch-icon" href="<?= url('apple-touch-icon.png') ?>"> <!-- Upewnij się, że ten plik istnieje -->
 
-  <link rel="stylesheet" href="../public/scss/main.css">
+  <link rel="stylesheet" href="<?= url('scss/main.css') ?>">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <!-- ================================================================== -->
@@ -130,6 +130,27 @@
         "query-input": "required name=search_term_string"
       }
     }
+  </script>
+
+  <script>
+    (function() {
+      try {
+        // Sprawdź zapisany motyw w localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else if (savedTheme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          // Jeśli brak zapisanego motywu, sprawdź preferencje systemowe
+          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+          }
+        }
+      } catch (e) {
+        // W razie problemów z localStorage, nic nie rób
+      }
+    })();
   </script>
 
   <!-- ================================================================== -->

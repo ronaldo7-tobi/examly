@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Konfiguracja komponentu head
  */
 $noIndex = true;
-$noFollow = true; 
+$noFollow = true;
 $pageTitle = 'Autoryzacja adresu e-mail | Examly';
 $pageDescription = 'Proces weryfikacji konta w serwisie Examly.';
 $canonicalUrl = 'https://www.examly.pl/autoryzacja-email';
@@ -37,17 +38,8 @@ $canonicalUrl = 'https://www.examly.pl/autoryzacja-email';
 <!DOCTYPE html>
 <html lang="pl">
 <!-- Dołączenie reużywalnego komponentu head -->
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<?php include 'partials/head.php'; ?>
 
-  <!-- Podstawowe meta tagi i zasoby -->
-  <title>Examly - weryfikacja E-mail</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <link rel="canonical" href="https://www.examly.pl/">
-  <link rel="stylesheet" href="../public/scss/main.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
 <body>
   <!-- Dołączenie reużywalnego komponentu nawigacji -->
   <?php include 'partials/navbar.php'; ?>
@@ -62,7 +54,7 @@ $canonicalUrl = 'https://www.examly.pl/autoryzacja-email';
             aplikacji.
       =====================================================================
     -->
-    <div class="info-card--centered-fullscreen"> 
+    <div class="info-card--centered-fullscreen">
       <div class="info-card">
         <div class="info-card__icon info-card__icon--info">
           <i class="fas fa-envelope-open-text"></i>
@@ -85,7 +77,7 @@ $canonicalUrl = 'https://www.examly.pl/autoryzacja-email';
                 Przycisk jest nieaktywny, jeśli trwa okres cooldown.
         -->
         <div class="info-card__actions">
-          <form method="GET" action="/examly/public/verify_email">
+          <form method="GET">
             <input type="hidden" name="send" value="true">
             <!-- 
               Przycisk z logiką cooldown:
@@ -94,13 +86,13 @@ $canonicalUrl = 'https://www.examly.pl/autoryzacja-email';
               - Treść przycisku: Zmienia się w zależności od tego, czy odliczanie trwa.
               - Interaktywność (odliczanie i aktywacja) jest zarządzana przez `verification/index.js`.
             -->
-            <button 
+            <button
               type="submit"
-              id="resendButton" 
+              id="resendButton"
               class="btn btn--primary btn--full-width"
+              data-text="Wyślij ponownie e-mail"
               data-remaining="<?= $remaining ?>"
-              <?= $remaining > 0 ? 'disabled' : '' ?>
-            >
+              <?= $remaining > 0 ? 'disabled' : '' ?>>
               <?php if ($remaining > 0): ?>
                 Wyślij ponownie za <span id="countdown"><?= $remaining ?></span>s
               <?php else: ?>
@@ -109,7 +101,7 @@ $canonicalUrl = 'https://www.examly.pl/autoryzacja-email';
             </button>
           </form>
         </div>
-        
+
         <p class="info-card__message" style="margin-top: 1rem; font-size: 0.9rem;">
           Nie widzisz wiadomości? Sprawdź folder SPAM.
         </p>
@@ -120,6 +112,10 @@ $canonicalUrl = 'https://www.examly.pl/autoryzacja-email';
   <?php include 'partials/footer.php'; ?>
 
   <!-- Skrypt odpowiedzialny za logikę odliczania na przycisku "Wyślij ponownie" -->
-  <script type="module" src="/examly/public/js/features/verification/index.js"></script>
+  <script type="module">
+    import CountdownButton from '<?= url('js/components/CountdownButton.js') ?>';
+    new CountdownButton('resendButton');
+  </script>
 </body>
+
 </html>

@@ -13,3 +13,13 @@
   display: inline-block; // Zapewnia poprawne działanie transformacji
   animation: sparkle 1.5s infinite ease-in-out;
 }
+
+.link {
+  color: var(--muted-text);
+  text-decoration: none;
+  font-weight: 400;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

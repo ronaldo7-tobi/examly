@@ -81,6 +81,26 @@ class User
   }
 
   /**
+   * Zwraca imię użytkownika.
+   *
+   * @return string Imię i nazwisko połączone spacją.
+   */
+  public function getName()
+  {
+    return $this->firstName;
+  }
+
+  /**
+   * Zwraca nazwisko użytkownika.
+   *
+   * @return string Imię i nazwisko połączone spacją.
+   */
+  public function getLastName()
+  {
+    return $this->lastName;
+  }
+
+  /**
    * Zwraca pełne imię i nazwisko użytkownika.
    *
    * @return string Imię i nazwisko połączone spacją.

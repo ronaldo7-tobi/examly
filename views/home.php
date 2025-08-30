@@ -54,11 +54,11 @@ $canonicalUrl = 'https://www.examly.pl/';
         <h1 class="hero-section__title"><span class="text-gradient">Zdaj</span> egzamin zawodowy bez stresu.</h1>
         <p class="hero-section__subtitle">Opanuj cały materiał dzięki naszej inteligentnej platformie z tysiącami pytań i zdobądź wynik o którym marzysz.</p>
         <div class="hero-section__cta-group">
-          <a href="/examly/public/#egzaminy" class="btn btn--primary btn--large">Rozpocznij egzamin próbny</a>
+          <a href="<?= url('#egzaminy') ?>" class="btn btn--primary btn--large">Rozpocznij egzamin próbny</a>
 
           <!-- CTA widoczne tylko dla gości -->
           <?php if (!$isUserLoggedIn): ?>
-            <a href="rejestracja" class="btn btn--secondary btn--large">Załóż darmowe konto</a>
+            <a href="<?= url('rejestracja') ?>" class="btn btn--secondary btn--large">Załóż darmowe konto</a>
           <?php endif; ?>
         </div>
       </div>
@@ -184,7 +184,7 @@ $canonicalUrl = 'https://www.examly.pl/';
     <section class="exams-section" id="egzaminy">
       <h2 class="section-title">Rozwiąż test z swojej kwalifikacji już teraz</h2>
       <div class="exams-grid">
-        <a href="inf03-test" class="exam-card">
+        <a href="<?= url('inf03-test') ?>" class="exam-card">
           <div class="exam-card__background" style="background-image: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=2070&auto=format&fit=crop');"></div>
           <div class="exam-card__overlay"></div>
           <div class="exam-card__content">
@@ -275,12 +275,12 @@ $canonicalUrl = 'https://www.examly.pl/';
             <span>Kwalifikacja INF.03</span>
           </h3>
           <div class="topics-grid">
-            <a href="inf03-personalizowany-test?subject[]=1" class="topic-card">HTML</a>
-            <a href="inf03-personalizowany-test?subject[]=2" class="topic-card">CSS</a>
-            <a href="inf03-personalizowany-test?subject[]=3" class="topic-card">JavaScript</a>
-            <a href="inf03-personalizowany-test?subject[]=4" class="topic-card">PHP</a>
-            <a href="inf03-personalizowany-test?subject[]=5" class="topic-card">SQL</a>
-            <a href="inf03-personalizowany-test?subject[]=6" class="topic-card">Teoria</a>
+            <a href="<?= url('inf03-personalizowany-test?subject[]=1') ?>" class="topic-card">HTML</a>
+            <a href="<?= url('inf03-personalizowany-test?subject[]=2') ?>" class="topic-card">CSS</a>
+            <a href="<?= url('inf03-personalizowany-test?subject[]=3') ?>" class="topic-card">JavaScript</a>
+            <a href="<?= url('inf03-personalizowany-test?subject[]=4') ?>" class="topic-card">PHP</a>
+            <a href="<?= url('inf03-personalizowany-test?subject[]=5') ?>" class="topic-card">SQL</a>
+            <a href="<?= url('inf03-personalizowany-test?subject[]=6') ?>" class="topic-card">Teoria</a>
           </div>
         </div>
 

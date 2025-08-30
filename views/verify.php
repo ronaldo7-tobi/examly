@@ -33,11 +33,8 @@ $canonicalUrl = 'https://www.examly.pl/weryfikacja';
 <!DOCTYPE html>
 <html lang="pl">
 <!-- Dołączenie reużywalnego komponentu head -->
-<head>
-  <meta charset="UTF-8">
-  <title>Weryfikacja E-mail</title>
-  <link rel="stylesheet" href="../public/scss/main.css"> 
-</head>
+<?php include 'partials/head.php'; ?>
+
 <body>
   <main>
     <!-- 
@@ -65,7 +62,7 @@ $canonicalUrl = 'https://www.examly.pl/weryfikacja';
           <h1 class="info-card__title">Weryfikacja zakończona!</h1>
           <p class="info-card__message"><?= htmlspecialchars($message) ?></p>
           <div class="info-card__actions">
-            <a href="/login" class="btn btn--primary btn--full-width">Przejdź do logowania</a>
+            <a href="<?= url('logowanie') ?>" class="btn btn--primary btn--full-width">Przejdź do logowania</a>
           </div>
         
         <?php else: ?>
@@ -77,7 +74,7 @@ $canonicalUrl = 'https://www.examly.pl/weryfikacja';
           <h1 class="info-card__title">Wystąpił błąd</h1>
           <p class="info-card__message"><?= htmlspecialchars($message) ?></p>
           <div class="info-card__actions">
-            <a href="/" class="btn btn--secondary btn--full-width">Wróć na stronę główną</a>
+            <a href="<?= url('/') ?>" class="btn btn--secondary btn--full-width">Wróć na stronę główną</a>
           </div>
 
         <?php endif; ?>

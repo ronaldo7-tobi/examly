@@ -1,5 +1,5 @@
 /**
- * @file topic-form-enhancer.js
+ * @file TopicFormEnhancer.js
  * @module topicFormEnhancer
  * @description
  * Skrypt, który wzbogaca formularz wyboru tematów o zaawansowaną interaktywność.

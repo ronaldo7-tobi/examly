@@ -53,52 +53,50 @@ class VerificationController extends BaseController
    */
   public function handle(): void
   {
-    // Krok 1: Sprawdzenie wstępne — zalogowany użytkownik nie wymaga weryfikacji.
-    if ($this->isUserLoggedIn) {
-      header('Location: /');
-      exit();
-    }
+      if ($this->isUserLoggedIn) {
+          header('Location: ' . url('/'));
+          exit();
+      }
 
-    // Krok 2: Sprawdzenie czy użytkownik na pewno jest w procesie weryfikacji.
-    if (!isset($_SESSION['verify_user_id'])) {
-      header('Location: /rejestracja');
-      exit();
-    }
+      $token = $_GET['token'] ?? null;
+      if (!$token) {
+          $this->renderErrorView('Brak tokenu weryfikacyjnego.');
+          return;
+      }
 
-    // Krok 2: Pobranie i walidacja istnienia tokenu w adresie URL.
-    $token = $_GET['token'] ?? null;
-    if (!$token) {
-      $this->renderErrorView('Brak tokenu weryfikacyjnego w adresie URL.');
-      return;
-    }
+      $tokenRecord = $this->tokenService->getTokenRecord($token);
+      if (!$tokenRecord) {
+          $this->renderErrorView('Token jest nieprawidłowy lub wygasł.');
+          return;
+      }
 
-    // Krok 3: Walidacja poprawności i ważności tokenu.
-    $tokenRecord = $this->tokenService->getTokenRecord($token);
-    if (!$tokenRecord || strtotime($tokenRecord['expires_at']) < time()) {
-      $this->renderErrorView('Token jest nieprawidłowy lub wygasł. Spróbuj wysłać link ponownie.');
-      return;
-    }
+      $success = false;
+      $userId = $tokenRecord['user_id'];
+      $tokenType = $tokenRecord['type'];
 
-    // Krok 4: Aktywacja użytkownika powiązanego z tokenem.
-    if ($this->userModel->verifyUser($tokenRecord['user_id'])) {
-      // Krok 5: Proces finalizacji — sprzątanie i przygotowanie do logowania.
+      // Rozdzielamy logikę na podstawie typu tokenu
+      switch ($tokenType) {
+          case 'email_verify':
+              $success = $this->userModel->verifyUser($userId);
+              break;
 
-      // Usuń zużyty token (oraz inne tego typu dla tego usera), aby nie mógł być ponownie użyty.
-      $this->tokenService->deleteTokensForUserByType($tokenRecord['user_id'], 'email_verify');
+          case 'email_change':
+              $newEmail = $tokenRecord['token_data'];
+              $success = $this->userModel->updateAndVerifyEmail($userId, $newEmail);
+              break;
+      }
 
-      // Ustaw jednorazowy komunikat (flash message) dla strony logowania.
-      $_SESSION['flash_message'] = [
-        'type' => 'success',
-        'text' => 'Adres e-mail został pomyślnie zweryfikowany! Możesz się teraz zalogować.',
-      ];
+      if ($success) {
+          // Po udanej operacji, usuwamy zużyty token
+          $this->tokenService->deleteTokensForUserByType($userId, $tokenType);
 
-      // Przekieruj użytkownika, aby mógł się zalogować na aktywowane konto.
-      header('Location: /logowanie');
-      exit();
-    } else {
-      // Krok 6: Obsługa błędu krytycznego — nieudana aktualizacja w bazie danych.
-      $this->renderErrorView('Wystąpił nieoczekiwany błąd podczas aktywacji konta. Skontaktuj się z administratorem.');
-    }
+          $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Operacja zakończona pomyślnie! Możesz się teraz zalogować.'];
+          unset($_SESSION['verify_user_id']);
+          header('Location: ' . url('logowanie'));
+          exit();
+      } else {
+          $this->renderErrorView('Wystąpił nieoczekiwany błąd podczas przetwarzania tokenu.');
+      }
   }
 
   // ========================================================================
