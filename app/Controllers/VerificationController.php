@@ -53,50 +53,53 @@ class VerificationController extends BaseController
    */
   public function handle(): void
   {
-      if ($this->isUserLoggedIn) {
-          header('Location: ' . url('/'));
-          exit();
-      }
+    // Strażnik #1: Sprawdź, czy użytkownik jest zalogowany. Jeśli tak, nie ma tu czego szukać.
+    if ($this->isUserLoggedIn) {
+      header('Location: ' . url('/'));
+      exit();
+    }
 
-      $token = $_GET['token'] ?? null;
-      if (!$token) {
-          $this->renderErrorView('Brak tokenu weryfikacyjnego.');
-          return;
-      }
+    // Strażnik #2: Sprawdź, czy w adresie URL jest token.
+    // To jest warunek, który blokuje dostęp przypadkowym, niezalogowanym użytkownikom.
+    $token = $_GET['token'] ?? null;
+    if (!$token) {
+      $this->renderErrorView('Brak tokenu weryfikacyjnego.');
+      return;
+    }
 
-      $tokenRecord = $this->tokenService->getTokenRecord($token);
-      if (!$tokenRecord) {
-          $this->renderErrorView('Token jest nieprawidłowy lub wygasł.');
-          return;
-      }
+    $tokenRecord = $this->tokenService->getTokenRecord($token);
+    if (!$tokenRecord) {
+      $this->renderErrorView('Token jest nieprawidłowy lub wygasł.');
+      return;
+    }
 
-      $success = false;
-      $userId = $tokenRecord['user_id'];
-      $tokenType = $tokenRecord['type'];
+    $success = false;
+    $userId = $tokenRecord['user_id'];
+    $tokenType = $tokenRecord['type'];
 
-      // Rozdzielamy logikę na podstawie typu tokenu
-      switch ($tokenType) {
-          case 'email_verify':
-              $success = $this->userModel->verifyUser($userId);
-              break;
+    // Rozdzielamy logikę na podstawie typu tokenu
+    switch ($tokenType) {
+      case 'email_verify':
+        $success = $this->userModel->verifyUser($userId);
+        break;
 
-          case 'email_change':
-              $newEmail = $tokenRecord['token_data'];
-              $success = $this->userModel->updateAndVerifyEmail($userId, $newEmail);
-              break;
-      }
+      case 'email_change':
+        $newEmail = $tokenRecord['token_data'];
+        $success = $this->userModel->updateAndVerifyEmail($userId, $newEmail);
+        break;
+    }
 
-      if ($success) {
-          // Po udanej operacji, usuwamy zużyty token
-          $this->tokenService->deleteTokensForUserByType($userId, $tokenType);
+    if ($success) {
+      // Po udanej operacji, usuwamy zużyty token
+      $this->tokenService->deleteTokensForUserByType($userId, $tokenType);
 
-          $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Operacja zakończona pomyślnie! Możesz się teraz zalogować.'];
-          unset($_SESSION['verify_user_id']);
-          header('Location: ' . url('logowanie'));
-          exit();
-      } else {
-          $this->renderErrorView('Wystąpił nieoczekiwany błąd podczas przetwarzania tokenu.');
-      }
+      $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Operacja zakończona pomyślnie! Możesz się teraz zalogować.'];
+      unset($_SESSION['verify_user_id']);
+      header('Location: ' . url('logowanie'));
+      exit();
+    } else {
+      $this->renderErrorView('Wystąpił nieoczekiwany błąd podczas przetwarzania tokenu.');
+    }
   }
 
   // ========================================================================

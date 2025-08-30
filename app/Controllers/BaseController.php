@@ -55,4 +55,32 @@ class BaseController
     // Dołącz plik widoku
     include __DIR__ . "/../../views/{$viewName}.php";
   }
+
+  /**
+   * Wymusza, aby użytkownik NIE był zalogowany (był gościem).
+   * Jeśli jest zalogowany, przekierowuje go na stronę główną.
+   * 
+   * @return void
+   */
+  protected function requireGuest(): void
+  {
+    if ($this->isUserLoggedIn) {
+      header('Location: ' . url('/'));
+      exit();
+    }
+  }
+
+  /**
+   * Wymusza, aby użytkownik był zalogowany.
+   * Jeśli nie jest, przekierowuje go na stronę logowania.
+   * 
+   * @return void
+   */
+  protected function requireAuth(): void
+  {
+    if (!$this->isUserLoggedIn) {
+      header('Location: ' . url('logowanie'));
+      exit();
+    }
+  }
 }

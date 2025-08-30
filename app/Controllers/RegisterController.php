@@ -31,6 +31,7 @@ class RegisterController extends BaseController
   public function __construct()
   {
     parent::__construct();
+    $this->requireGuest();
     $this->auth = new AuthController();
   }
 
@@ -50,12 +51,6 @@ class RegisterController extends BaseController
    */
   public function handleRequest(): void
   {
-    // Krok 1: Zabezpieczenie - przekieruj, jeśli użytkownik jest już zalogowany.
-    if ($this->isUserLoggedIn) {
-      header('Location: ' . url('/'));
-      exit();
-    }
-
     $errors = [];
     $formData = [];
 
@@ -97,17 +92,11 @@ class RegisterController extends BaseController
    */
   public function showVerificationPage(): void
   {
-    // Krok 1: Sprawdź czy użytkownik jest zalogowany, jeśli tak przekieruj go na stronę główną.
-    if ($this->isUserLoggedIn) {
-      header('Location: ' . url('/'));
-      exit();
-    }
-
     // Krok 2: Sprawdź, czy w sesji jest ID użytkownika oczekującego na weryfikację.
     // Jeśli nie ma, to znaczy, że użytkownik nie jest w trakcie procesu rejestracji,
     // więc nie ma powodu, by przebywał na tej stronie.
     if (!isset($_SESSION['verify_user_id'])) {
-      header('Location: ') . url('rejestracja');
+      header('Location: ' . url('rejestracja'));
       exit();
     }
 

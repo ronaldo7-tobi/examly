@@ -7,13 +7,8 @@ class SettingsController extends BaseController
   public function __construct()
   {
     parent::__construct();
-
+    $this->requireAuth();
     $this->userModel = new UserModel();
-
-    if (!$this->isUserLoggedIn) {
-      header('Location: ' . url('logowanie'));
-      exit();
-    }
   }
 
   /**

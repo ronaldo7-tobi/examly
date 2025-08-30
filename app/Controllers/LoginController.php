@@ -28,6 +28,7 @@ class LoginController extends BaseController
   public function __construct()
   {
     parent::__construct();
+    $this->requireGuest();
     $this->auth = new AuthController();
   }
 
@@ -44,12 +45,6 @@ class LoginController extends BaseController
    */
   public function handleRequest(): void
   {
-    // 1. Przekieruj, jeśli użytkownik jest już zalogowany
-    if ($this->isUserLoggedIn) {
-      header('Location: ' . url('/'));
-      exit();
-    }
-
     $errors = [];
     $formData = [];
 
