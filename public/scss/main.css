@@ -475,6 +475,12 @@ body {
   font-size: 0.95rem;
   color: var(--text);
 }
+.form-card__input-hint {
+  font-size: 0.85rem;
+  color: var(--muted-text);
+  margin-top: 0.5rem;
+  padding-left: 0.25rem;
+}
 .form-card__input {
   width: 90%;
   padding: 1rem 1.2rem;

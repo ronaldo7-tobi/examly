@@ -170,8 +170,24 @@ class AuthController
       $errors[] = 'Konto z podanym adresem e-mail już istnieje.';
     }
     // Walidacja hasła
-    if (strlen($password) < 6) {
-      $errors[] = 'Hasło musi mieć co najmniej 6 znaków.';
+    if (strlen($password) < 8) {
+      $errors[] = 'Hasło musi mieć co najmniej 8 znaków.';
+    } elseif ($this->isPasswordPwned($password)) { // <-- NOWY WARUNEK
+      $errors[] = 'To hasło jest niebezpieczne, ponieważ pojawiło się w publicznym wycieku danych. Proszę, użyj innego.';
+    } else {
+      if (!preg_match('/[A-Z]/', $password)) {
+        $errors[] = 'Hasło musi zawierać co najmniej jedną wielką literę.';
+      }
+      if (!preg_match('/[a-z]/', $password)) {
+        $errors[] = 'Hasło musi zawierać co najmniej jedną małą literę.';
+      }
+      if (!preg_match('/[0-9]/', $password)) {
+        $errors[] = 'Hasło musi zawierać co najmniej jedną cyfrę.';
+      }
+      // Opcjonalnie: wymóg znaku specjalnego
+      if (!preg_match('/[\W_]/', $password)) {
+        $errors[] = 'Hasło musi zawierać co najmniej jeden znak specjalny (np. !, @, #, ?).';
+      }
     }
     // Walidacja potwierdzenia hasła
     if ($password !== $confirmPassword) {
@@ -179,5 +195,38 @@ class AuthController
     }
 
     return $errors;
+  }
+
+  /**
+   * Sprawdza, czy hasło znajduje się w bazie znanych wycieków danych (Have I Been Pwned).
+   * 
+   * @param string $password Hasło do sprawdzenia.
+   * 
+   * @return bool True, jeśli hasło wyciekło, w przeciwnym razie false.
+   */
+  private function isPasswordPwned(string $password): bool
+  {
+    $sha1Password = sha1($password);
+    $prefix = substr($sha1Password, 0, 5);
+    $suffix = substr($sha1Password, 5);
+
+    $ch = curl_init("https://api.pwnedpasswords.com/range/{$prefix}");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    if (empty($response)) {
+      return false;
+    }
+
+    $hashes = explode("\r\n", $response);
+    foreach ($hashes as $hash) {
+      $parts = explode(':', $hash);
+      if (strtoupper($parts[0]) === strtoupper($suffix)) {
+        return true; // Znaleziono hasło w wycieku
+      }
+    }
+
+    return false;
   }
 }

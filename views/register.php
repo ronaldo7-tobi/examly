@@ -112,6 +112,7 @@ $canonicalUrl = 'https://www.examly.pl/rejestracja';
                placeholder="Wpisz swoje hasło" 
                required
         >
+        <p class="form-card__input-hint">Minimum 8 znaków, w tym wielka i mała litera, cyfra oraz znak specjalny.</p>
       </div>
     
       <!-- Grupa: Pole "Potwierdź hasło" -->

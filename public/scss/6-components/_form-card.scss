@@ -65,6 +65,13 @@
     color: var(--text);
   }
 
+  &__input-hint {
+    font-size: 0.85rem;
+    color: var(--muted-text);
+    margin-top: 0.5rem;
+    padding-left: 0.25rem;
+  }
+
   // --- INTERAKTYWNOŚĆ I DETALE ---
   &__input {
     width: 90%;

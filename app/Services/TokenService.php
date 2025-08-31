@@ -32,6 +32,9 @@ class TokenService
 
   public function generateToken(int $userId, string $type, ?string $data = null): array|false
   {
+    // Sprzątamy wszystkie tokeny, których data ważności już minęła.
+    $this->db->execute('DELETE FROM user_tokens WHERE expires_at < NOW()');
+
     // WAŻNA POPRAWKA: Najpierw usuwamy stare tokeny tego typu!
     $this->deleteTokensForUserByType($userId, $type);
 

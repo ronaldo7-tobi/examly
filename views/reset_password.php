@@ -43,6 +43,7 @@ $noIndex = true;
         <label for="new_password" class="form-card__label">Nowe hasło</label>
         <input type="password" id="new_password" name="new_password" class="form-card__input"
           placeholder="Hasło" required>
+        <p class="form-card__input-hint">Minimum 8 znaków, w tym wielka i mała litera, cyfra oraz znak specjalny.</p>
       </div>
       <div class="form-card__group">
         <label for="confirm_new_password" class="form-card__label">Powtórz nowe hasło</label>
