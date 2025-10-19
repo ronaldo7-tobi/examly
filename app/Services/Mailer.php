@@ -46,13 +46,13 @@ class Mailer
     // Użyj SMTP do wysyłki.
     $this->mailer->isSMTP();
     // Adres serwera SMTP Gmaila.
-    $this->mailer->Host = '***REMOVED***';
+    $this->mailer->Host = $_ENV['SMTP_HOST'];
     // Włącz autoryzację SMTP.
     $this->mailer->SMTPAuth = true;
     // E-mail do wysyłania wiadomości.
-    $this->mailer->Username = '***REMOVED***';
+    $this->mailer->Username = $_ENV['SMTP_USER'];
     // To jest hasło aplikacji Google, a nie hasło do konta.
-    $this->mailer->Password = '***REMOVED***';
+    $this->mailer->Password = $_ENV['SMTP_PASS'];
     // Włącz szyfrowanie TLS.
     $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     // Port TCP do połączenia.

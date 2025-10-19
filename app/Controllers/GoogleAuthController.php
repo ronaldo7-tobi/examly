@@ -28,9 +28,9 @@ class GoogleAuthController extends BaseController
 
     // Inicjalizacja klienta Google API (bez zmian)
     $this->googleClient = new Client();
-    $this->googleClient->setClientId(GOOGLE_CLIENT_ID);
-    $this->googleClient->setClientSecret(GOOGLE_CLIENT_SECRET);
-    $this->googleClient->setRedirectUri(GOOGLE_REDIRECT_URI);
+    $this->googleClient->setClientId($_ENV['GOOGLE_CLIENT_ID']);
+    $this->googleClient->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
+    $this->googleClient->setRedirectUri($_ENV['GOOGLE_REDIRECT_URI']);
     $this->googleClient->addScope('email');
     $this->googleClient->addScope('profile');
   }
