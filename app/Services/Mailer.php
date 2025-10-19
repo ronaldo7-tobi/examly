@@ -60,7 +60,7 @@ class Mailer
 
     // --- Domyślne ustawienia wiadomości ---
     // Ustaw domyślnego nadawcę.
-    $this->mailer->setFrom('***REMOVED***', 'Examly');
+    $this->mailer->setFrom($_ENV['SMTP_USER'], 'Examly');
     // Ustaw domyślny format wiadomości na HTML.
     $this->mailer->isHTML(true);
     // Ustaw kodowanie znaków na UTF-8.
