@@ -1,5 +1,12 @@
 <?php
 
+namespace App\Controllers;
+
+use App\Models\Question;
+use App\Models\Answer;
+use App\Models\UserProgress;
+use App\Models\Exam;
+
 /**
  * Główny kontroler API do obsługi logiki quizu.
  *
@@ -289,13 +296,7 @@ class ApiController
   {
     $this->ensurePostRequest();
 
-    // Krok 1: Weryfikacja statusu logowania.
-    if (!isset($_SESSION['user'])) {
-      // Celowa cicha odpowiedź. Pozwalamy niezalogowanym użytkownikom kończyć
-      // testy bez otrzymywania błędu. Po prostu ich postęp nie jest zapisywany.
-      $this->sendJsonResponse(['success' => true, 'message' => 'Użytkownik niezalogowany.']);
-      return;
-    }
+    $userId = $this->requireApiAuth();
 
     // Krok 2: Odczyt i walidacja danych wejściowych.
     $progressData = json_decode(file_get_contents('php://input'), true);
@@ -340,11 +341,7 @@ class ApiController
   {
     $this->ensurePostRequest();
 
-    // Krok 1: Weryfikacja, czy użytkownik jest zalogowany.
-    if (!isset($_SESSION['user'])) {
-      $this->sendJsonResponse(['success' => false, 'message' => 'Musisz być zalogowany.'], 403);
-      return;
-    }
+    $userId = $this->requireApiAuth();
 
     // Krok 2: Odczyt i walidacja danych wejściowych JSON.
     $data = json_decode(file_get_contents('php://input'), true);
@@ -459,6 +456,21 @@ class ApiController
     }
 
     return ['success' => true, 'questions' => $questions];
+  }
+
+  /**
+   * Weryfikuje, czy użytkownik jest zalogowany na potrzeby endpointu API.
+   * Jeśli nie, wysyła odpowiedź JSON z błędem 403 i kończy działanie.
+   *
+   * @return int ID zalogowanego użytkownika.
+   */
+  private function requireApiAuth(): int
+  {
+    if (!isset($_SESSION['user'])) {
+      $this->sendJsonResponse(['success' => false, 'message' => 'Dostęp wymaga uwierzytelnienia.'], 403); // 403 Forbidden jest tu bardziej odpowiednie
+      exit();
+    }
+    return $_SESSION['user']->getId();
   }
 
   /**

@@ -1,15 +1,23 @@
 <?php
 
+namespace App\Controllers;
+
+use App\Models\UserModel;
+use App\Services\TokenService;
+use App\Services\Mailer;
+
 class PasswordResetController extends BaseController
 {
   private UserModel $userModel;
   private TokenService $tokenService;
+  private AuthController $auth;
 
   public function __construct()
   {
     parent::__construct();
     $this->userModel = new UserModel();
     $this->tokenService = new TokenService();
+    $this->auth = new AuthController();
   }
 
   /**
@@ -101,35 +109,31 @@ class PasswordResetController extends BaseController
   {
     $token = $_POST['token'] ?? null;
     $otpCode = $_POST['otp_code'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
-    $confirmPassword = $_POST['confirm_new_password'] ?? '';
 
     $tokenRecord = $this->tokenService->getTokenRecord($token);
 
-    if (!$token || !$tokenRecord || strtotime($tokenRecord['expires_at']) < time()) {
+    if (!$token || !$tokenRecord) {
       $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Sesja zmiany hasła wygasła. Spróbuj ponownie.'];
       header('Location: ' . url('logowanie'));
       exit();
     }
 
     if ($tokenRecord['token_data'] !== $otpCode) {
-      $errors[] = 'Podany kod bezpieczeństwa jest nieprawidłowy.';
-    }
-
-    if (strlen($newPassword) < 6) {
-      $errors[] = 'Nowe hasło musi mieć co najmniej 6 znaków.';
-    } elseif ($newPassword !== $confirmPassword) {
-      $errors[] = 'Podane hasła nie są identyczne.';
-    }
-
-    if (!empty($errors)) {
-      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => $errors];
+      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => ['Podany kod bezpieczeństwa jest nieprawidłowy.']];
       header('Location: ' . url("nowe-haslo?token=$token"));
       exit();
     }
 
-    // Wszystko w porządku, zmień hasło
-    $this->userModel->updatePassword($tokenRecord['user_id'], $newPassword);
+    // Używamy AuthController do walidacji i resetu hasła
+    $result = $this->auth->resetPassword($_POST, $tokenRecord);
+
+    if (!$result['success']) {
+      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => $result['errors']];
+      header('Location: ' . url("nowe-haslo?token=$token"));
+      exit();
+    }
+
+    // Wszystko w porządku, usuń token
     $this->tokenService->deleteTokensForUserByType($tokenRecord['user_id'], 'password_reset');
 
     $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Twoje hasło zostało zmienione! Możesz się teraz zalogować.'];

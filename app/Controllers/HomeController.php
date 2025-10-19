@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Controllers;
+
 /**
  * Kontroler Strony Głównej.
  *

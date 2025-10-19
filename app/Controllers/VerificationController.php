@@ -1,5 +1,10 @@
 <?php
 
+namespace App\Controllers;
+
+use App\Models\UserModel;
+use App\Services\TokenService;
+
 /**
  * Kontroler Weryfikacji Adresu E-mail.
  *
@@ -33,6 +38,7 @@ class VerificationController extends BaseController
   public function __construct()
   {
     parent::__construct();
+    $this->requireGuest();
     $this->userModel = new UserModel();
     $this->tokenService = new TokenService();
   }
@@ -53,12 +59,6 @@ class VerificationController extends BaseController
    */
   public function handle(): void
   {
-    // Strażnik #1: Sprawdź, czy użytkownik jest zalogowany. Jeśli tak, nie ma tu czego szukać.
-    if ($this->isUserLoggedIn) {
-      header('Location: ' . url('/'));
-      exit();
-    }
-
     // Strażnik #2: Sprawdź, czy w adresie URL jest token.
     // To jest warunek, który blokuje dostęp przypadkowym, niezalogowanym użytkownikom.
     $token = $_GET['token'] ?? null;

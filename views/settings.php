@@ -67,8 +67,10 @@ $canonicalUrl = 'https://www.examly.pl/ustawienia';
             </div>
             <div class="form-card__group">
               <label for="password_for_name" class="form-card__label">Potwierdź zmianę hasłem</label>
-              <input type="password" id="password_for_name" name="password" class="form-card__input"
-                placeholder="Hasło" required>
+              <div class="password-wrapper">
+                <input type="password" id="password_for_name" name="password" class="form-card__input" placeholder="Hasło" required>
+                <i class="fas fa-eye password-toggle-icon"></i>
+              </div>
               <p><a href="<?= url('reset-hasla') ?>" class="link">Nie pamiętasz hasła?</a></p>
             </div>
             <button type="submit" class="btn btn--primary">Zapisz dane</button>
@@ -95,8 +97,10 @@ $canonicalUrl = 'https://www.examly.pl/ustawienia';
             </div>
             <div class="form-card__group">
               <label for="password_for_email" class="form-card__label">Potwierdź zmianę hasłem</label>
-              <input type="password" id="password_for_email" name="password" class="form-card__input"
-                placeholder="Hasło" required>
+              <div class="password-wrapper">
+                <input type="password" id="password_for_email" name="password" class="form-card__input" placeholder="Hasło" required>
+                <i class="fas fa-eye password-toggle-icon"></i>
+              </div>
               <p><a href="<?= url('reset-hasla') ?>" class="link">Nie pamiętasz hasła?</a></p>
             </div>
             <button
@@ -129,18 +133,24 @@ $canonicalUrl = 'https://www.examly.pl/ustawienia';
             <input type="hidden" name="form_type" value="change_password">
             <div class="form-card__group">
               <label for="current_password" class="form-card__label">Aktualne hasło</label>
-              <input type="password" id="current_password" name="current_password" class="form-card__input"
-                placeholder="Hasło" required>
+              <div class="password-wrapper">
+                <input type="password" id="current_password" name="current_password" class="form-card__input" placeholder="Hasło" required>
+                <i class="fas fa-eye password-toggle-icon"></i>
+              </div>
             </div>
             <div class="form-card__group">
               <label for="new_password" class="form-card__label">Nowe hasło</label>
-              <input type="password" id="new_password" name="new_password" class="form-card__input"
-                placeholder="Nowe hasło" required>
+              <div class="password-wrapper">
+                <input type="password" id="new_password" name="new_password" class="form-card__input" placeholder="Nowe hasło" required>
+                <i class="fas fa-eye password-toggle-icon"></i>
+              </div>
             </div>
             <div class="form-card__group">
               <label for="confirm_new_password" class="form-card__label">Powtórz nowe hasło</label>
-              <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-card__input"
-                placeholder="Powtórz nowe hasło" required>
+              <div class="password-wrapper">
+                <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-card__input" placeholder="Powtórz nowe hasło" required>
+                <i class="fas fa-eye password-toggle-icon"></i>
+              </div>
               <p><a href="<?= url('reset-hasla') ?>" class="link">Nie pamiętasz hasła?</a></p>
             </div>
             <button type="submit" class="btn btn--primary">Zmień hasło</button>
@@ -164,8 +174,10 @@ $canonicalUrl = 'https://www.examly.pl/ustawienia';
             <input type="hidden" name="form_type" value="delete_account">
             <div class="form-card__group">
               <label for="password_for_delete" class="form-card__label">Potwierdź hasłem, aby usunąć konto</label>
-              <input type="password" id="password_for_delete" name="password" class="form-card__input"
-                placeholder="Hasło" required>
+              <div class="password-wrapper">
+                <input type="password" id="password_for_delete" name="password" class="form-card__input" placeholder="Hasło" required>
+                <i class="fas fa-eye password-toggle-icon"></i>
+              </div>
               <p><a href="<?= url('reset-hasla') ?>" class="link">Nie pamiętasz hasła?</a></p>
             </div>
             <button type="submit" class="btn btn--primary btn--full-width" style="background-color: #dc2626; border-color: #dc2626;">Usuń konto na zawsze</button>
@@ -176,10 +188,13 @@ $canonicalUrl = 'https://www.examly.pl/ustawienia';
   </main>
 
   <?php include 'partials/footer.php'; ?>
+
   <script type="module" src="<?= url('js/components/SettingsAccordion.js') ?>"></script>
   <script type="module">
     import CountdownButton from '<?= url('js/components/CountdownButton.js') ?>';
     new CountdownButton('changeEmailBtn');
   </script>
+  <script type="module" src="<?= url('js/components/show-password-toggle.js') ?>"></script>
 </body>
+
 </html>

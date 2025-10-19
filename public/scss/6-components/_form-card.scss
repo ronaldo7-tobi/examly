@@ -138,3 +138,26 @@
     }
   }
 }
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-card__input {
+    // Dodajemy padding po prawej stronie, aby tekst nie wchodził pod ikonę
+    padding-right: 2.5rem; 
+  }
+
+  .password-toggle-icon {
+    position: absolute;
+    right: 1rem;
+    color: var(--muted-text);
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--accent);
+    }
+  }
+}

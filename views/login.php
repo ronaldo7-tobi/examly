@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Konfiguracja komponentu head
  */
@@ -77,7 +78,7 @@ $canonicalUrl = 'https://www.examly.pl/logowanie';
         <h1 class="form-card__title">Witaj ponownie!</h1>
         <p class="form-card__subtitle">Zaloguj się, aby kontynuować naukę.</p>
       </div>
-  
+
       <!-- 
         Blok: Wyświetlanie błędów walidacji
         Cel: Jeśli kontroler zwróci błędy (np. pusty e-mail, złe hasło),
@@ -101,25 +102,32 @@ $canonicalUrl = 'https://www.examly.pl/logowanie';
                w przypadku błędu walidacji, aby użytkownik nie musiał
                wpisywać go ponownie.
         -->
-        <input type="email" id="email" name="email" class="form-card__input" 
-               value="<?= htmlspecialchars($formData['email'] ?? '') ?>" 
-               placeholder="Twój adres e-mail" 
-               required
-        >
+        <input type="email" id="email" name="email" class="form-card__input"
+          value="<?= htmlspecialchars($formData['email'] ?? '') ?>"
+          placeholder="Twój adres e-mail" required>
       </div>
-  
+
       <!-- Grupa: Pole hasła -->
       <div class="form-card__group">
         <label for="password" class="form-card__label">Hasło</label>
-        <input type="password" id="password" name="password" class="form-card__input" 
-               placeholder="Twoje hasło" 
-               required
-        >
+        <div class="password-wrapper">
+          <input type="password" id="password" name="password" class="form-card__input"
+            placeholder="Twoje hasło" required>
+          <i class="fas fa-eye password-toggle-icon"></i>
+        </div>
       </div>
-      
+
       <!-- Kontener z głównym przyciskiem akcji -->
       <div class="form-card__action-container">
         <button type="submit" class="btn btn--primary btn--full-width">Zaloguj się</button>
+      </div>
+
+      <div style="text-align: center; margin: 1.5rem 0; color: var(--muted-text);">lub</div>
+
+      <div class="form-card__action-container" style="margin-top: 0; margin-bottom: 2rem;">
+          <a href="<?= url('auth/google') ?>" class="btn btn--secondary btn--full-width">
+              <i class="fab fa-google" style="margin-right: 0.5rem;"></i> Zaloguj się przez Google
+          </a>
       </div>
 
       <!-- Stopka formularza z dodatkowymi linkami -->
@@ -129,7 +137,10 @@ $canonicalUrl = 'https://www.examly.pl/logowanie';
       </div>
     </form>
   </main>
-  
+
   <?php include 'partials/footer.php'; ?>
+
+  <script type="module" src="<?= url('js/components/show-password-toggle.js') ?>"></script>
 </body>
+
 </html>

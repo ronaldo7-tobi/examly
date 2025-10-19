@@ -1,5 +1,11 @@
 <?php
 
+namespace App\Controllers;
+
+use App\Models\UserModel;
+use App\Services\TokenService;
+use App\Services\Mailer;
+
 class SettingsController extends BaseController
 {
   private UserModel $userModel;
@@ -140,10 +146,12 @@ class SettingsController extends BaseController
 
     if (empty($errors)) {
       $tokenService = new TokenService();
-      // Tworzymy token typu 'email_change' i zapisujemy nowy e-mail w `token_data`
-      $token = $tokenService->generateToken($this->currentUser->getId(), 'email_change', $newEmail);
+      // Odbieramy tablicę i wyciągamy z niej sam token.
+      $tokenData = $tokenService->generateToken($this->currentUser->getId(), 'email_change', $newEmail);
+      $token = $tokenData['token'];
 
       $verifyLink = url("weryfikacja?token=$token");
+
       $body = "<p>Witaj,</p><p>Aby potwierdzić zmianę adresu e-mail na $newEmail, kliknij w poniższy link:</p><p><a href='$verifyLink'>$verifyLink</a></p>";
       $mailer = new Mailer();
 

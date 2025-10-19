@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Controllers;
+
 /**
  * Kontroler Akcji Zalogowanego Użytkownika.
  *

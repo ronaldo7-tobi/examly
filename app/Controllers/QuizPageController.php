@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Controllers;
+
 /**
  * Kontroler Stron Związanych z Quizami.
  *

@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Controllers;
+
 /**
  * Kontroler Strony Logowania.
  *
@@ -34,7 +36,6 @@ class LoginController extends BaseController
 
   /**
    * Główna metoda kontrolera, zarządzająca całą logiką strony logowania.
-   * 1. Sprawdza, czy użytkownik jest już zalogowany, i jeśli tak, przekierowuje go.
    * 2. Jeśli żądanie jest typu POST, przetwarza dane z formularza, wywołując serwis `auth->login()`.
    * 3. W przypadku sukcesu: regeneruje ID sesji (ze względów bezpieczeństwa) i przekierowuje na stronę główną.
    * 4. W przypadku błędu: zbiera komunikaty o błędach.

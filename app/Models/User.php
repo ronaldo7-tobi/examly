@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Models;
+
 /**
  * Klasa reprezentująca użytkownika w systemie.
  *
@@ -17,6 +19,11 @@ class User
    * @var int
    */
   private int $id;
+
+  /**
+   * Identyfikator google id użytkownika w bazie danych.
+   */
+  private string $googleId;
 
   /**
    * Imię użytkownika.
@@ -81,9 +88,19 @@ class User
   }
 
   /**
+   * Zwraca google id użytkownika
+   * 
+   * @return int Google id użytkownika z bazy danych
+   */
+  public function getGoogleId ()
+  {
+    return $this->googleId;
+  }
+
+  /**
    * Zwraca imię użytkownika.
    *
-   * @return string Imię i nazwisko połączone spacją.
+   * @return string Imię użytkownika.
    */
   public function getName()
   {
@@ -93,7 +110,7 @@ class User
   /**
    * Zwraca nazwisko użytkownika.
    *
-   * @return string Imię i nazwisko połączone spacją.
+   * @return string Nazwisko użytkownika.
    */
   public function getLastName()
   {

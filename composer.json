@@ -1,0 +1,19 @@
+{
+    "name": "tobiaszszerszen/examly",
+    "description": "Aplikacja e-learningowa przeznaczona dla uczniów techników w Polsce pomagająca im przygotować się do egzaminów zawodowych.",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "ronaldo7-tobi",
+            "email": "t.szerszen@zset.leszno.pl"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^7.0",
+        "google/apiclient": "2.0"
+    }
+}

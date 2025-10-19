@@ -1,5 +1,11 @@
 <?php
 
+namespace App\Controllers;
+
+use App\Models\UserModel;
+use App\Services\TokenService;
+use App\Services\Mailer;
+
 /**
  * Kontroler Procesu Rejestracji i Weryfikacji.
  *
@@ -39,7 +45,6 @@ class RegisterController extends BaseController
    * Endpoint: Obsługuje stronę rejestracji (/register).
    *
    * Logika działania:
-   * 1. Sprawdza, czy użytkownik jest już zalogowany; jeśli tak, przekierowuje na stronę główną.
    * 2. Dla żądań POST, przekazuje dane do serwisu `auth->register()`.
    * 3. W przypadku sukcesu rejestracji, przekierowuje na stronę weryfikacji e-mail,
    *    dodając parametr `?send=true`, który zainicjuje wysyłkę e-maila.
@@ -81,7 +86,6 @@ class RegisterController extends BaseController
    * Endpoint: Wyświetla stronę z informacją o potrzebie weryfikacji e-mail (/autoryzacja-email).
    *
    * Logika działania:
-   * 1. Sprawdza czy użytkownik w bieżącej sesji oczekuje na weryfikacje lub czy jest już zalogowany.
    * 2. Sprawdza, czy użytkownik w bieżącej sesji jest już zweryfikowany. Jeśli tak,
    *    przekierowuje go na stronę logowania z odpowiednim komunikatem.
    * 3. Oblicza czas pozostały do możliwości ponownego wysłania e-maila (cooldown).
@@ -182,7 +186,10 @@ class RegisterController extends BaseController
 
     // Krok 4: Generowanie tokenu i linku weryfikacyjnego.
     $tokenService = new TokenService();
-    $token = $tokenService->generateToken($user->getId(), 'email_verify');
+    // Odbieramy tablicę i wyciągamy z niej sam token.
+    $tokenData = $tokenService->generateToken($user->getId(), 'email_verify');
+    $token = $tokenData['token'];
+
     $verifyLink = url("weryfikacja?token=$token");
 
     // Krok 5: Przygotowanie i wysłanie e-maila.

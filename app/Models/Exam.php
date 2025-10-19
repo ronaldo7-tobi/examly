@@ -1,5 +1,10 @@
 <?php
 
+namespace App\Models;
+
+use App\Core\Database;
+use Exception;
+
 /**
  * Model Egzaminu (Exam).
  *

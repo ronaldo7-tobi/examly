@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Konfiguracja komponentu head
  */
@@ -70,7 +71,7 @@ $canonicalUrl = 'https://www.examly.pl/rejestracja';
           </ul>
         </div>
       <?php endif; ?>
-      
+
       <!-- Grupa: Pole "Imię" -->
       <div class="form-card__group">
         <label for="first_name" class="form-card__label">Imię</label>
@@ -78,52 +79,49 @@ $canonicalUrl = 'https://www.examly.pl/rejestracja';
           PHP: Wypełnia pole poprzednio wprowadzoną wartością w przypadku
                błędu, aby użytkownik nie musiał wpisywać danych ponownie.
         -->
-        <input type="text" id="first_name" name="first_name" class="form-card__input" 
-               value="<?= htmlspecialchars($formData['first_name'] ?? '') ?>" 
-               placeholder="Jan" 
-               required
-        >
+        <input type="text" id="first_name" name="first_name" class="form-card__input"
+          value="<?= htmlspecialchars($formData['first_name'] ?? '') ?>"
+          placeholder="Jan" required>
       </div>
-      
+
       <!-- Grupa: Pole "Nazwisko" -->
       <div class="form-card__group">
         <label for="last_name" class="form-card__label">Nazwisko</label>
-        <input type="text" id="last_name" name="last_name" class="form-card__input" 
-               value="<?= htmlspecialchars($formData['last_name'] ?? '') ?>" 
-               placeholder="Kowalski" 
-               required
-        >
+        <input type="text" id="last_name" name="last_name" class="form-card__input"
+          value="<?= htmlspecialchars($formData['last_name'] ?? '') ?>"
+          placeholder="Kowalski" required>
       </div>
 
       <!-- Grupa: Pole "Adres e-mail" -->
       <div class="form-card__group">
         <label for="email" class="form-card__label">Adres e-mail</label>
-        <input type="email" id="email" name="email" class="form-card__input" 
-               value="<?= htmlspecialchars($formData['email'] ?? '') ?>" 
-               placeholder="jankowalski@example.com" 
-               required
-        >
+        <input type="email" id="email" name="email" class="form-card__input"
+          value="<?= htmlspecialchars($formData['email'] ?? '') ?>"
+          placeholder="jankowalski@example.com"
+          required>
       </div>
-    
+
       <!-- Grupa: Pole "Hasło" -->
       <div class="form-card__group">
-        <label for="password" class="form-card__label">Hasło</label>
-        <input type="password" id="password" name="password" class="form-card__input"
-               placeholder="Wpisz swoje hasło" 
-               required
-        >
+        <label for="password" class="form-card__label">Stwórz hasło</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" name="password" class="form-card__input"
+            placeholder="Stwórz solidne hasło" required>
+          <i class="fas fa-eye password-toggle-icon"></i>
+        </div>
         <p class="form-card__input-hint">Minimum 8 znaków, w tym wielka i mała litera, cyfra oraz znak specjalny.</p>
       </div>
-    
+
       <!-- Grupa: Pole "Potwierdź hasło" -->
       <div class="form-card__group">
         <label for="confirm_password" class="form-card__label">Potwierdź hasło</label>
-        <input type="password" id="confirm_password" name="confirm_password" class="form-card__input" 
-               placeholder="Powtórz swoje hasło" 
-               required
-        >
+        <div class="password-wrapper">
+          <input type="password" id="confirm_password" name="confirm_password" class="form-card__input"
+            placeholder="Powtórz swoje hasło" required>
+          <i class="fas fa-eye password-toggle-icon"></i>
+        </div>
       </div>
-      
+
       <!-- Kontener z głównym przyciskiem akcji -->
       <div class="form-card__action-container">
         <button type="submit" class="btn btn--primary btn--full-width">Zarejestruj się</button>
@@ -137,5 +135,8 @@ $canonicalUrl = 'https://www.examly.pl/rejestracja';
   </main>
 
   <?php include 'partials/footer.php'; ?>
+
+  <script type="module" src="<?= url('js/components/show-password-toggle.js') ?>"></script>
 </body>
+
 </html>

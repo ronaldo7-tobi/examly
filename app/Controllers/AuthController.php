@@ -1,5 +1,10 @@
 <?php
 
+namespace App\Controllers;
+
+use App\Models\UserModel;
+use App\Models\User;
+
 /**
  * Kontroler Uwierzytelniania (Serwis Autoryzacji).
  *
@@ -8,7 +13,7 @@
  * usługa wykorzystywana przez inne kontrolery (np. LoginController). Odpowiada za
  * walidację danych, komunikację z modelem użytkownika oraz zarządzanie sesją.
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @author Tobiasz Szerszeń
  */
 class AuthController
@@ -36,6 +41,54 @@ class AuthController
     $this->userModel = new UserModel();
   }
 
+  /**
+   * Orkiestruje proces resetowania hasła.
+   *
+   * @param array<string, string> $formData Dane z formularza resetowania hasła.
+   * @param array<string, mixed>|null $tokenRecord Rekord tokenu z bazy danych.
+   * 
+   * @return array<string, mixed> Wynik operacji w formacie: `['success' => bool, 'errors' => array]`.
+   */
+  public function resetPassword(array $formData, ?array $tokenRecord): array
+  {
+    $newPassword = $formData['new_password'] ?? '';
+    $confirmPassword = $formData['confirm_new_password'] ?? '';
+    $errors = [];
+
+    // Walidacja siły nowego hasła
+    if (strlen($newPassword) < 8) {
+      $errors[] = 'Hasło musi mieć co najmniej 8 znaków.';
+    } elseif ($this->isPasswordPwned($newPassword)) {
+      $errors[] = 'To hasło jest niebezpieczne, ponieważ pojawiło się w publicznym wycieku danych. Proszę, użyj innego.';
+    } else {
+      if (!preg_match('/[A-Z]/', $newPassword)) {
+        $errors[] = 'Hasło musi zawierać co najmniej jedną wielką literę.';
+      }
+      if (!preg_match('/[a-z]/', $newPassword)) {
+        $errors[] = 'Hasło musi zawierać co najmniej jedną małą literę.';
+      }
+      if (!preg_match('/[0-9]/', $newPassword)) {
+        $errors[] = 'Hasło musi zawierać co najmniej jedną cyfrę.';
+      }
+      if (!preg_match('/[\W_]/', $newPassword)) {
+        $errors[] = 'Hasło musi zawierać co najmniej jeden znak specjalny (np. !, @, #, ?).';
+      }
+    }
+
+    if ($newPassword !== $confirmPassword) {
+      $errors[] = 'Podane hasła nie są identyczne.';
+    }
+
+    if (!empty($errors)) {
+      return ['success' => false, 'errors' => $errors];
+    }
+
+    // Zmiana hasła w modelu
+    $this->userModel->updatePassword($tokenRecord['user_id'], $newPassword);
+
+    return ['success' => true];
+  }
+  
   /**
    * Orkiestruje proces rejestracji nowego użytkownika.
    *
@@ -91,7 +144,7 @@ class AuthController
    * 3. Jeśli logowanie się powiedzie, model zwraca obiekt `User`.
    * 4. Sprawdza, czy konto użytkownika zostało zweryfikowane e-mailowo.
    * 5. Jeśli nie, zwraca specjalny status błędu `not_verified` i zapisuje ID
-   * użytkownika w sesji, aby umożliwić ponowne wysłanie linku weryfikacyjnego.
+   *    użytkownika w sesji, aby umożliwić ponowne wysłanie linku weryfikacyjnego.
    * 6. Jeśli konto jest zweryfikowane, zapisuje obiekt użytkownika w sesji.
    * 7. W przypadku niepowodzenia logowania, zwraca ogólny błąd.
    *

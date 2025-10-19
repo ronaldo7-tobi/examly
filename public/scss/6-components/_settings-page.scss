@@ -58,6 +58,10 @@
                 padding 0.4s ease,
                 opacity 0.2s ease;
     border-top: 1px solid transparent;
+
+    form {
+      max-width: 460px;
+    }
   }
 
   // Stan aktywny po kliknięciu

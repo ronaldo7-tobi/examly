@@ -1,7 +1,6 @@
 <?php
-require_once __DIR__ . '/../../libs/PHPMailer/PHPMailer.php';
-require_once __DIR__ . '/../../libs/PHPMailer/Exception.php';
-require_once __DIR__ . '/../../libs/PHPMailer/SMTP.php';
+
+namespace App\Services;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;

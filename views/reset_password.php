@@ -33,7 +33,7 @@ $noIndex = true;
       <?php endif; ?>
 
       <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
-      
+
       <div class="form-card__group">
         <label for="otp_code" class="form-card__label">Kod bezpieczeństwa</label>
         <input type="text" id="otp_code" name="otp_code" class="form-card__input" placeholder="Wpisz 6-cyfrowy kod" required>
@@ -41,14 +41,20 @@ $noIndex = true;
 
       <div class="form-card__group">
         <label for="new_password" class="form-card__label">Nowe hasło</label>
-        <input type="password" id="new_password" name="new_password" class="form-card__input"
-          placeholder="Hasło" required>
+        <div class="password-wrapper">
+          <input type="password" id="new_password" name="new_password" class="form-card__input"
+            placeholder="Hasło" required>
+          <i class="fas fa-eye password-toggle-icon"></i>
+        </div>
         <p class="form-card__input-hint">Minimum 8 znaków, w tym wielka i mała litera, cyfra oraz znak specjalny.</p>
       </div>
       <div class="form-card__group">
         <label for="confirm_new_password" class="form-card__label">Powtórz nowe hasło</label>
-        <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-card__input"
-          placeholder="Powtórz nowe hasło" required>
+        <div class="password-wrapper">
+          <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-card__input"
+            placeholder="Powtórz nowe hasło" required>
+          <i class="fas fa-eye password-toggle-icon"></i>
+        </div>
       </div>
 
       <div class="form-card__action-container">
@@ -57,6 +63,8 @@ $noIndex = true;
     </form>
   </main>
   <?php include 'partials/footer.php'; ?>
+
+  <script type="module" src="<?= url('js/components/show-password-toggle.js') ?>"></script>
 </body>
 
 </html>

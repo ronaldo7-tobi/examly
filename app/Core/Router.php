@@ -1,5 +1,17 @@
 <?php
 
+namespace App\Core;
+
+use App\Controllers\GoogleAuthController;
+use App\Controllers\HomeController;
+use App\Controllers\LoginController;
+use App\Controllers\RegisterController;
+use App\Controllers\PasswordResetController;
+use App\Controllers\QuizPageController;
+use App\Controllers\SettingsController;
+use App\Controllers\VerificationController;
+use App\Controllers\UserController;
+
 /**
  * Klasa Router - centralny punkt aplikacji kierujący ruchem (wzorzec Front Controller).
  *
@@ -159,6 +171,12 @@ class Router
         break;
       case 'rejestracja':
         (new RegisterController())->handleRequest();
+        break;
+      case 'auth/google':
+        (new GoogleAuthController())->redirectToGoogle();
+        break;
+      case 'auth/google/callback':
+        (new GoogleAuthController())->handleGoogleCallback();
         break;
       case 'autoryzacja-email':
         $controller = new RegisterController();

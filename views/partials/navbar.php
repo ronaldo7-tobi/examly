@@ -1,3 +1,7 @@
+<?php 
+ use App\Models\User;
+?>
+
 <!-- 
   =======================================================================
   Komponent: Główny pasek nawigacyjny (main-nav)
