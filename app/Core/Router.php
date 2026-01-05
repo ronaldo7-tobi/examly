@@ -56,23 +56,23 @@ class Router
    */
   public function handleRequest(): void
   {
-      // Krok 1: Pobierz "czysty" URI bezpośrednio z parametru 'url'
-      // ustawionego przez .htaccess. Zapewnia to przenośność aplikacji.
-      // Jeśli parametr nie istnieje (np. żądanie do strony głównej), użyj pustego stringa.
-      $uri = $_GET['url'] ?? '';
+    // Krok 1: Pobierz "czysty" URI bezpośrednio z parametru 'url'
+    // ustawionego przez .htaccess. Zapewnia to przenośność aplikacji.
+    // Jeśli parametr nie istnieje (np. żądanie do strony głównej), użyj pustego stringa.
+    $uri = $_GET['url'] ?? '';
 
-      // Usuwamy ewentualne ukośniki z początku i końca dla spójności.
-      $uri = trim($uri, '/');
+    // Usuwamy ewentualne ukośniki z początku i końca dla spójności.
+    $uri = trim($uri, '/');
 
-      // Krok 2: Decyzja o strategii routingu na podstawie prefiksu URI.
-      if (strpos($uri, 'api/') === 0) {
-          // Żądanie do API: usuń prefiks 'api/' i przekaż do handlera API.
-          $this->handleApiRequest(substr($uri, 4));
-      } else {
-          // Żądanie do strony WWW: przekaż pełny, czysty URI do handlera stron.
-          $this->handleWebRequest($uri);
-      }
-}
+    // Krok 2: Decyzja o strategii routingu na podstawie prefiksu URI.
+    if (strpos($uri, 'api/') === 0) {
+      // Żądanie do API: usuń prefiks 'api/' i przekaż do handlera API.
+      $this->handleApiRequest(substr($uri, 4));
+    } else {
+      // Żądanie do strony WWW: przekaż pełny, czysty URI do handlera stron.
+      $this->handleWebRequest($uri);
+    }
+  }
 
   /**
    * Rejestruje i konwertuje ścieżkę API na wyrażenie regularne.
@@ -128,7 +128,20 @@ class Router
       // Warunek B: URI musi pasować do wzorca RegEx ścieżki.
       if ($route['method'] === $requestMethod && preg_match($route['path'], $apiUri, $matches)) {
         // Krok 4: Dopasowanie znalezione - przygotowanie do wywołania kontrolera.
-        [$controllerName, $methodName] = explode('@', $route['handler']);
+        [$controllerShortName, $methodName] = explode('@', $route['handler']);
+        // Tworzymy PEŁNĄ nazwę klasy z przestrzenią nazw
+        $controllerName = "App\\Controllers\\" . $controllerShortName; // Np. "App\Controllers\ApiController"
+
+        // Sprawdzenie, czy klasa istnieje (dobra praktyka)
+        if (!class_exists($controllerName)) {
+          error_log("Błąd Routera: Klasa kontrolera '{$controllerName}' nie została znaleziona.");
+          header('Content-Type: application/json; charset=utf-8');
+          http_response_code(500);
+          echo json_encode(['success' => false, 'message' => 'Błąd wewnętrzny serwera.']);
+          return; // Zakończ
+        }
+
+        // Tworzymy instancję używając PEŁNEJ nazwy klasy
         $controller = new $controllerName();
 
         // Wyodrębnij nazwane parametry z URI (np. ['examCode' => 'INF.03']).
