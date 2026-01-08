@@ -57,22 +57,4 @@ class QuizPageController extends BaseController
     // Przekazujemy kod egzaminu do widoku pełnego testu
     $this->renderView('inf03_test', ['examCode' => 'INF.03']);
   }
-
-  /** 
-   * Wyświetla stronę kursów.
-   */
-  public function showCoursesPage(): void
-  {
-    $this->renderView('courses');
-  }
-
-  /**
-   * Wyświetla główną stronę kursu.
-   *
-   * @return void
-   */
-  public function showCoursePage(): void
-  {
-    $this->renderView('inf03_course');
-  }
 }

@@ -9,6 +9,7 @@ use App\Controllers\RegisterController;
 use App\Controllers\PasswordResetController;
 use App\Controllers\QuizPageController;
 use App\Controllers\SettingsController;
+use App\Controllers\StatisticsController;
 use App\Controllers\VerificationController;
 use App\Controllers\UserController;
 
@@ -232,15 +233,9 @@ class Router
       case 'inf03-test':
         (new QuizPageController())->showTestPage();
         break;
-      case 'kursy':
-        (new QuizPageController)->showCoursesPage();
-        break;
-      case 'kurs-inf03':
-        (new QuizPageController())->showCoursePage();
-        break;
       // --- Grupa Użytkownika ---
       case 'statystyki':
-        (new UserController())->showStatistics();
+        (new StatisticsController())->showStatisticsPage();
         break;
       case 'ustawienia':
         (new SettingsController())->showSettingsPage();
