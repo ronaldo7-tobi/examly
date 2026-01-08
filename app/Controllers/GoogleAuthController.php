@@ -28,9 +28,9 @@ class GoogleAuthController extends BaseController
 
     // Inicjalizacja klienta Google API (bez zmian)
     $this->googleClient = new Client();
-    $this->googleClient->setClientId(getenv('GOOGLE_CLIENT_ID'));
-    $this->googleClient->setClientSecret(getenv('GOOGLE_CLIENT_SECRET'));
-    $this->googleClient->setRedirectUri(getenv('GOOGLE_REDIRECT_URI'));
+    $this->googleClient->setClientId($_ENV['GOOGLE_CLIENT_ID']);
+    $this->googleClient->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
+    $this->googleClient->setRedirectUri($_ENV['GOOGLE_REDIRECT_URI']);
     $this->googleClient->addScope('email');
     $this->googleClient->addScope('profile');
   }
@@ -67,11 +67,19 @@ class GoogleAuthController extends BaseController
 
     try {
       // Krok 1: Wymień kod autoryzacyjny na token dostępu
+      error_log('Code received: ' . $_GET['code']);
       $token = $this->googleClient->fetchAccessTokenWithAuthCode($_GET['code']);
+      error_log('Token: ' . json_encode($token));
 
       // Sprawdź, czy wystąpił błąd podczas pobierania tokenu
       if (isset($token['error'])) {
+        error_log('Token error: ' . json_encode($token));
         throw new Exception('Błąd podczas pobierania tokenu dostępu: ' . $token['error_description']);
+      }
+
+      if (!is_array($token) || empty($token)) {
+        error_log('Invalid token: ' . json_encode($token));
+        throw new Exception('Nieprawidłowy token dostępu.');
       }
 
       // Krok 2: Ustaw token w kliencie Google

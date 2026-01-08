@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plik konfiguracyjny aplikacji.
  * Definiuje globalne stałe używane w całej aplikacji.
