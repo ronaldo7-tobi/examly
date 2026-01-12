@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\UserModel;
 use App\Models\User;
+use App\Services\Validator;
 
 /**
  * Kontroler Uwierzytelniania (Serwis Autoryzacji).
@@ -29,7 +30,9 @@ class AuthController
    * Przechowuje dane użytkownika po pomyślnym zalogowaniu.
    * @var User|null
    */
-  private ?User $loggedUser = null;
+  private ?User $loggedUser;
+
+  private ?Validator $validator;
 
   /**
    * Konstruktor serwisu autoryzacji.
@@ -39,56 +42,9 @@ class AuthController
   public function __construct()
   {
     $this->userModel = new UserModel();
+    $this->validator = new Validator();
   }
 
-  /**
-   * Orkiestruje proces resetowania hasła.
-   *
-   * @param array<string, string> $formData Dane z formularza resetowania hasła.
-   * @param array<string, mixed>|null $tokenRecord Rekord tokenu z bazy danych.
-   * 
-   * @return array<string, mixed> Wynik operacji w formacie: `['success' => bool, 'errors' => array]`.
-   */
-  public function resetPassword(array $formData, ?array $tokenRecord): array
-  {
-    $newPassword = $formData['new_password'] ?? '';
-    $confirmPassword = $formData['confirm_new_password'] ?? '';
-    $errors = [];
-
-    // Walidacja siły nowego hasła
-    if (strlen($newPassword) < 8) {
-      $errors[] = 'Hasło musi mieć co najmniej 8 znaków.';
-    } elseif ($this->isPasswordPwned($newPassword)) {
-      $errors[] = 'To hasło jest niebezpieczne, ponieważ pojawiło się w publicznym wycieku danych. Proszę, użyj innego.';
-    } else {
-      if (!preg_match('/[A-Z]/', $newPassword)) {
-        $errors[] = 'Hasło musi zawierać co najmniej jedną wielką literę.';
-      }
-      if (!preg_match('/[a-z]/', $newPassword)) {
-        $errors[] = 'Hasło musi zawierać co najmniej jedną małą literę.';
-      }
-      if (!preg_match('/[0-9]/', $newPassword)) {
-        $errors[] = 'Hasło musi zawierać co najmniej jedną cyfrę.';
-      }
-      if (!preg_match('/[\W_]/', $newPassword)) {
-        $errors[] = 'Hasło musi zawierać co najmniej jeden znak specjalny (np. !, @, #, ?).';
-      }
-    }
-
-    if ($newPassword !== $confirmPassword) {
-      $errors[] = 'Podane hasła nie są identyczne.';
-    }
-
-    if (!empty($errors)) {
-      return ['success' => false, 'errors' => $errors];
-    }
-
-    // Zmiana hasła w modelu
-    $this->userModel->updatePassword($tokenRecord['user_id'], $newPassword);
-
-    return ['success' => true];
-  }
-  
   /**
    * Orkiestruje proces rejestracji nowego użytkownika.
    *
@@ -107,7 +63,7 @@ class AuthController
   public function register(array $formData): array
   {
     // Krok 1: Walidacja danych wejściowych.
-    $errors = $this->validateRegistrationData($formData);
+    $errors = $this->validator->validateRegistrationData($formData);
 
     // Krok 2: Jeśli wystąpiły błędy, zwróć je natychmiast.
     if (!empty($errors)) {
@@ -182,104 +138,5 @@ class AuthController
 
     // Scenariusz C: Niepowodzenie. Model zwrócił null, co oznacza błędne dane.
     return ['success' => false, 'errors' => ['Niepoprawny e-mail lub hasło.']];
-  }
-
-  // ========================================================================
-  // METODY POMOCNICZE (PRIVATE)
-  // ========================================================================
-
-  /**
-   * Waliduje dane z formularza rejestracyjnego.
-   *
-   * Sprawdza poprawność imienia, nazwiska, formatu i unikalności adresu e-mail
-   * oraz zgodność i minimalną długość haseł.
-   *
-   * @param array<string, string> $formData Dane z formularza.
-   * 
-   * @return array<string> Tablica zawierająca komunikaty o błędach. Pusta, jeśli dane są poprawne.
-   */
-  private function validateRegistrationData(array $formData): array
-  {
-    $errors = [];
-
-    $firstName = trim($formData['first_name'] ?? '');
-    $lastName = trim($formData['last_name'] ?? '');
-    $email = trim($formData['email'] ?? '');
-    $password = $formData['password'] ?? '';
-    $confirmPassword = $formData['confirm_password'] ?? '';
-
-    // Walidacja imienia
-    if (mb_strlen($firstName) < 2 || !preg_match('/^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,}$/u', $firstName)) {
-      $errors[] = 'Imię musi zaczynać się z dużej litery i mieć co najmniej 2 znaki.';
-    }
-    // Walidacja nazwiska
-    if (mb_strlen($lastName) < 2 || !preg_match('/^[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,}$/u', $lastName)) {
-      $errors[] = 'Nazwisko musi zaczynać się z dużej litery i mieć co najmniej 2 znaki.';
-    }
-    // Walidacja adresu e-mail
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-      $errors[] = 'Podano niepoprawny format adresu e-mail.';
-    } elseif ($this->userModel->checkEmail($email)) {
-      $errors[] = 'Konto z podanym adresem e-mail już istnieje.';
-    }
-    // Walidacja hasła
-    if (strlen($password) < 8) {
-      $errors[] = 'Hasło musi mieć co najmniej 8 znaków.';
-    } elseif ($this->isPasswordPwned($password)) { // <-- NOWY WARUNEK
-      $errors[] = 'To hasło jest niebezpieczne, ponieważ pojawiło się w publicznym wycieku danych. Proszę, użyj innego.';
-    } else {
-      if (!preg_match('/[A-Z]/', $password)) {
-        $errors[] = 'Hasło musi zawierać co najmniej jedną wielką literę.';
-      }
-      if (!preg_match('/[a-z]/', $password)) {
-        $errors[] = 'Hasło musi zawierać co najmniej jedną małą literę.';
-      }
-      if (!preg_match('/[0-9]/', $password)) {
-        $errors[] = 'Hasło musi zawierać co najmniej jedną cyfrę.';
-      }
-      // Opcjonalnie: wymóg znaku specjalnego
-      if (!preg_match('/[\W_]/', $password)) {
-        $errors[] = 'Hasło musi zawierać co najmniej jeden znak specjalny (np. !, @, #, ?).';
-      }
-    }
-    // Walidacja potwierdzenia hasła
-    if ($password !== $confirmPassword) {
-      $errors[] = 'Podane hasła nie są identyczne.';
-    }
-
-    return $errors;
-  }
-
-  /**
-   * Sprawdza, czy hasło znajduje się w bazie znanych wycieków danych (Have I Been Pwned).
-   * 
-   * @param string $password Hasło do sprawdzenia.
-   * 
-   * @return bool True, jeśli hasło wyciekło, w przeciwnym razie false.
-   */
-  private function isPasswordPwned(string $password): bool
-  {
-    $sha1Password = sha1($password);
-    $prefix = substr($sha1Password, 0, 5);
-    $suffix = substr($sha1Password, 5);
-
-    $ch = curl_init("https://api.pwnedpasswords.com/range/{$prefix}");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    if (empty($response)) {
-      return false;
-    }
-
-    $hashes = explode("\r\n", $response);
-    foreach ($hashes as $hash) {
-      $parts = explode(':', $hash);
-      if (strtoupper($parts[0]) === strtoupper($suffix)) {
-        return true; // Znaleziono hasło w wycieku
-      }
-    }
-
-    return false;
   }
 }

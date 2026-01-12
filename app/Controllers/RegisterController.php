@@ -27,6 +27,10 @@ class RegisterController extends BaseController
    */
   private AuthController $auth;
 
+  private UserModel $userModel;
+  private TokenService $tokenService; 
+  private Mailer $mailer;
+
   /**
    * Konstruktor Kontrolera Rejestracji.
    *
@@ -39,6 +43,9 @@ class RegisterController extends BaseController
     parent::__construct();
     $this->requireGuest();
     $this->auth = new AuthController();
+    $this->userModel = new UserModel();
+    $this->tokenService = new TokenService();
+    $this->mailer = new Mailer();
   }
 
   /**
@@ -106,8 +113,7 @@ class RegisterController extends BaseController
 
     // Krok 3: Pobierz dane użytkownika i sprawdź, czy w międzyczasie nie zweryfikował już konta
     // (np. klikając w link na innym urządzeniu).
-    $userModel = new UserModel();
-    $user = $userModel->getUserById($_SESSION['verify_user_id']);
+    $user = $this->userModel->getUserById($_SESSION['verify_user_id']);
 
     // Jeśli konto jest już aktywne, posprzątaj sesję i przekieruj do logowania.
     if ($user && $user->isVerified()) {
@@ -175,8 +181,7 @@ class RegisterController extends BaseController
     }
 
     // Krok 3: Pobranie danych użytkownika i weryfikacja jego aktualnego statusu.
-    $userModel = new UserModel();
-    $user = $userModel->getUserById($_SESSION['verify_user_id']);
+    $user = $this->userModel->getUserById($_SESSION['verify_user_id']);
     if (!$user || $user->isVerified()) {
       unset($_SESSION['verify_user_id']); // Sprzątanie sesji.
       $_SESSION['flash_message'] = ['type' => 'info', 'text' => 'Twoje konto jest już aktywne. Możesz się zalogować.'];
@@ -185,9 +190,8 @@ class RegisterController extends BaseController
     }
 
     // Krok 4: Generowanie tokenu i linku weryfikacyjnego.
-    $tokenService = new TokenService();
     // Odbieramy tablicę i wyciągamy z niej sam token.
-    $tokenData = $tokenService->generateToken($user->getId(), 'email_verify');
+    $tokenData = $this->tokenService->generateToken($user->getId(), 'email_verify');
     $token = $tokenData['token'];
 
     $verifyLink = url("weryfikacja?token=$token");
@@ -198,8 +202,7 @@ class RegisterController extends BaseController
       '<p>Kliknij poniższy link, aby zweryfikować swój adres e-mail:</p>' .
       "<p><a href='$verifyLink'>$verifyLink</a></p>";
 
-    $mailer = new Mailer();
-    if ($mailer->send($user->getEmail(), 'Weryfikacja adresu e-mail', $body)) {
+    if ($this->mailer->send($user->getEmail(), 'Weryfikacja adresu e-mail', $body)) {
       // Sukces: zapisz czas wysyłki i komunikat o powodzeniu.
       $_SESSION['email_sent'] = time();
       $_SESSION['flash_message'] = [

@@ -5,16 +5,23 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use App\Services\TokenService;
 use App\Services\Mailer;
+use App\Services\Validator;
 
 class SettingsController extends BaseController
 {
   private UserModel $userModel;
+  private TokenService $tokenService;
+  private Mailer $mailer;
+  private Validator $validator;
 
   public function __construct()
   {
     parent::__construct();
     $this->requireAuth();
     $this->userModel = new UserModel();
+    $this->tokenService = new TokenService();
+    $this->mailer = new Mailer();
+    $this->validator = new Validator();
   }
 
   /**
@@ -65,34 +72,37 @@ class SettingsController extends BaseController
   }
 
   /**
-   * Obsługuje logikę zmiany imienia i nazwiska.
+   * Obsługuje logikę zmiany imienia i nazwiska z użyciem Validatora.
    */
   private function handleNameChange(): void
   {
-    $firstName = trim($_POST['first_name'] ?? '');
-    $lastName = trim($_POST['last_name'] ?? '');
+    $firstName = $_POST['first_name'] ?? '';
+    $lastName = $_POST['last_name'] ?? '';
     $password = $_POST['password'] ?? '';
     $errors = [];
 
-    // POPRAWKA MVP: Użytkownicy Google nie muszą podawać hasła do zmiany imienia
+    // 1. Walidacja formatu danych przez centralny serwis
+    $errors = $this->validator->validateNames($firstName, $lastName);
+
+    // 2. Walidacja bezpieczeństwa dla kont lokalnych
     if ($this->currentUser->getAuthProvider() === 'local') {
-      if (!$this->userModel->checkPassword($this->currentUser->getId(), $password)) {
-        $errors[] = 'Twoje hasło jest nieprawidłowe.';
+      if (empty($password)) {
+        $errors[] = 'Musisz podać hasło, aby zatwierdzić zmiany.';
+      } elseif (!$this->userModel->checkPassword($this->currentUser->getId(), $password)) {
+        $errors[] = 'Podane hasło jest nieprawidłowe.';
       }
     }
 
-    if (mb_strlen($firstName) < 2) $errors[] = 'Imię jest za krótkie.';
-    if (mb_strlen($lastName) < 2) $errors[] = 'Nazwisko jest za krótkie.';
-
     if (empty($errors)) {
-      if ($this->userModel->updateName($this->currentUser->getId(), $firstName, $lastName)) {
-        // Aktualizacja obiektu w sesji, aby UI od razu widziało zmianę
+      // 3. Zapis zmian
+      if ($this->userModel->updateName($this->currentUser->getId(), trim($firstName), trim($lastName))) {
+        // Odświeżenie danych użytkownika w sesji
         $this->currentUser = $this->userModel->getUserById($this->currentUser->getId());
         $_SESSION['user'] = $this->currentUser;
 
-        $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Dane zostały zaktualizowane.'];
+        $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Twoje dane zostały pomyślnie zaktualizowane.'];
       } else {
-        $errors[] = 'Wystąpił błąd serwera.';
+        $errors[] = 'Wystąpił nieoczekiwany błąd serwera podczas zapisu.';
       }
     }
 
@@ -101,26 +111,37 @@ class SettingsController extends BaseController
     }
   }
 
-  /**
-   * Obsługuje logikę zmiany hasła.
-   */
   private function handlePasswordChange(): void
   {
-    // BLOKADA MVP: Użytkownicy Google nie mogą zmieniać hasła (bo go nie mają)
     if ($this->currentUser->getAuthProvider() === 'google') {
-      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => ['Konto Google nie wymaga hasła w naszym serwisie.']];
+      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => ['Konto Google nie wymaga hasła.']];
       return;
     }
 
+    $current = $_POST['current_password'] ?? '';
+    $new = $_POST['new_password'] ?? '';
+    $confirm = $_POST['confirm_new_password'] ?? '';
     $errors = [];
 
-    $authController = new AuthController();
-    $authController->resetPassword($_POST, null);
+    // 1. Sprawdź stare hasło
+    if (!$this->userModel->checkPassword($this->currentUser->getId(), $current)) {
+      $errors[] = 'Obecne hasło jest nieprawidłowe.';
+    } else {
+      // 2. Waliduj nowe hasło przez serwis
+      $errors = $this->validator->validatePasswordStrength($new, $confirm);
+
+      if ($current === $new) {
+        $errors[] = 'Nowe hasło nie może być takie samo jak stare.';
+      }
+    }
 
     if (empty($errors)) {
-      $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Hasło zostało zmienione.'];
-    } else {
-      $errors[] = 'Błąd serwera.';
+      // 3. ZAPIS (tutaj, nie w walidatorze!)
+      if ($this->userModel->updatePassword($this->currentUser->getId(), $new)) {
+        $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Hasło zostało zmienione.'];
+      } else {
+        $errors[] = 'Błąd serwera podczas zapisu.';
+      }
     }
 
     if (!empty($errors)) {
@@ -177,17 +198,15 @@ class SettingsController extends BaseController
     }
 
     if (empty($errors)) {
-      $tokenService = new TokenService();
       // Odbieramy tablicę i wyciągamy z niej sam token.
-      $tokenData = $tokenService->generateToken($this->currentUser->getId(), 'email_change', $newEmail);
+      $tokenData = $this->tokenService->generateToken($this->currentUser->getId(), 'email_change', $newEmail);
       $token = $tokenData['token'];
 
       $verifyLink = url("weryfikacja?token=$token");
 
       $body = "<p>Witaj,</p><p>Aby potwierdzić zmianę adresu e-mail na $newEmail, kliknij w poniższy link:</p><p><a href='$verifyLink'>$verifyLink</a></p>";
-      $mailer = new Mailer();
 
-      if ($mailer->send($newEmail, 'Potwierdź swój nowy adres e-mail w Examly', $body)) {
+      if ($this->mailer->send($newEmail, 'Potwierdź swój nowy adres e-mail w Examly', $body)) {
         $_SESSION['email_change_sent'] = time();
         $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Link weryfikacyjny został wysłany na Twój nowy adres e-mail.'];
       } else {

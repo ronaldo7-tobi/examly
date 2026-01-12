@@ -5,19 +5,22 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use App\Services\TokenService;
 use App\Services\Mailer;
+use App\Services\Validator;
 
 class PasswordResetController extends BaseController
 {
   private UserModel $userModel;
   private TokenService $tokenService;
-  private AuthController $auth;
+  private Validator $validator;
+  private Mailer $mailer;
 
   public function __construct()
   {
     parent::__construct();
     $this->userModel = new UserModel();
     $this->tokenService = new TokenService();
-    $this->auth = new AuthController();
+    $this->validator = new Validator();
+    $this->mailer = new Mailer();
   }
 
   /**
@@ -62,9 +65,8 @@ class PasswordResetController extends BaseController
           "<p><a href='$resetLink'>$resetLink</a></p>" .
           "<p>Na następnej stronie zostaniesz poproszony o podanie 6-cyfrowego kodu bezpieczeństwa, który jest widoczny na stronie resetowania hasła.</p>" .
           "<p>Jeśli to nie Ty prosiłeś o zmianę, zignoruj tę wiadomość.</p>";
-        $mailer = new Mailer();
 
-        if ($mailer->send($user->getEmail(), 'Reset hasła w serwisie Examly', $body)) {
+        if ($this->mailer->send($user->getEmail(), 'Reset hasła w serwisie Examly', $body)) {
           $_SESSION['password_reset_sent'] = time();
         }
 
@@ -102,41 +104,31 @@ class PasswordResetController extends BaseController
     $this->renderView('reset_password', ['token' => $token]);
   }
 
-  /**
-   * Obsługuje zmianę hasła na nowe.
-   */
   public function handleNewPasswordRequest(): void
   {
     $token = $_POST['token'] ?? null;
-    $otpCode = $_POST['otp_code'] ?? '';
-
     $tokenRecord = $this->tokenService->getTokenRecord($token);
 
-    if (!$token || !$tokenRecord) {
-      $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Sesja zmiany hasła wygasła. Spróbuj ponownie.'];
+    if (!$tokenRecord) {
+      $_SESSION['flash_message'] = ['type' => 'error', 'text' => 'Sesja wygasła.'];
       header('Location: ' . url('logowanie'));
       exit();
     }
 
-    if ($tokenRecord['token_data'] !== $otpCode) {
-      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => ['Podany kod bezpieczeństwa jest nieprawidłowy.']];
+    // Używamy zunifikowanej metody walidacji siły hasła
+    $errors = $this->validator->validatePasswordStrength($_POST['new_password'] ?? '', $_POST['confirm_new_password'] ?? '');
+
+    if (!empty($errors)) {
+      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => $errors];
       header('Location: ' . url("nowe-haslo?token=$token"));
       exit();
     }
 
-    // Używamy AuthController do walidacji i resetu hasła
-    $result = $this->auth->resetPassword($_POST, $tokenRecord);
-
-    if (!$result['success']) {
-      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => $result['errors']];
-      header('Location: ' . url("nowe-haslo?token=$token"));
-      exit();
-    }
-
-    // Wszystko w porządku, usuń token
+    // Walidacja przeszła - wykonujemy akcję zapisu
+    $this->userModel->updatePassword($tokenRecord['user_id'], $_POST['new_password']);
     $this->tokenService->deleteTokensForUserByType($tokenRecord['user_id'], 'password_reset');
 
-    $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Twoje hasło zostało zmienione! Możesz się teraz zalogować.'];
+    $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Hasło zostało zresetowane!'];
     header('Location: ' . url('logowanie'));
     exit();
   }
