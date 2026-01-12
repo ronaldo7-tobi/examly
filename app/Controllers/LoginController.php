@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Services\AuthService;
+
 /**
  * Kontroler Strony Logowania.
  *
@@ -17,9 +19,9 @@ class LoginController extends BaseController
 {
   /**
    * Serwis uwierzytelniania, który zawiera główną logikę biznesową logowania.
-   * @var AuthController
+   * @var AuthService
    */
-  private AuthController $auth;
+  private AuthService $auth;
 
   /**
    * Konstruktor Kontrolera Logowania.
@@ -31,7 +33,7 @@ class LoginController extends BaseController
   {
     parent::__construct();
     $this->requireGuest();
-    $this->auth = new AuthController();
+    $this->auth = new AuthService();
   }
 
   /**

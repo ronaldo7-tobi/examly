@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Services;
 
 use App\Models\UserModel;
 use App\Models\User;
@@ -17,7 +17,7 @@ use App\Services\Validator;
  * @version 1.2.0
  * @author Tobiasz Szerszeń
  */
-class AuthController
+class AuthService
 {
   /**
    * Instancja modelu użytkownika, zapewniająca dostęp do bazy danych.

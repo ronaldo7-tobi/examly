@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Services\AuthService;
 use App\Services\TokenService;
 use App\Services\Mailer;
 
@@ -23,9 +24,9 @@ class RegisterController extends BaseController
 {
   /**
    * Serwis uwierzytelniania, używany do logiki rejestracji.
-   * @var AuthController
+   * @var AuthService
    */
-  private AuthController $auth;
+  private AuthService $auth;
 
   private UserModel $userModel;
   private TokenService $tokenService; 
@@ -42,7 +43,7 @@ class RegisterController extends BaseController
   {
     parent::__construct();
     $this->requireGuest();
-    $this->auth = new AuthController();
+    $this->auth = new AuthService();
     $this->userModel = new UserModel();
     $this->tokenService = new TokenService();
     $this->mailer = new Mailer();
