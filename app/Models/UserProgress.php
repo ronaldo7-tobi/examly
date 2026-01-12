@@ -14,7 +14,7 @@ class UserProgress
   }
 
   /**
-   * Masowa aktualizacja postępów po zakończeniu testu.
+   * Masowa aktualizacja postępu po zakończeniu testu.
    */
   public function updateBatchProgress(int $userId, array $answersDetails): void
   {
@@ -22,41 +22,37 @@ class UserProgress
 
     foreach ($answersDetails as $detail) {
       $qvId = (int)$detail['question_version_id'];
-      $ansId = (int)$detail['answer_id'];
+      $answerId = (int)$detail['answer_id'];
 
-      // Pobranie question_id i is_correct
-      $sqlInfo = "SELECT qv.question_id, a.is_correct 
-                  FROM question_versions qv
-                  JOIN answers a ON a.question_version_id = qv.id
-                  WHERE qv.id = ? AND a.id = ? LIMIT 1";
+      // Zoptymalizowane zapytanie rozwiązujące question_id z wersji
+      $sql = "INSERT INTO user_progress (user_id, question_id, attempts_count, correct_count, last_result)
+                SELECT ?, qv.question_id, 1, a.is_correct, a.is_correct
+                FROM question_versions qv
+                JOIN answers a ON a.id = ?
+                WHERE qv.id = ?
+                ON DUPLICATE KEY UPDATE 
+                    attempts_count = attempts_count + 1,
+                    correct_count = correct_count + VALUES(correct_count),
+                    last_result = VALUES(last_result)";
 
-      $info = $this->db->fetch($sqlInfo, [$qvId, $ansId]);
-
-      if ($info) {
-        $this->saveProgress(
-          $userId,
-          (int)$info['question_id'],
-          (int)$info['is_correct']
-        );
-      }
+      $this->db->execute($sql, [$userId, $answerId, $qvId]);
     }
   }
 
   /**
-   * Zapisuje postęp dla pojedynczego pytania (UPSERT) z uwzględnieniem last_result.
+   * Zapisuje postęp dla pojedynczego pytania (Tryb: Jedno pytanie).
    */
   public function saveProgress(int $userId, int $questionId, int $isCorrect): bool
   {
     $sql = "INSERT INTO user_progress 
-              (user_id, question_id, attempts_count, correct_count, last_result, last_attempt_at)
+              (user_id, question_id, attempts_count, correct_count, last_result)
             VALUES 
-              (?, ?, 1, ?, ?, NOW())
+              (?, ?, 1, ?, ?)
             ON DUPLICATE KEY UPDATE
               attempts_count = attempts_count + 1,
               correct_count = correct_count + VALUES(correct_count),
               last_result = VALUES(last_result)";
 
-    // $isCorrect trafia do correct_count (jako increment 0 lub 1) oraz jako stan last_result
     return $this->db->execute($sql, [$userId, $questionId, $isCorrect, $isCorrect]);
   }
 }

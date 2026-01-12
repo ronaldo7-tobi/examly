@@ -110,16 +110,11 @@ class Question
     return $this->db->fetchAll($sql, array_merge([$userId], $subjectIds, [$examTypeId]));
   }
 
-  /**
-   * Pobiera bazowe ID pytania na podstawie ID wersji.
-   * * @param int $versionId
-   * @return int|null
-   */
-  public function getQuestionIdByVersionId(int $versionId): ?int
+  public function getQuestionIdByVersionId(int $qvId): int|false
   {
     $sql = "SELECT question_id FROM question_versions WHERE id = ? LIMIT 1";
-    $result = $this->db->fetch($sql, [$versionId]);
-    return $result ? (int)$result['question_id'] : null;
+    $result = $this->db->fetch($sql, [$qvId]);
+    return $result ? (int)$result['question_id'] : false; // Zwracamy int, nie tablicę!
   }
 
   public function getQuestionById(int $id): array|false
