@@ -2,158 +2,39 @@
 
 namespace App\Models;
 
-/**
- * Klasa reprezentująca użytkownika w systemie.
- *
- * Przechowuje podstawowe informacje o użytkowniku pobrane z bazy danych,
- * takie jak imię, nazwisko, e-mail, status weryfikacji oraz rola użytkownika.
- *
- * @version 1.0.0
- * @author Tobiasz Szerszeń
- */
 class User
 {
-  /**
-   * Identyfikator użytkownika w bazie danych.
-   *
-   * @var int
-   */
   private int $id;
-
-  /**
-   * Identyfikator google id użytkownika w bazie danych.
-   */
-  private string $googleId;
-
-  /**
-   * Imię użytkownika.
-   *
-   * @var string
-   */
+  private ?string $googleId;
+  private string $authProvider;
   private string $firstName;
-
-  /**
-   * Nazwisko użytkownika.
-   *
-   * @var string
-   */
   private string $lastName;
-
-  /**
-   * Adres e-mail użytkownika.
-   *
-   * @var string
-   */
   private string $email;
-
-  /**
-   * Status weryfikacji konta użytkownika.
-   *
-   * @var bool
-   */
   private bool $isVerified;
-
-  /**
-   * Rola użytkownika (np. admin, user).
-   *
-   * @var string
-   */
+  private bool $isActive;
   private string $role;
 
-  /**
-   * Konstruktor klasy User.
-   *
-   * Inicjalizuje właściwości obiektu na podstawie tablicy danych.
-   *
-   * @param array $data Tablica danych z bazy danych z kluczami: id, first_name, last_name, email, is_verified, role.
-   */
   public function __construct(array $data)
   {
-    $this->id = $data['id'];
+    $this->id = (int)$data['id'];
+    $this->googleId = $data['google_id'] ?? null;
+    $this->authProvider = $data['auth_provider'] ?? 'local';
     $this->firstName = $data['first_name'];
     $this->lastName = $data['last_name'];
     $this->email = $data['email'];
-    $this->isVerified = (bool) $data['is_verified'];
+    $this->isVerified = (bool)$data['is_verified'];
+    $this->isActive = (bool)($data['is_active'] ?? true);
     $this->role = $data['role'];
   }
 
-  /**
-   * Zwraca id użytkownika
-   *
-   * @return int Id użytkownika z bazy danych
-   */
-  public function getId(): int
-  {
-    return $this->id;
-  }
-
-  /**
-   * Zwraca google id użytkownika
-   * 
-   * @return int Google id użytkownika z bazy danych
-   */
-  public function getGoogleId ()
-  {
-    return $this->googleId;
-  }
-
-  /**
-   * Zwraca imię użytkownika.
-   *
-   * @return string Imię użytkownika.
-   */
-  public function getName()
-  {
-    return $this->firstName;
-  }
-
-  /**
-   * Zwraca nazwisko użytkownika.
-   *
-   * @return string Nazwisko użytkownika.
-   */
-  public function getLastName()
-  {
-    return $this->lastName;
-  }
-
-  /**
-   * Zwraca pełne imię i nazwisko użytkownika.
-   *
-   * @return string Imię i nazwisko połączone spacją.
-   */
-  public function getFullName(): string
-  {
-    return $this->firstName . ' ' . $this->lastName;
-  }
-
-  /**
-   * Zwraca adres e-mail użytkownika.
-   *
-   * @return string E-mail użytkownika.
-   */
-  public function getEmail(): string
-  {
-    return $this->email;
-  }
-
-  /**
-   * Zwraca rolę użytkownika.
-   *
-   * @return string Rola użytkownika.
-   */
-  public function getRole(): string
-  {
-    return $this->role;
-  }
-
-  /**
-   * Sprawdza, czy konto użytkownika jest zweryfikowane.
-   *
-   * @return bool True, jeśli konto jest zweryfikowane, w przeciwnym razie false.
-   */
-  public function isVerified(): bool
-  {
-    return $this->isVerified;
-  }
+  public function getId(): int { return $this->id; }
+  public function getGoogleId(): ?string { return $this->googleId; }
+  public function getAuthProvider(): string { return $this->authProvider; }
+  public function getFirstName(): string { return $this->firstName; }
+  public function getLastName(): string { return $this->lastName; }
+  public function getFullName(): string { return "{$this->firstName} {$this->lastName}"; }
+  public function getEmail(): string { return $this->email; }
+  public function getRole(): string { return $this->role; }
+  public function isVerified(): bool { return $this->isVerified; }
+  public function isActive(): bool { return $this->isActive; }
 }

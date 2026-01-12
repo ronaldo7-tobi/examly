@@ -53,35 +53,6 @@ class UserModel
   }
 
   /**
-   * Rejestruje nowego użytkownika w bazie danych, bezpiecznie hashując hasło.
-   *
-   * Do hashowania hasła używana jest natywna funkcja `password_hash()` z flagą
-   * `PASSWORD_DEFAULT`. Jest to najlepsza praktyka, ponieważ zapewnia, że
-   * zawsze zostanie użyty najnowszy i najbezpieczniejszy algorytm
-   * obsługiwany przez daną wersję PHP.
-   *
-   * @param array<string, string> $data Dane użytkownika: 'first_name', 'last_name', 'email', 'password'.
-   *
-   * @return bool `true`, jeśli operacja `INSERT` się powiodła, `false` w przypadku błędu.
-   */
-  public function register(array $data): bool
-  {
-    $sql = "INSERT INTO users (google_id, first_name, last_name, email, password_hash)
-                VALUES (?, ?, ?, ?, ?)";
-
-    $params = [
-      $data['google_id'] ?? null,
-      $data['first_name'],
-      $data['last_name'],
-      $data['email'],
-      // Surowe hasło nigdy nie jest zapisywane. Zapisujemy tylko jego bezpieczny hash.
-      password_hash($data['password'], PASSWORD_DEFAULT),
-    ];
-
-    return $this->db->execute($sql, $params);
-  }
-
-  /**
    * Zmienia status weryfikacji użytkownika na "zweryfikowany" (`is_verified = 1`).
    *
    * @param int $userId ID użytkownika do zweryfikowania.
@@ -95,121 +66,67 @@ class UserModel
   }
 
   /**
-   * Weryfikuje dane logowania i zwraca obiekt użytkownika w przypadku sukcesu.
-   *
-   * Logika działania:
-   * 1. Pobiera z bazy rekord użytkownika na podstawie podanego adresu e-mail.
-   * 2. Jeśli użytkownik istnieje, używa funkcji `password_verify()` do bezpiecznego
-   * porównania podanego hasła z hashem zapisanym w bazie.
-   * 3. W przypadku sukcesu, usuwa hash hasła z danych i tworzy obiekt `User`.
-   * 4. W każdym innym przypadku (brak użytkownika, błędne hasło) zwraca `null`.
-   *
-   * @param array<string, string> $data Tablica z danymi: 'email' i 'password'.
-   *
-   * @return User|null Zwraca obiekt `User` w przypadku pomyślnego logowania,
-   * w przeciwnym razie `null`.
+   * Bazowe zapytanie uwzględniające Soft Delete.
    */
+  private function getActiveUserSql(): string
+  {
+    return "SELECT * FROM users WHERE deleted_at IS NULL AND is_active = 1";
+  }
+
   public function login(array $data): ?User
   {
-    $sql = 'SELECT id, google_id, first_name, last_name, email, password_hash, is_verified, role FROM users WHERE email = ?';
+    // Szukamy tylko wśród aktywnych, nieusuniętych kont
+    $sql = $this->getActiveUserSql() . " AND email = ? AND auth_provider = 'local'";
     $user_data = $this->db->fetch($sql, [$data['email']]);
 
-    // Sprawdź, czy użytkownik istnieje ORAZ czy hasło jest poprawne.
-    // Użycie `password_verify` jest kluczowe - chroni przed atakami typu "timing attack".
     if ($user_data && password_verify($data['password'], $user_data['password_hash'])) {
-      // Krok krytyczny dla bezpieczeństwa: nigdy nie przechowuj ani nie przekazuj
-      // hasha hasła poza ten model. Usuwamy go natychmiast po weryfikacji.
       unset($user_data['password_hash']);
       return new User($user_data);
     }
-
     return null;
   }
 
-  /**
-   * Znajduje użytkownika po Google ID lub e-mailu, lub tworzy nowego, jeśli nie istnieje.
-   *
-   * @param string $googleId Unikalny ID użytkownika z Google.
-   * @param string $email Adres e-mail użytkownika z Google.
-   * @param string $firstName Imię użytkownika z Google. // Zmieniono z $name
-   * @param string $lastName Nazwisko użytkownika z Google.
-   * @return User|null Zwraca obiekt User zalogowanego/utworzonego użytkownika lub null w przypadku błędu.
-   */
-  public function findOrCreateGoogleUser(string $googleId, string $email, string $firstName, string $lastName): ?User // Poprawiono $name na $firstName
+  public function register(array $data): bool
   {
-    // Krok 1: Sprawdź, czy użytkownik z tym Google ID już istnieje
-    $sql = 'SELECT id, google_id, first_name, last_name, email, is_verified, role FROM users WHERE google_id = ?';
-    $userData = $this->db->fetch($sql, [$googleId]);
+    $sql = "INSERT INTO users (auth_provider, first_name, last_name, email, password_hash)
+            VALUES ('local', ?, ?, ?, ?)";
+
+    return $this->db->execute($sql, [
+      $data['first_name'],
+      $data['last_name'],
+      $data['email'],
+      password_hash($data['password'], PASSWORD_DEFAULT)
+    ]);
+  }
+
+  // Fragment UserModel.php
+  public function findOrCreateGoogleUser(string $googleId, string $email, string $firstName, string $lastName): ?User
+  {
+    // Szukamy po googleId lub emailu, ale tylko w aktywnych kontach
+    $sql = $this->getActiveUserSql() . " AND (google_id = ? OR email = ?)";
+    $userData = $this->db->fetch($sql, [$googleId, $email]);
 
     if ($userData) {
-      // Użytkownik znaleziony po Google ID - zwracamy go
-      return new User($userData);
-    }
-
-    // Krok 2: Sprawdź, czy użytkownik z tym adresem e-mail już istnieje
-    $existingUser = $this->getUserByEmail($email); // Użyj istniejącej metody
-
-    if ($existingUser instanceof User) {
-      // Użytkownik istnieje, ale nie ma powiązanego Google ID - aktualizujemy go
-      $userId = $existingUser->getId();
-      // Użyj metody addGoogleId
-      if ($this->addGoogleId($googleId, $userId)) {
-        // Pobierz zaktualizowane dane użytkownika (teraz z google_id)
-        return $this->getUserById($userId); // Zakładając, że getUserById pobiera google_id
-      } else {
-        error_log("Nie udało się zaktualizować Google ID dla użytkownika ID: {$userId}");
-        return null; // Błąd aktualizacji
+      $user = new User($userData);
+      // Jeśli znaleziony po emailu, a nie miał google_id - aktualizujemy
+      if (!$user->getGoogleId()) {
+        $this->db->execute("UPDATE users SET google_id = ?, auth_provider = 'google', is_verified = 1 WHERE id = ?", [$googleId, $user->getId()]);
+        return $this->getUserById($user->getId());
       }
+      return $user;
     }
 
-    // Krok 3: Użytkownik nie istnieje - tworzymy nowego używając poprawionej metody
-    try {
-      if ($this->registerWithGoogleId($googleId, $email, $firstName, $lastName)) {
-        $newUser = $this->getUserByEmail($email); // Pobieramy nowo utworzonego użytkownika
-        if (!$newUser) {
-          throw new Exception("Nie udało się pobrać nowo utworzonego użytkownika Google.");
-        }
-        return $newUser;
-      } else {
-        throw new Exception("Metoda registerWithGoogleId zwróciła błąd.");
-      }
-    } catch (Exception $e) {
-      error_log('Błąd podczas rejestracji użytkownika przez Google: ' . $e->getMessage());
-      return null;
+    if ($this->registerWithGoogleId($googleId, $email, $firstName, $lastName)) {
+      return $this->getUserById($this->db->lastInsertId());
     }
+    return null;
   }
 
-  /**
-   * Dodaje lub aktualizuje Google ID dla istniejącego użytkownika i weryfikuje konto.
-   *
-   * @param string $googleId Google ID do dodania.
-   * @param int    $userId   ID użytkownika, któremu dodajemy Google ID.
-   * @return bool True w przypadku sukcesu, false w przypadku błędu.
-   */
-  private function addGoogleId(string $googleId, int $userId): bool
+  public function registerWithGoogleId(string $googleId, string $email, string $firstName, string $lastName): bool
   {
-    // Upewniamy się też, że konto jest zweryfikowane
-    $sql = "UPDATE users SET google_id = ?, is_verified = 1 WHERE id = ?";
-    return $this->db->execute($sql, [$googleId, $userId]);
-  }
-
-  /**
-   * Rejestruje nowego użytkownika z danymi Google.
-   *
-   * @param string $googleId
-   * @param string $email
-   * @param string $firstName // Poprawiono z $name
-   * @param string $lastName
-   * @return bool True w przypadku sukcesu, false w przypadku błędu.
-   */
-  private function registerWithGoogleId(string $googleId, string $email, string $firstName, string $lastName): bool
-  {
-    // Generujemy losowe hasło, bo jest wymagane przez tabelę
-    $randomPassword = bin2hex(random_bytes(16));
-    $passwordHash = password_hash($randomPassword, PASSWORD_DEFAULT);
-
-    $sql = "INSERT INTO users(google_id, first_name, last_name, email, password_hash, is_verified, role) VALUES (?, ?, ?, ?, ?, 1, 'user')";
-    return $this->db->execute($sql, [$googleId, $firstName, $lastName, $email, $passwordHash]);
+    $sql = "INSERT INTO users (google_id, auth_provider, first_name, last_name, email, is_verified) 
+            VALUES (?, 'google', ?, ?, ?, 1)";
+    return $this->db->execute($sql, [$googleId, $firstName, $lastName, $email]);
   }
 
   /**
@@ -225,20 +142,11 @@ class UserModel
     return $this->db->lastInsertId();
   }
 
-  /**
-   * Pobiera dane użytkownika na podstawie jego ID i zwraca jako obiekt.
-   *
-   * @param int $id ID szukanego użytkownika.
-   *
-   * @return User|null Zwraca obiekt `User` lub `null`, jeśli użytkownik
-   * o podanym ID nie został znaleziony.
-   */
   public function getUserById(int $id): ?User
   {
-    $sql = 'SELECT id, google_id, first_name, last_name, email, is_verified, role FROM users WHERE id = ?';
-    $user_data = $this->db->fetch($sql, [$id]);
-
-    return $user_data ? new User($user_data) : null;
+    $sql = $this->getActiveUserSql() . " AND id = ?";
+    $data = $this->db->fetch($sql, [$id]);
+    return $data ? new User($data) : null;
   }
 
   /**
@@ -329,31 +237,11 @@ class UserModel
   }
 
   /**
-   * Trwale usuwa użytkownika i wszystkie powiązane z nim dane.
-   * Operacja jest wykonywana w ramach transakcji, aby zapewnić spójność danych.
+   * Implementacja Soft Delete.
    */
   public function deleteUser(int $userId): bool
   {
-    $this->db->beginTransaction();
-    try {
-      // Usuń powiązane dane (kolejność jest ważna)
-      $this->db->execute('DELETE FROM user_progress WHERE user_id = ?', [$userId]);
-      $this->db->execute('DELETE FROM user_tokens WHERE user_id = ?', [$userId]);
-      // Musimy usunąć wpisy z tabeli łączącej, zanim usuniemy egzaminy
-      $this->db->execute(
-        'DELETE uet FROM user_exam_topics uet JOIN user_exams ue ON uet.user_exam_id = ue.id WHERE ue.user_id = ?',
-        [$userId]
-      );
-      $this->db->execute('DELETE FROM user_exams WHERE user_id = ?', [$userId]);
-
-      // Na końcu usuń samego użytkownika
-      $this->db->execute('DELETE FROM users WHERE id = ?', [$userId]);
-
-      return $this->db->commit();
-    } catch (Exception $e) {
-      $this->db->rollBack();
-      error_log('Błąd podczas usuwania użytkownika: ' . $e->getMessage());
-      return false;
-    }
+    $sql = "UPDATE users SET deleted_at = NOW(), is_active = 0 WHERE id = ?";
+    return $this->db->execute($sql, [$userId]);
   }
 }

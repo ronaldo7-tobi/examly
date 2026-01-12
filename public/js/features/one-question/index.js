@@ -39,6 +39,7 @@ class Quiz {
 
     // Krok 3: Zainicjuj wewnętrzny stan.
     this.currentExplanation = null;
+    this.currentQuestionVersionId = null; // DODANE
     this.loaderTimer = null;
 
     // Krok 4: Sprawdź, czy wszystko jest na miejscu i uruchom logikę.
@@ -75,57 +76,44 @@ class Quiz {
   }
 
   /**
-   * Główna metoda rozpoczynająca ładowanie nowego pytania.
-   * @private
-   * @async
+   * Zmodyfikowana metoda startNewQuestion
    */
   async startNewQuestion() {
-    // Krok 1: Zresetuj stan dla nowego pytania.
     this.currentExplanation = null;
+    this.currentQuestionVersionId = null; // Resetujemy stan
 
-    // Krok 2: Zbierz dane z formularza (wybrane tematy i opcje premium).
     const selectedSubjects = [...this.topicForm.querySelectorAll('input[name="subject[]"]:checked')]
       .map(cb => cb.value);
     const premiumOption = this.topicForm.querySelector('input[name="premium_option"]:checked')?.value || null;
 
-    // Krok 3: Walidacja - sprawdź, czy użytkownik wybrał jakikolwiek temat.
     if (selectedSubjects.length === 0) {
-      Toast.show('Wybierz przynajmniej jedną kategorię, aby rozpocząć naukę.', 'info');
+      Toast.show('Wybierz przynajmniej jedną kategorię.', 'info');
       return;
     }
 
     try {
-      // Krok 4: Ustaw opóźniony wskaźnik ładowania dla lepszego UX.
-      // Pokaże się tylko, jeśli API będzie odpowiadać dłużej niż 300ms.
-      this.loaderTimer = setTimeout(() => {
-        ui.showLoader(this.quizContainer);
-      }, 300);
+      this.loaderTimer = setTimeout(() => { ui.showLoader(this.quizContainer); }, 300);
 
-      // Krok 5: Wywołaj API, aby pobrać dane pytania.
       const result = await api.fetchQuestion(this.examCode, selectedSubjects, premiumOption);
 
-      // Krok 6: Przetwórz odpowiedź z API.
       if (result.success) {
         const data = result.data;
         if (data.status === 'no_questions_left') {
-          // Scenariusz A: Brak dostępnych pytań.
           Toast.show(data.message, 'info');
-          this.quizContainer.innerHTML = '<p class="quiz-placeholder">Wybierz inne kryteria, aby kontynuować naukę.</p>';
+          this.quizContainer.innerHTML = '<p class="quiz-placeholder">Wybierz inne kryteria.</p>';
         } else {
-          // Scenariusz B: Pytanie pobrane pomyślnie.
+          // KROK KLUCZOWY: Zapisujemy question_version_id do stanu klasy
           this.currentExplanation = data.question.explanation;
+          this.currentQuestionVersionId = data.question.question_version_id; 
+          
           ui.renderQuestion(this.quizContainer, data.question, data.answers);
         }
       } else {
-        // Scenariusz C: API zwróciło błąd.
         Toast.show(result.error, 'error');
       }
     } catch (error) {
-      // Scenariusz D: Wystąpił błąd sieciowy lub inny krytyczny.
-      Toast.show('Wystąpił krytyczny błąd. Spróbuj ponownie.', 'error');
+      Toast.show('Wystąpił błąd sieci.', 'error');
     } finally {
-      // Krok 7: Zawsze anuluj timer. To kluczowe, aby loader nie pojawił
-      // się już PO załadowaniu treści (jeśli API odpowiedziało szybko).
       clearTimeout(this.loaderTimer);
     }
   }
@@ -151,34 +139,31 @@ class Quiz {
   }
 
   /**
-   * Sprawdza poprawność wybranej odpowiedzi i zarządza dalszym przepływem.
-   * @private
-   * @async
-   * @param {HTMLElement} clickedLabel - Etykieta odpowiedzi, która została kliknięta.
+   * Naprawiona metoda checkSelectedAnswer
    */
   async checkSelectedAnswer(clickedLabel) {
-    // Krok 1: Zablokuj możliwość ponownej odpowiedzi na to samo pytanie.
     const answersContainer = clickedLabel.closest('.quiz-card__answers');
     answersContainer.dataset.answered = 'true';
 
-    // Krok 2: Zbierz potrzebne dane z DOM.
+    // Krok 2: Pobieramy dane. 
+    // Rezygnujemy z document.getElementById('question_id_hidden') na rzecz stanu klasy.
     const userAnswerId = clickedLabel.querySelector('input[type="radio"]').value;
-    const questionId = document.getElementById('question_id_hidden').value;
+    const versionId = this.currentQuestionVersionId; // Używamy zapisanego ID wersji
 
-    // Krok 3: Wywołaj API, aby zweryfikować odpowiedź.
-    const result = await api.checkAnswer(questionId, userAnswerId);
+    if (!versionId) {
+        Toast.show('Błąd synchronizacji danych pytania.', 'error');
+        return;
+    }
 
-    // Krok 4: Przetwórz wynik weryfikacji.
+    // Krok 3: Wywołaj API (ApiClient prześle to jako question_version_id)
+    const result = await api.checkAnswer(versionId, userAnswerId);
+
     if (result.success) {
       const data = result.data;
-      // 4a. Zleć modułowi UI pokazanie feedbacku (zielony/czerwony kolor).
       ui.showAnswerFeedback(data.is_correct, data.correct_answer_id, userAnswerId);
-      // 4b. Zleć UI renderowanie przycisków, przekazując jako callback metodę
-      // `startNewQuestion`, która uruchomi się po kliknięciu "Następne pytanie".
       ui.renderActionButtons(this.currentExplanation, this.startNewQuestion.bind(this));
     } else {
-      // W razie błędu API, odblokuj możliwość ponownej odpowiedzi i pokaż błąd.
-      Toast.show('Wystąpił nieoczekiwany błąd.', 'error');
+      Toast.show(result.error || 'Wystąpił błąd.', 'error');
       delete answersContainer.dataset.answered;
     }
   }

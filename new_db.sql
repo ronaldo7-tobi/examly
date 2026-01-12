@@ -181,7 +181,7 @@ CREATE TABLE user_progress (
   question_id INT UNSIGNED NOT NULL,
   attempts_count INT NOT NULL DEFAULT 0,          -- Ile razy user widział to pytanie
   correct_count INT NOT NULL DEFAULT 0,           -- Ile razy odpowiedział poprawnie
-  last_attempt_at DATETIME DEFAULT NULL,
+  last_result TINYINT(1) NOT NULL,                -- Wynik ostatniej próby (0 = błędna, 1 = poprawna)
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (user_id, question_id),

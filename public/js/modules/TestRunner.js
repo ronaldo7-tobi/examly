@@ -90,53 +90,50 @@ export class TestRunner {
   }
 
   /**
-   * Renderuje wszystkie pytania i odpowiedzi na stronie.
-   * Zawiera krytyczną logikę bezpieczeństwa (ochrona przed XSS).
-   *
-   * @param {Array<Object>} questions - Tablica z danymi pytań.
-   * @private
+   * Zaktualizowana metoda renderAllQuestions
    */
   renderAllQuestions(questions) {
-    // Krok 1: Wyczyść kontener przed renderowaniem nowych pytań.
     this.questionsWrapper.innerHTML = '';
 
-    // Krok 2: Przejdź przez każde pytanie, aby stworzyć jego kartę.
     questions.forEach((qData, index) => {
-      const { question, answers } = qData;
+      // Pobieramy dane z nowymi kluczami
+      const { question_id, question_version_id, question_text, image_path } = qData.question;
+      const answers = qData.answers;
       let answersHTML = '';
 
-      // Krok 2a: Wygeneruj HTML dla wszystkich odpowiedzi do danego pytania.
       answers.forEach((answer, answerIndex) => {
         const letter = String.fromCharCode(65 + answerIndex);
-        const unsafeHTML = marked.parse(answer.content, { gfm: true, breaks: true });
-        const contentHTML = DOMPurify.sanitize(unsafeHTML); // Ochrona XSS!
+        
+        // FIX: Zmiana z .content na .answer_text
+        // Dodajemy || '', aby uniknąć błędu marked w razie pustej odpowiedzi
+        const unsafeHTML = marked.parse(answer.answer_text || '', { gfm: true, breaks: true });
+        const contentHTML = DOMPurify.sanitize(unsafeHTML);
 
         answersHTML += `
           <label class="quiz-card__answer">
-            <input type="radio" name="question_${question.id}" value="${answer.id}">
+            <input type="radio" name="q_${question_version_id}" value="${answer.id}">
             <span class="quiz-card__answer-prefix">${letter}</span>
-            <span class.quiz-card__answer-text">${contentHTML}</span>
+            <span class="quiz-card__answer-text">${contentHTML}</span>
           </label>`;
       });
 
-      // Krok 2b: Stwórz główny element karty pytania.
       const questionElement = document.createElement('section');
       questionElement.className = 'quiz-card';
-      questionElement.id = `question-${question.id}`;
-      const imageHTML = question.image_path
+      questionElement.id = `question-${question_id}`; // ID bazowe dla DOM
+      
+      const imageHTML = image_path
         ? `<div class="quiz-card__image-container">
-             <img src="/examly/public/images/questions/${escapeHTML(question.image_path)}"
+             <img src="/examly/public/images/questions/${escapeHTML(image_path)}"
                   alt="Ilustracja do pytania" class="quiz-card__image">
            </div>`
         : '';
 
-      // Krok 2c: Wypełnij kartę szablonem HTML.
       questionElement.innerHTML = `
         <header class="quiz-card__header">
           <span class="quiz-card__question-number">Pytanie ${index + 1} / ${questions.length}</span>
         </header>
         <div class="quiz-card__content">
-          <p class="quiz-card__question-text">${escapeHTML(question.content)}</p>
+          <p class="quiz-card__question-text">${escapeHTML(question_text)}</p>
           ${imageHTML}
         </div>
         <div class="quiz-card__answers">${answersHTML}</div>
@@ -145,89 +142,78 @@ export class TestRunner {
           <div class="quiz-card__explanation"></div>
         </div>`;
 
-      // Krok 2d: Dodaj gotową kartę do głównego kontenera.
       this.questionsWrapper.appendChild(questionElement);
     });
   }
 
-  /**
-   * Finalizuje test, oblicza wyniki i zapisuje je w API.
-   * @async
-   */
-  async finishTest() {
-    // Krok 1: Zakończ stan "w toku" i wyczyść zegar oraz nasłuchiwacze.
+async finishTest() {
     this.isTestInProgress = false;
     clearInterval(this.timerInterval);
     window.removeEventListener('beforeunload', this.handleBeforeUnload);
 
-    // Krok 2: Zbierz i przetwórz odpowiedzi użytkownika.
     let correctAnswersCount = 0;
     const topicIdsInTest = new Set();
-    const userAnswers = {};
-    const progressData = [];
+    const answersDetails = [];
+    const userAnswersMap = {}; // DODANE: Mapa do podsumowania
 
     this.questionsData.forEach((qData) => {
-      topicIdsInTest.add(qData.question.topic_id);
-      const questionId = qData.question.id;
-      const correctAnswer = qData.answers.find((a) => a.is_correct === 1);
-      const selectedInput = this.questionsWrapper.querySelector(`input[name="question_${questionId}"]:checked`);
-      let isCorrect = false;
+      const { question_version_id, topic_id } = qData.question;
+      topicIdsInTest.add(topic_id);
 
-      if (selectedInput) {
-        const selectedAnswerId = parseInt(selectedInput.value, 10);
-        userAnswers[questionId] = selectedAnswerId;
-        if (correctAnswer && selectedAnswerId === correctAnswer.id) {
-          correctAnswersCount++;
-          isCorrect = true;
-        }
-      } else {
-        userAnswers[questionId] = null;
+      const selectedInput = this.questionsWrapper.querySelector(`input[name="q_${question_version_id}"]:checked`);
+      const selectedAnswerId = selectedInput ? parseInt(selectedInput.value, 10) : null;
+      
+      // Zapisujemy wybór do mapy
+      userAnswersMap[question_version_id] = selectedAnswerId;
+
+      const correctAnswer = qData.answers.find(a => a.is_correct === 1);
+      if (selectedAnswerId && correctAnswer && selectedAnswerId === correctAnswer.id) {
+        correctAnswersCount++;
       }
-      progressData.push({ questionId, isCorrect });
+
+      if (selectedAnswerId) {
+        answersDetails.push({
+          question_version_id: question_version_id,
+          answer_id: selectedAnswerId
+        });
+      }
     });
 
-    // Krok 3: Oblicz ostateczny wynik.
     const totalQuestions = this.questionsData.length;
-    const baseScore = totalQuestions > 0 ? (correctAnswersCount / totalQuestions) * 100 : 0;
-    const score = this.isFullExam ? baseScore : Math.round(baseScore);
+    const score = totalQuestions > 0 ? (correctAnswersCount / totalQuestions) * 100 : 0;
 
-    // Krok 4: Wyświetl ekran z wynikami.
-    this.showResults(score, correctAnswersCount, userAnswers);
-
-    // Krok 5: Jeśli użytkownik jest zalogowany, zapisz wyniki w API.
-    if (!window.examlyAppState?.isUserLoggedIn) {
-      return;
+    if (window.examlyAppState?.isUserLoggedIn) {
+      const attemptPayload = {
+        examCode: this.examCode || 'INF.03',
+        isFullExam: this.isFullExam,
+        correctAnswers: correctAnswersCount,
+        totalQuestions: totalQuestions,
+        duration: this.timeSpent,
+        topicIds: Array.from(topicIdsInTest),
+        answers: answersDetails
+      };
+      await api.saveAttempt(attemptPayload);
     }
 
-    const resultData = {
-      score_percent: score,
-      correct_answers: correctAnswersCount,
-      total_questions: totalQuestions,
-      duration_seconds: this.timeSpent,
-      topic_ids: Array.from(topicIdsInTest),
-      is_full_exam: this.isFullExam,
-    };
-
-    // Używamy Promise.all, aby wysłać oba zapytania równolegle dla optymalizacji.
-    await Promise.all([api.saveTestResult(resultData), api.saveBulkProgress(progressData)]);
+    // WAŻNE: Przekazujemy trzeci argument
+    this.showResults(score, correctAnswersCount, userAnswersMap);
   }
 
   /**
-   * Buduje i wyświetla ekran wyników po zakończeniu testu.
-   * @private
-   * @param {number} score - Wynik testu w procentach.
-   * @param {number} correctCount - Liczba poprawnych odpowiedzi.
-   * @param {Object<string, number|null>} userAnswers - Mapa odpowiedzi użytkownika.
+   * Buduje i wyświetla ekran wyników ze szczegółowym podsumowaniem.
    */
   showResults(score, correctCount, userAnswers) {
-    // Krok 1: Przełącz widoczność kontenerów.
     this.testView.classList.add('hidden');
     this.resultsScreen.classList.remove('hidden');
 
-    // Krok 2: Zbuduj i wstaw HTML dla głównego podsumowania wyników.
+    // Sekcja Podsumowania
     const scoreSummaryContainer = document.getElementById('score-summary');
-    const scoreForAnimation = Math.round(score);
     const scoreToDisplay = this.isFullExam ? score.toFixed(2) : Math.round(score);
+    const scoreForAnimation = Math.round(score);
+
+    const minutes = Math.floor(this.timeSpent / 60);
+    const seconds = this.timeSpent % 60;
+    const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
     scoreSummaryContainer.innerHTML = `
       <div class="score-circle" style="--score: ${scoreForAnimation}">
@@ -245,104 +231,97 @@ export class TestRunner {
           <i class="stat-item__icon fas fa-clock"></i>
           <div>
             <p class="stat-item__label">Czas ukończenia</p>
-            <p class="stat-item__value" id="duration-value"></p>
+            <p class="stat-item__value">${timeString}</p>
           </div>
         </div>
       </div>`;
 
-    // Krok 3: Oblicz i wstaw sformatowany czas ukończenia.
-    const minutes = Math.floor(this.timeSpent / 60);
-    const seconds = this.timeSpent % 60;
-    document.getElementById('duration-value').textContent =
-      `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    this.resultsDetailsContainer.innerHTML = '';
 
-    // Krok 4: Stwórz i wstaw wiadomość o statystykach, zależną od stanu zalogowania.
-    const statsInfo = document.createElement('p');
-    statsInfo.className = 'results-container__stats-info';
-    if (window.examlyAppState?.isUserLoggedIn) {
-      statsInfo.innerHTML = `Świetna robota! Możesz śledzić swoje postępy i analizować wyniki
-        w zakładce <a href="statystyki">Statystyki</a>.`;
-    } else {
-      statsInfo.innerHTML = `Chcesz śledzić swoje postępy i zapisywać wyniki?
-        <a href="rejestracja">Załóż darmowe konto</a>, aby odblokować statystyki!`;
-    }
-    scoreSummaryContainer.insertAdjacentElement('afterend', statsInfo);
+    this.questionsData.forEach((qData, index) => {
+      const { question_id, question_version_id, question_text, image_path, explanation } = qData.question;
+      const userAnswerId = userAnswers[question_version_id]; // Odczyt z mapy
+      const answers = qData.answers;
 
-    // Krok 5: Przygotuj szczegółowy podgląd odpowiedzi.
-    // 5a. Skopiuj wyrenderowane pytania do kontenera wyników.
-    this.resultsDetailsContainer.innerHTML = this.questionsWrapper.innerHTML;
-    // 5b. Wyłącz wszystkie przyciski radio, aby uniemożliwić zmianę odpowiedzi.
-    this.resultsDetailsContainer.querySelectorAll('input[type="radio"]').forEach((input) => (input.disabled = true));
+      const card = document.createElement('section');
+      card.className = 'quiz-card';
+      card.id = `result-q-${question_id}`;
 
-    // 5c. Przejdź przez każdą kartę pytania, aby pokolorować odpowiedzi i dodać wyjaśnienia.
-    this.questionsData.forEach((qData) => {
-      const questionId = qData.question.id;
-      const questionCard = this.resultsDetailsContainer.querySelector(`#question-${questionId}`);
-      if (!questionCard) return;
+      let answersHTML = '';
+      answers.forEach((ans, idx) => {
+        const letter = String.fromCharCode(65 + idx);
+        let statusClass = '';
 
-      // Usuń wszystkie klasy .selected z tej karty pytania, aby uniknąć konfliktów stylów.
-      questionCard.querySelectorAll('.quiz-card__answer.selected').forEach((label) => {
-        label.classList.remove('selected');
+        // NOWA LOGIKA KOLORYSTYKI
+        if (userAnswerId === ans.id) {
+          // Użytkownik wybrał tę odpowiedź (Zawsze usuwamy 'selected', by nie było niebieskiego tła)
+          statusClass = ans.is_correct === 1 ? 'correct' : 'incorrect';
+        } else if (ans.is_correct === 1) {
+          // To jest poprawna odpowiedź, której użytkownik nie wybrał
+          // Jeśli w ogóle nie odpowiedział -> niebieski (missed)
+          // Jeśli wybrał inną, błędną -> zielony (correct)
+          statusClass = (userAnswerId === null || userAnswerId === undefined) ? 'missed' : 'correct';
+        }
+
+        const contentHTML = DOMPurify.sanitize(marked.parse(ans.answer_text || ''));
+
+        answersHTML += `
+          <div class="quiz-card__answer ${statusClass}">
+            <span class="quiz-card__answer-prefix">${letter}</span>
+            <span class="quiz-card__answer-text">${contentHTML}</span>
+            ${userAnswerId === ans.id ? '<input type="radio" checked disabled style="display:none">' : ''}
+          </div>`;
       });
 
-      const correctAnswer = qData.answers.find((a) => a.is_correct === 1);
-      const selectedAnswerId = userAnswers[questionId];
+      card.innerHTML = `
+        <header class="quiz-card__header"><span class="quiz-card__question-number">Pytanie ${index + 1}</span></header>
+        <div class="quiz-card__content">
+          <p class="quiz-card__question-text">${escapeHTML(question_text)}</p>
+          ${image_path ? `<img src="/examly/public/images/questions/${escapeHTML(image_path)}" class="quiz-card__image">` : ''}
+        </div>
+        <div class="quiz-card__answers">${answersHTML}</div>
+        <div class="quiz-card__actions"></div>
+      `;
 
-      if (selectedAnswerId !== null) {
-        const selectedInput = questionCard.querySelector(`input[value="${selectedAnswerId}"]`);
-        selectedInput.checked = true; // Upewnij się, że odpowiedź jest zaznaczona.
+      if (explanation && explanation.trim()) {
+        this.renderExplanationResult(card, explanation);
       }
 
-      // Pokoloruj etykiety odpowiedzi.
-      const correctLabel = correctAnswer
-        ? questionCard.querySelector(`input[value="${correctAnswer.id}"]`)?.closest('.quiz-card__answer')
-        : null;
-      const selectedLabel =
-        selectedAnswerId !== null
-          ? questionCard.querySelector(`input[value="${selectedAnswerId}"]`)?.closest('.quiz-card__answer')
-          : null;
-
-      if (selectedLabel) {
-        selectedLabel.classList.add(selectedAnswerId === correctAnswer?.id ? 'correct' : 'incorrect');
-      }
-      if (correctAnswer && selectedAnswerId !== correctAnswer.id) {
-        correctLabel?.classList.add(selectedAnswerId === null ? 'missed' : 'correct');
-      }
-
-      // Renderuj przycisk wyjaśnienia, jeśli jest dostępne.
-      if (qData.question.explanation?.trim()) {
-        this.renderExplanation(questionCard, qData.question.explanation);
-      }
+      this.resultsDetailsContainer.appendChild(card);
     });
 
-    // Krok 6: Przewiń stronę na górę, aby użytkownik zobaczył swoje wyniki.
     window.scrollTo(0, 0);
   }
 
   /**
-   * Renderuje przycisk i kontener na wyjaśnienie do pytania.
-   * @private
-   * @param {HTMLElement} questionCard - Element DOM karty pytania.
-   * @param {string} explanation - Treść wyjaśnienia w formacie Markdown.
+   * Renderuje sekcję wyjaśnienia w wynikach (z działającym przyciskiem).
    */
-  renderExplanation(questionCard, explanation) {
-    const buttonContainer = questionCard.querySelector('.quiz-card__button-container');
-    const explanationContainer = questionCard.querySelector('.quiz-card__explanation');
+  renderExplanationResult(card, explanation) {
+    const actionsContainer = document.createElement('div');
+    actionsContainer.className = 'quiz-card__actions'; // Zgodne z main.css
 
-    if (buttonContainer && explanationContainer) {
-      explanationContainer.innerHTML = DOMPurify.sanitize(marked.parse(explanation));
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = 'Pokaż wyjaśnienie';
-      button.className = 'btn btn--secondary btn--small';
+    const btnContainer = document.createElement('div');
+    btnContainer.className = 'quiz-card__button-container';
 
-      button.addEventListener('click', () => {
-        const isVisible = explanationContainer.classList.toggle('quiz-card__explanation--visible');
-        button.textContent = isVisible ? 'Ukryj wyjaśnienie' : 'Pokaż wyjaśnienie';
-      });
+    const explContainer = document.createElement('div');
+    explContainer.className = 'quiz-card__explanation'; // Domyślnie ukryte w CSS
+    explContainer.innerHTML = DOMPurify.sanitize(marked.parse(explanation || ''));
 
-      buttonContainer.appendChild(button);
-    }
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn--secondary btn--small';
+    button.textContent = 'Pokaż wyjaśnienie';
+
+    button.addEventListener('click', () => {
+      const isVisible = explContainer.classList.toggle('quiz-card__explanation--visible');
+      button.textContent = isVisible ? 'Ukryj wyjaśnienie' : 'Pokaż wyjaśnienie';
+    });
+
+    btnContainer.appendChild(button);
+    actionsContainer.appendChild(btnContainer);
+    actionsContainer.appendChild(explContainer);
+
+    card.appendChild(actionsContainer);
   }
 
   /**

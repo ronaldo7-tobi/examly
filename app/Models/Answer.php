@@ -6,74 +6,71 @@ use App\Core\Database;
 
 /**
  * Model Odpowiedzi (Answer).
- *
- * Klasa ta pełni rolę warstwy dostępu do danych dla tabeli `answers`.
- * Jej odpowiedzialnością jest hermetyzacja (zamknięcie) zapytań SQL
- * dotyczących odpowiedzi. Dzięki temu reszta aplikacji (np. kontrolery)
- * nie musi znać struktury bazy danych, a jedynie wywoływać metody tego modelu.
- *
- * @version 1.1.0
- * @author Tobiasz Szerszeń
+ * Zarządza pobieraniem opcji odpowiedzi dla konkretnych wersji pytań.
  */
 class Answer
 {
-  /**
-   * Instancja centralnego obiektu do obsługi bazy danych (Singleton).
-   * @var Database
-   */
   private Database $db;
 
-  /**
-   * Konstruktor modelu Answer.
-   *
-   * W momencie tworzenia obiektu modelu, pobiera on gotową do użycia
-   * instancję połączenia z bazą danych.
-   */
   public function __construct()
   {
     $this->db = Database::getInstance();
   }
 
   /**
-   * Pobiera wszystkie odpowiedzi przypisane do konkretnego pytania.
-   *
-   * Kluczowym elementem tej metody jest sortowanie wyników w losowej
-   * kolejności (`ORDER BY RAND()`). Zapobiega to sytuacji, w której
-   * użytkownik uczy się poprawnej odpowiedzi na podstawie jej stałej
-   * pozycji, zmuszając go do faktycznego czytania treści.
-   *
-   * @param int $questionId ID pytania, dla którego odpowiedzi mają zostać pobrane.
-   *
-   * @return array Tablica tablic asocjacyjnych, gdzie każda
-   * reprezentuje jedną odpowiedź. Zwraca pustą tablicę,
-   * jeśli pytanie nie ma odpowiedzi lub wystąpił błąd.
+   * Pobiera wszystkie odpowiedzi przypisane do konkretnej wersji pytania.
+   * * @param int $questionVersionId ID wersji pytania (z tabeli question_versions).
+   * @return array Tablica odpowiedzi z kolumnami: id, answer_text, is_correct.
    */
-  public function getAnswersToQuestion(int $questionId): array
+  public function getAnswersByVersionId(int $questionVersionId): array
   {
-    // Zapytanie SQL wybierające kluczowe dane odpowiedzi dla danego pytania.
-    $sql = 'SELECT id, content, is_correct FROM answers WHERE question_id = ? ORDER BY RAND()';
+    // Zmiana: Filtrujemy po question_version_id i sortujemy wg answer_order
+    $sql = "SELECT id, answer_text, is_correct 
+            FROM answers 
+            WHERE question_version_id = ? AND is_active = 1
+            ORDER BY RAND();";
 
-    return $this->db->fetchAll($sql, [$questionId]);
+    return $this->db->fetchAll($sql, [$questionVersionId]);
   }
 
   /**
-   * Pobiera JEDYNĄ poprawną odpowiedź dla danego pytania.
-   *
-   * Ta metoda jest wykorzystywana przez logikę aplikacji (np. w ApiController)
-   * do weryfikacji, czy odpowiedź udzielona przez użytkownika jest poprawna.
-   * Nie służy do wyświetlania odpowiedzi użytkownikowi.
-   *
-   * @param int $questionId ID pytania, dla którego szukana jest poprawna odpowiedź.
-   *
-   * @return array|false Zwraca tablicę asocjacyjną z ID poprawnej odpowiedzi
-   * (np. `['id' => 123]`) lub `false`, jeśli pytanie
-   * nie ma poprawnej odpowiedzi lub wystąpił błąd.
+   * Pobiera poprawną odpowiedź dla konkretnej wersji pytania.
+   * * @param int $versionId ID z tabeli question_versions.
+   * @return array|false
    */
-  public function getCorrectAnswerForQuestion(int $questionId): array|false
+  public function getCorrectAnswerForVersion(int $versionId): array|false
   {
-    // Zapytanie SQL wybierające tylko ID odpowiedzi oznaczonej jako poprawna.
-    $sql = 'SELECT id FROM answers WHERE question_id = ? AND is_correct = 1';
+    $sql = "SELECT id, answer_text 
+            FROM answers 
+            WHERE question_version_id = ? AND is_correct = 1 AND is_active = 1 
+            LIMIT 1";
 
-    return $this->db->fetch($sql, [$questionId]);
+    return $this->db->fetch($sql, [$versionId]);
+  }
+
+  /**
+   * Pobiera odpowiedzi dla wielu wersji pytań naraz (optymalizacja dla testów).
+   * * @param array<int> $versionIds Tablica ID wersji pytań.
+   * @return array Odpowiedzi pogrupowane po question_version_id.
+   */
+  public function getAnswersForBatch(array $versionIds): array
+  {
+    if (empty($versionIds)) return [];
+
+    $placeholders = implode(',', array_fill(0, count($versionIds), '?'));
+    $sql = "SELECT id, question_version_id, answer_text, is_correct 
+            FROM answers 
+            WHERE question_version_id IN ($placeholders) AND is_active = 1
+            ORDER BY question_version_id, RAND();";
+
+    $results = $this->db->fetchAll($sql, $versionIds);
+
+    // Grupowanie wyników w tablicę asocjacyjną dla łatwiejszego dostępu w kontrolerze
+    $grouped = [];
+    foreach ($results as $row) {
+      $grouped[$row['question_version_id']][] = $row;
+    }
+
+    return $grouped;
   }
 }

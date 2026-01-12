@@ -116,8 +116,7 @@ class Router
     $this->addApiRoute('GET', 'test/personalized/{examCode}', 'ApiController@getPersonalizedTest');
     $this->addApiRoute('GET', 'test/full/{examCode}', 'ApiController@getFullTest');
     $this->addApiRoute('POST', 'check-answer', 'ApiController@checkAnswer');
-    $this->addApiRoute('POST', 'save-test-result', 'ApiController@saveTestResult');
-    $this->addApiRoute('POST', 'save-progress-bulk', 'ApiController@saveProgressBulk');
+    $this->addApiRoute('POST', 'save-attempt', 'ApiController@saveAttempt');
 
     // Krok 2: Przygotowanie danych do dopasowania.
     $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -234,9 +233,6 @@ class Router
         (new QuizPageController())->showTestPage();
         break;
       // --- Grupa Użytkownika ---
-      case 'statystyki':
-        (new StatisticsController())->showStatisticsPage();
-        break;
       case 'ustawienia':
         (new SettingsController())->showSettingsPage();
         break;

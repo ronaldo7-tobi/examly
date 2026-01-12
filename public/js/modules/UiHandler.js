@@ -57,7 +57,7 @@ class UIHandler {
     let answersHTML = '';
     answers.forEach((answer, index) => {
       // 1a. Sparsuj treść odpowiedzi z formatu Markdown na HTML.
-      const unsafeHTML = marked.parse(answer.content, { gfm: true, breaks: true });
+      const unsafeHTML = marked.parse(answer.answer_text, { gfm: true, breaks: true });
       // 1b. Zabezpiecz wygenerowany HTML przed atakami XSS. To jest krytyczny krok!
       const contentHTML = DOMPurify.sanitize(unsafeHTML);
       const letter = String.fromCharCode(65 + index);
@@ -82,7 +82,7 @@ class UIHandler {
     // Krok 3: Zbuduj finalny szablon całej karty pytania i wstaw go do kontenera.
     container.innerHTML = `
       <section class="quiz-card">
-        <p class="quiz-card__question-text">${escapeHTML(question.content)}</p>
+        <p class="quiz-card__question-text">${escapeHTML(question.question_text)}</p>
         ${imageHTML}
         <div class="quiz-card__answers">${answersHTML}</div>
         <div class="quiz-card__actions">
@@ -121,47 +121,43 @@ class UIHandler {
     });
   }
 
-  /**
-   * Renderuje przyciski akcji po udzieleniu odpowiedzi, używając wzorca "callback".
-   *
-   * @param {?string} explanation - Tekst wyjaśnienia do pytania (jeśli istnieje).
-   * @param {Function} onNextClick - Funkcja zwrotna (callback) do wykonania po
-   * kliknięciu przycisku "Następne pytanie".
-   */
-  renderActionButtons(explanation, onNextClick) {
-    // Krok 1: Znajdź kontenery na przyciski i wyjaśnienia.
-    const buttonContainer = document.querySelector('.quiz-card__button-container');
-    const explanationContainer = document.querySelector('.quiz-card__explanation');
-    if (!buttonContainer || !explanationContainer) return;
+  // Metoda renderActionButtons
+  renderActionButtons(explanation, nextCallback) {
+    const actionContainer = document.querySelector('.quiz-card__actions');
+    if (!actionContainer) return;
 
-    // Krok 2: Wyczyść poprzednią zawartość, aby przygotować miejsce na nowe elementy.
-    buttonContainer.innerHTML = '';
-    explanationContainer.innerHTML = '';
-    explanationContainer.classList.remove('quiz-card__explanation--visible');
+    actionContainer.innerHTML = `
+      <div class="quiz-card__button-container"></div>
+      <div class="quiz-card__explanation"></div>
+    `;
 
-    // Krok 3: Jeśli istnieje wyjaśnienie, stwórz i dodaj przycisk "Pokaż wyjaśnienie".
-    if (explanation?.trim()) {
-      explanationContainer.innerHTML = DOMPurify.sanitize(marked.parse(explanation));
-      const expButton = document.createElement('button');
-      expButton.type = 'button';
-      expButton.textContent = 'Pokaż wyjaśnienie';
-      expButton.className = 'btn btn--secondary';
-      expButton.style.marginRight = '10px';
+    const btnContainer = actionContainer.querySelector('.quiz-card__button-container');
+    const explContainer = actionContainer.querySelector('.quiz-card__explanation');
 
-      expButton.addEventListener('click', () => {
-        const isVisible = explanationContainer.classList.toggle('quiz-card__explanation--visible');
-        expButton.textContent = isVisible ? 'Ukryj wyjaśnienie' : 'Pokaż wyjaśnienie';
-      });
-      buttonContainer.appendChild(expButton);
+    // Sprawdzenie, czy wyjaśnienie nie jest puste
+    if (explanation && explanation.trim() !== '') {
+        const explBtn = document.createElement('button');
+        explBtn.type = 'button';
+        explBtn.className = 'btn btn--secondary btn--small';
+        explBtn.textContent = 'Pokaż wyjaśnienie';
+        
+        explBtn.addEventListener('click', () => {
+            const isVisible = explContainer.classList.toggle('quiz-card__explanation--visible');
+            explBtn.textContent = isVisible ? 'Ukryj wyjaśnienie' : 'Pokaż wyjaśnienie';
+        });
+
+        // Parsowanie markdown dla wyjaśnienia
+        explContainer.innerHTML = DOMPurify.sanitize(marked.parse(explanation));
+        btnContainer.appendChild(explBtn);
     }
 
-    // Krok 4: Stwórz przycisk "Następne pytanie" i przypisz do niego logikę z kontrolera (callback).
-    const nextButton = document.createElement('button');
-    nextButton.type = 'button';
-    nextButton.textContent = 'Następne pytanie';
-    nextButton.className = 'btn btn--primary';
-    nextButton.addEventListener('click', onNextClick);
-    buttonContainer.appendChild(nextButton);
+    // Przycisk "Następne"
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'btn btn--primary';
+    nextBtn.textContent = 'Następne pytanie';
+    nextBtn.addEventListener('click', nextCallback);
+    btnContainer.appendChild(nextBtn);
   }
 
   /**

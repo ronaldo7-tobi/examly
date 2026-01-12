@@ -74,17 +74,25 @@ class SettingsController extends BaseController
     $password = $_POST['password'] ?? '';
     $errors = [];
 
-    if (!$this->userModel->checkPassword($this->currentUser->getId(), $password)) {
-      $errors[] = 'Twoje hasło jest nieprawidłowe.';
+    // POPRAWKA MVP: Użytkownicy Google nie muszą podawać hasła do zmiany imienia
+    if ($this->currentUser->getAuthProvider() === 'local') {
+      if (!$this->userModel->checkPassword($this->currentUser->getId(), $password)) {
+        $errors[] = 'Twoje hasło jest nieprawidłowe.';
+      }
     }
+
     if (mb_strlen($firstName) < 2) $errors[] = 'Imię jest za krótkie.';
     if (mb_strlen($lastName) < 2) $errors[] = 'Nazwisko jest za krótkie.';
 
     if (empty($errors)) {
       if ($this->userModel->updateName($this->currentUser->getId(), $firstName, $lastName)) {
-        $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Twoje dane zostały pomyślnie zaktualizowane.'];
+        // Aktualizacja obiektu w sesji, aby UI od razu widziało zmianę
+        $this->currentUser = $this->userModel->getUserById($this->currentUser->getId());
+        $_SESSION['user'] = $this->currentUser;
+
+        $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Dane zostały zaktualizowane.'];
       } else {
-        $errors[] = 'Wystąpił błąd serwera. Spróbuj ponownie.';
+        $errors[] = 'Wystąpił błąd serwera.';
       }
     }
 
@@ -98,29 +106,53 @@ class SettingsController extends BaseController
    */
   private function handlePasswordChange(): void
   {
-    $currentPassword = $_POST['current_password'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
-    $confirmPassword = $_POST['confirm_new_password'] ?? '';
-    $errors = [];
-
-    if (!$this->userModel->checkPassword($this->currentUser->getId(), $currentPassword)) {
-      $errors[] = 'Twoje obecne hasło jest nieprawidłowe.';
-    } elseif (strlen($newPassword) < 6) {
-      $errors[] = 'Nowe hasło musi mieć co najmniej 6 znaków.';
-    } elseif ($newPassword !== $confirmPassword) {
-      $errors[] = 'Podane hasła nie są identyczne.';
+    // BLOKADA MVP: Użytkownicy Google nie mogą zmieniać hasła (bo go nie mają)
+    if ($this->currentUser->getAuthProvider() === 'google') {
+      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => ['Konto Google nie wymaga hasła w naszym serwisie.']];
+      return;
     }
 
+    $errors = [];
+
+    $authController = new AuthController();
+    $authController->resetPassword($_POST, null);
+
     if (empty($errors)) {
-      if ($this->userModel->updatePassword($this->currentUser->getId(), $newPassword)) {
-        $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Twoje hasło zostało pomyślnie zmienione!'];
-      } else {
-        $errors[] = 'Wystąpił błąd serwera. Spróbuj ponownie.';
-      }
+      $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Hasło zostało zmienione.'];
+    } else {
+      $errors[] = 'Błąd serwera.';
     }
 
     if (!empty($errors)) {
       $_SESSION['flash_message'] = ['type' => 'error', 'errors' => $errors];
+    }
+  }
+
+  /**
+   * Obsługuje żądanie usunięcia konta (Soft Delete).
+   */
+  public function handleAccountDeletion(): void
+  {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+
+    $password = $_POST['password'] ?? '';
+    $isGoogleUser = ($this->currentUser->getAuthProvider() === 'google');
+
+    // Walidacja hasła tylko dla użytkowników lokalnych
+    if (!$isGoogleUser && !$this->userModel->checkPassword($this->currentUser->getId(), $password)) {
+      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => ['Podane hasło jest nieprawidłowe.']];
+      header('Location: ' . url('ustawienia?active=delete'));
+      exit();
+    }
+
+    // Wywołanie Soft Delete z bazy danych
+    if ($this->userModel->deleteUser($this->currentUser->getId())) {
+      session_unset();
+      session_destroy();
+      session_start();
+      $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Konto zostało pomyślnie usunięte. Przykro nam, że odchodzisz.'];
+      header('Location: ' . url('/'));
+      exit();
     }
   }
 
@@ -169,38 +201,5 @@ class SettingsController extends BaseController
 
     header('Location: ' . url('ustawienia?active=email'));
     exit();
-  }
-
-  /**
-   * Obsługuje żądanie usunięcia konta.
-   */
-  public function handleAccountDeletion(): void
-  {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-      header('Location: ' . url('ustawienia'));
-      exit();
-    }
-
-    $password = $_POST['password'] ?? '';
-
-    if ($this->userModel->checkPassword($this->currentUser->getId(), $password)) {
-      // Hasło poprawne - usuwamy konto
-      $this->userModel->deleteUser($this->currentUser->getId());
-
-      // Wylogowujemy i niszczymy sesję
-      session_unset();
-      session_destroy();
-
-      // Przekierowujemy na stronę główną z komunikatem
-      session_start();
-      $_SESSION['flash_message'] = ['type' => 'success', 'text' => 'Twoje konto zostało pomyślnie usunięte.'];
-      header('Location: ' . url('/'));
-      exit();
-    } else {
-      // Hasło niepoprawne
-      $_SESSION['flash_message'] = ['type' => 'error', 'errors' => ['Podane hasło jest nieprawidłowe.']];
-      header('Location: ' . url('ustawienia?active=delete'));
-      exit();
-    }
   }
 }

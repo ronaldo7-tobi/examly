@@ -1,21 +1,34 @@
-<?php 
+<?php
 
 namespace App\Controllers;
+
 use App\Services\StatisticsService;
 
 class StatisticsController extends BaseController
 {
-  
-  private StatisticsService $statisticsService;
+  private StatisticsService $statsService;
 
   public function __construct()
   {
-    $this->requireAuth();
-    $this->statisticsService = new StatisticsService();
+    $this->statsService = new StatisticsService();
   }
 
-  public function showStatisticsPage(): void
+  /**
+   * Wyświetla stronę statystyk użytkownika.
+   */
+  public function index(): void
   {
-    $this->renderView('statistics');
+    $userId = $_SESSION['user_id'] ?? null;
+    if (!$userId) {
+      header('Location: /login');
+      exit;
+    }
+
+    // Pobranie danych z zrefaktoryzowanego serwisu
+    $data = [
+      'history'  => $this->statsService->getUserExamsData($userId)
+    ];
+
+    $this->renderView('statistics', $data);
   }
 }

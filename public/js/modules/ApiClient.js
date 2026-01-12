@@ -140,21 +140,17 @@ class ApiClient {
   }
 
   /**
-   * Zapisuje wynik ukończonego testu w bazie danych.
-   *
-   * @param {object} resultData - Obiekt z wynikami testu do wysłania jako JSON.
-   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   * Zapisuje wynik ukończonego testu (Attempt).
+   * @param {object} attemptData - Dane zgodne z modelem Attempt.
    */
-  saveTestResult(resultData) {
-    // Krok 1: Przygotuj opcje dla zapytania POST z ciałem w formacie JSON.
+  saveAttempt(attemptData) {
     const options = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(resultData),
+      body: JSON.stringify(attemptData),
     };
-
-    // Krok 2: Wywołaj _request z odpowiednim endpointem i opcjami.
-    return this._request('/save-test-result', options);
+    // Zmieniamy endpoint na /save-attempt
+    return this._request('/save-attempt', options);
   }
 
   /**
@@ -174,19 +170,16 @@ class ApiClient {
   }
 
   /**
-   * Sprawdza poprawność wybranej odpowiedzi na serwerze.
-   *
-   * @param {number|string} questionId - ID pytania.
-   * @param {number|string} answerId - ID odpowiedzi użytkownika.
-   * @returns {Promise<{success: boolean, data?: object, error?: string}>}
+   * Sprawdza poprawność odpowiedzi na serwerze.
+   * @param {number} questionVersionId - ID wersji pytania.
+   * @param {number} answerId - ID odpowiedzi.
    */
-  checkAnswer(questionId, answerId) {
-    // Krok 1: Przygotuj opcje dla zapytania POST z ciałem w formacie formularza.
+  checkAnswer(questionVersionId, answerId) {
     const options = {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        question_id: questionId,
+        question_version_id: questionVersionId,
         answer_id: answerId,
       }),
     };
